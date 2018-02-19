@@ -15,24 +15,15 @@ class App extends React.Component {
       storageBucket: "friendforce-25851.appspot.com",
     };
     firebase.initializeApp(config);
+    console.log('config', config);
+    console.log('firebase', firebase);
 
     this.state = { 
-      items: []
+      items: ['Ben', 'Micah', 'Adrienne']
     }
   }
 
   componentDidMount() {
-    $.ajax({
-      url: '/items', 
-      success: (data) => {
-        this.setState({
-          items: data
-        })
-      },
-      error: (err) => {
-        console.log('err', err);
-      }
-    });
   }
 
   render () {
