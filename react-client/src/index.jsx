@@ -15,8 +15,6 @@ class App extends React.Component {
       storageBucket: "friendforce-25851.appspot.com",
     };
     firebase.initializeApp(config);
-    console.log('config', config);
-    console.log('firebase', firebase);
 
     this.state = { 
       items: ['Ben', 'Micah', 'Adrienne']
