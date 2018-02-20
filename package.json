@@ -17,10 +17,12 @@
     "webpack": "^2.2.1"
   },
   "dependencies": {
+    "@firebase/firestore": "^0.3.3",
     "angular": "^1.6.3",
     "body-parser": "^1.17.2",
     "express": "^4.15.0",
     "firebase": "^4.10.0",
+    "firebaseui": "^2.6.1",
     "jquery": "^3.1.1",
     "mongoose": "^4.8.6",
     "path": "^0.12.7",
