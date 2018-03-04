@@ -10,4 +10,6 @@ To run webpack: `npm run react-dev`
 
 ## Notes ##
 
+You may need to: `npm install -g firebase-tools` for Google's Firebase cloud functions.
+
 
