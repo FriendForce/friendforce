@@ -10,7 +10,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
 
-    // Initialize Firebase
+    // *** Initialize Firebase
     var config = {
       apiKey: "AIzaSyCMO50yQLEyIw_u6aptgBmK3qsRmhpUjxQ",
       authDomain: "friendforce-25851.firebaseapp.com",
@@ -20,40 +20,51 @@ class App extends React.Component {
     };
     firebase.initializeApp(config);
 
+    // *** Firebase UI
     var uiConfig = {
-      signInSuccessUrl: 'http://127.0.0.1:3000/auth/facebook/callback',
+      // signInSuccessUrl: 'http://127.0.0.1:3000/auth/facebook/callback',
+      signInSuccessUrl: 'http://127.0.0.1:3000/',
       signInOptions: [ firebase.auth.FacebookAuthProvider.PROVIDER_ID ],
       tosUrl: '/' // Terms of service url.
     };
 
-    window.firebase = firebase;
-    console.log('firebase.firestore', firebase.firestore)
+    window.firebase = firebase; // for dev purposes
+    console.log('firebase.firestore', firebase.firestore) // for dev purposes
 
      // Initialize the FirebaseUI Widget using Firebase.
     var ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+    // The start method will wait until the DOM is loaded.
     ui.start('#firebaseui-auth-container', uiConfig);
 
-    // firebase.auth().onAuthStateChanged(function(user) {
-    //   if (user) {
-    //     this.state.setState({ status: 'signed in'});
-    //     this.state.setState({ status: 'signed in'});
-    //     var displayName = user.displayName;
-    //   } else {
-    //     this.state.setState({ status: 'signed out'});
-    //   }
-    // }
+    var that = this;
+
+    firebase.auth().onAuthStateChanged(function(user) {
+      console.log('auth state changed!')
+      console.log('user', user);
+      if (user) {
+        that.setState({ displayName: user.displayName });
+        that.setState({ status: 'signed in'});
+        // user.getIdToken().then(function(accessToken) {
+        //   // make request for 
+        // });
+      } else {
+        that.setState({ status: 'signed out'});
+      }
+    });
 
     this.state = { 
-      items: ['Ben', 'Micah', 'Adrienne']
-    }
-  }
-
-  componentDidMount() {
+      items: ['Ben', 'Micah', 'Adrienne'],
+      status: 'signed out',
+      displayName: 'anonymous',
+    };
   }
 
   render () {
     return (<div>
       <h1>Friend Force</h1>
+      <p>Hello { this.state.displayName }!</p>
+      <p>Status: { this.state.status }</p>
       <List items={this.state.items}/>
       <div id="firebaseui-auth-container"></div>
     </div>)

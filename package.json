@@ -19,6 +19,7 @@
   "dependencies": {
     "@firebase/firestore": "^0.3.3",
     "angular": "^1.6.3",
+    "axios": "^0.18.0",
     "body-parser": "^1.17.2",
     "express": "^4.15.0",
     "firebase": "^4.10.0",

@@ -20,6 +20,10 @@ app.get('/items', (req, res) => {
   });
 });
 
+app.get('/auth/facebook/callback', (req, res) => {
+  res.send("Hello!");
+})
+
 app.listen(3000, () => {
   console.log('listening on port 3000!');
 });
