@@ -1,9 +1,9 @@
+import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import $ from 'jquery';
+import List from './components/List.jsx';
 import * as firebase from 'firebase';
 import * as firebaseui from 'firebaseui';
-import List from './components/List.jsx';
 import '@firebase/firestore';
 import axios from 'axios';
 
