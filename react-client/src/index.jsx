@@ -1,10 +1,10 @@
+import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import $ from 'jquery';
+import List from './components/List.jsx';
+
 import * as firebase from 'firebase';
 import * as firebaseui from 'firebaseui';
-import List from './components/List.jsx';
-import '@firebase/firestore';
 
 class App extends React.Component {
   constructor(props) {
@@ -23,7 +23,7 @@ class App extends React.Component {
     // *** Firebase UI
     var uiConfig = {
       // signInSuccessUrl: 'http://127.0.0.1:3000/auth/facebook/callback',
-      signInSuccessUrl: 'http://127.0.0.1:3000/',
+      signInSuccessUrl: '/',
       signInOptions: [ firebase.auth.FacebookAuthProvider.PROVIDER_ID ],
       tosUrl: '/' // Terms of service url.
     };
