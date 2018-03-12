@@ -12,4 +12,6 @@ To run webpack: `npm run react-dev`
 
 You may need to: `npm install -g firebase-tools` for Google's Firebase cloud functions.
 
+You may need to: `firebase login`
+
 
