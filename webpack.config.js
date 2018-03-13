@@ -19,7 +19,9 @@ module.exports = {
           options: {
             presets: ['react', 'es2015'],
             plugins: ['transform-class-properties']
-        } } },
+                    } 
+              } 
+        },
       { test: /\.css$/, use: ['style-loader', 'css-loader'] }
     ]
   },
