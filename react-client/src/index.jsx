@@ -27,6 +27,7 @@ class App extends React.Component {
       items: ['Ben', 'Micah', 'Adrienne'],
       status: 'signed out',
       displayName: 'anonymous',
+      email: 'anonymous',
     };
 
     this.signIn = this.signIn.bind(this);
@@ -61,8 +62,7 @@ class App extends React.Component {
       if (result.credential) {
         var token = result.credential.accessToken;
         that.user = result.user;
-        that.setState({ status: 'signed in'});
-        that.setState({ displayName: user.displayName });
+        that.setState({ status: 'signed in', displayName: user.displayName, email: user.email });
 
         // user has been added to auth, next to do
         // add user to database
