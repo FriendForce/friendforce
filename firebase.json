@@ -9,7 +9,7 @@
     ]
   },
   "hosting": {
-    "public": "react-client/dist",
+    "public": "./react-client/dist",
     "ignore": [
       "firebase.json",
       "**/.*",
