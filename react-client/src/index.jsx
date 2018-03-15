@@ -2,6 +2,7 @@ import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import List from './components/List.jsx';
+import TagEntrySearch from './components/TagEntrySearch/TagEntrySearch.js';
 import * as firebase from 'firebase';
 import * as firebaseui from 'firebaseui';
 import '@firebase/firestore';
@@ -84,6 +85,7 @@ class App extends React.Component {
       <List items={this.state.items}/>
       <button onClick={this.signIn}>Sign in with facebook</button>
       <div id="firebaseui-auth-container"></div>
+	<TagEntrySearch />
     </div>)
   }
 }
