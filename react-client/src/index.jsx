@@ -2,12 +2,11 @@ import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import List from './components/List.jsx';
+import TagEntrySearch from './components/TagEntrySearch/TagEntrySearch.js';
 import * as firebase from 'firebase';
 import * as firebaseui from 'firebaseui';
+import '@firebase/firestore';
 import axios from 'axios';
-// require("firebase/firestore");
-// import firebase from '@firebase/app';
-import '@firebase/firestore'
 
 class App extends React.Component {
   constructor(props) {
@@ -86,13 +85,11 @@ class App extends React.Component {
           axios.get(friendsUrl)
             .then(function(res) {
               var friends = res.data.data;
-              console.log('friends', friends);
-              
+
               // add friends
               userRef.set({
                 friends: friends,
               }, { merge: true });
-
             });
         }
         recur();
