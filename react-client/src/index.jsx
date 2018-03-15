@@ -2,10 +2,12 @@ import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import List from './components/List.jsx';
-import TagEntrySearch from './components/TagEntrySearch/TagEntrySearch.js';
-
 import * as firebase from 'firebase';
 import * as firebaseui from 'firebaseui';
+import axios from 'axios';
+// require("firebase/firestore");
+// import firebase from '@firebase/app';
+import '@firebase/firestore'
 
 class App extends React.Component {
   constructor(props) {
@@ -18,25 +20,22 @@ class App extends React.Component {
       databaseURL: "https://friendforce-25851.firebaseio.com",
       projectId: "friendforce-25851",
       storageBucket: "friendforce-25851.appspot.com",
+      // authDomain: '/',
     };
     firebase.initializeApp(config);
 
-    // *** Firebase UI
-    var uiConfig = {
-      // signInSuccessUrl: 'http://127.0.0.1:3000/auth/facebook/callback',
-      signInSuccessUrl: '/',
-      signInOptions: [ firebase.auth.FacebookAuthProvider.PROVIDER_ID ],
-      tosUrl: '/' // Terms of service url.
+    this.state = { 
+      items: ['Ben', 'Micah', 'Adrienne'],
+      status: 'signed out',
+      displayName: 'anonymous',
     };
 
-    window.firebase = firebase; // for dev purposes
-    console.log('firebase.firestore', firebase.firestore) // for dev purposes
+    this.signIn = this.signIn.bind(this);
+    this.user = {};
+    this.db = firebase.firestore();
+  }
 
-     // Initialize the FirebaseUI Widget using Firebase.
-    var ui = new firebaseui.auth.AuthUI(firebase.auth());
-
-    // The start method will wait until the DOM is loaded.
-    ui.start('#firebaseui-auth-container', uiConfig);
+  componentWillMount() {
 
     var that = this;
 
@@ -44,21 +43,65 @@ class App extends React.Component {
       console.log('auth state changed!')
       console.log('user', user);
       if (user) {
+        window.user = user;
         that.setState({ displayName: user.displayName });
         that.setState({ status: 'signed in'});
-        // user.getIdToken().then(function(accessToken) {
-        //   // make request for 
-        // });
-      } else {
-        that.setState({ status: 'signed out'});
+
+        // populate friends
       }
     });
+  }
 
-    this.state = { 
-      items: ['Ben', 'Micah', 'Adrienne'],
-      status: 'signed out',
-      displayName: 'anonymous',
-    };
+  signIn() {
+    var that = this;
+    var provider = new firebase.auth.FacebookAuthProvider();
+    provider.addScope('email');
+    provider.addScope('user_friends');
+
+    firebase.auth().signInWithPopup(provider).then(function(result) {
+      if (result.credential) {
+        var token = result.credential.accessToken;
+        that.user = result.user;
+        that.setState({ status: 'signed in'});
+        that.setState({ displayName: user.displayName });
+
+        // user has been added to auth, next to do
+        // add user to database
+        // TODO: check for user's email in database before adding
+        var userRef = that.db.collection("users").doc(user.email)
+        userRef.set({
+          name: user.displayName,
+          email: user.email,
+          accessToken: { facebook: token },
+          photoURL: user.photoURL,
+        }).then(function(docRef) {
+          console.log("Document written with ID: ", docRef.id);
+        })
+        .catch(function(error){
+          console.error("Error adding new user: ". error);
+        })
+
+        var friendsUrl = 'https://graph.facebook.com/me/taggable_friends?access_token=' + token;
+        function recur() {
+          axios.get(friendsUrl)
+            .then(function(res) {
+              var friends = res.data.data;
+              console.log('friends', friends);
+              
+              // add friends
+              userRef.set({
+                friends: friends,
+              }, { merge: true });
+
+            });
+        }
+        recur();
+        // TODO: go to next page
+      }
+    }).catch(function(error){
+      that.setState({ status: 'signed out'});
+      console.log('error', error);
+    })
   }
 
   render () {
@@ -67,8 +110,8 @@ class App extends React.Component {
       <p>Hello { this.state.displayName }!</p>
       <p>Status: { this.state.status }</p>
       <List items={this.state.items}/>
+      <button onClick={this.signIn}>Sign in with facebook</button>
       <div id="firebaseui-auth-container"></div>
-	<TagEntrySearch />
     </div>)
   }
 }
