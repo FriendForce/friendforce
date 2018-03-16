@@ -5,7 +5,6 @@ import List from './components/List.jsx';
 import TagEntrySearch from './components/TagEntrySearch/TagEntrySearch.js';
 import * as firebase from 'firebase';
 import * as firebaseui from 'firebaseui';
-import '@firebase/firestore';
 import axios from 'axios';
 
 class App extends React.Component {
@@ -31,6 +30,7 @@ class App extends React.Component {
 
     this.signIn = this.signIn.bind(this);
     this.user = {};
+    this.db = firebase.firestore();
   }
 
   componentWillMount() {
@@ -85,9 +85,9 @@ class App extends React.Component {
       <List items={this.state.items}/>
       <button onClick={this.signIn}>Sign in with facebook</button>
       <div id="firebaseui-auth-container"></div>
-	<TagEntrySearch />
+	<TagEntrySearch  db={this.db} />
     </div>)
   }
 }
 
-ReactDOM.render(<App />, document.getElementById('app'));
+ReactDOM.render(<App/>, document.getElementById('app'));

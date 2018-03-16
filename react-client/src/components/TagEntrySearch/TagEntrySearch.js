@@ -21,6 +21,32 @@ export default class TagEntrySearch extends Component {
     console.log('updated Info');
   };
 
+  testDB = db => {
+    db.collection("people").where("Name", "==", "Benjamin Reinhardt")
+    .get()
+    .then(function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+            // doc.data() is never undefined for query doc snapshots
+            console.log(doc.id, " => ", doc.data());
+        });
+    })
+    .catch(function(error) {
+        console.log("Error getting documents: ", error);
+    });
+  };
+
+  componentWillMount = value => {
+    this.testDB(this.props.db);
+  };
+
+  loadFromDB = db => {
+
+  };
+
+  saveToDB = db => {
+
+  };
+
   render() {
     return (
       <div>
