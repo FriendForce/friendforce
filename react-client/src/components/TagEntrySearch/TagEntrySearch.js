@@ -103,6 +103,9 @@ export default class TagEntrySearch extends Component {
   };
 
   loadFromDB = db => {
+    // loads everything from the db
+    db = this.props.db;
+    
     console.log("loading!");
   };
 
