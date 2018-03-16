@@ -85,7 +85,22 @@ export default class TagEntrySearch extends Component {
     //this.testDB(this.props.db);
   };
 
+  deleteDB = db => {
+    db = this.props.db;
+    db.collection("people").get().then(function(querySnapshot) {
+      querySnapshot.forEach(function(doc) {
+        // doc.data() is never undefined for query doc snapshots
+        db.collection("people").doc(doc.id).delete();
+      });
+    });
 
+    db.collection("edges").get().then(function(querySnapshot) {
+      querySnapshot.forEach(function(doc) {
+        // doc.data() is never undefined for query doc snapshots
+        db.collection("edges").doc(doc.id).delete();
+      });
+    });
+  };
 
   loadFromDB = db => {
     console.log("loading!");
@@ -151,6 +166,7 @@ export default class TagEntrySearch extends Component {
         <Entry infos={this.state.data} addInfo={this.addInfo} />
         <button onClick={this.loadFromDB}>Load Data</button>
         <button onClick={this.saveToDB}>Save Data</button>
+        <button onClick={this.deleteDB}>Delete DB</button>
       </div>
     );
   }
