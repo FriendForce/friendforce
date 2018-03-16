@@ -109,6 +109,7 @@ class App extends React.Component {
       <List items={this.state.items}/>
       <button onClick={this.signIn}>Sign in with facebook</button>
       <div id="firebaseui-auth-container"></div>
+      <TagEntrySearch />
     </div>)
   }
 }
