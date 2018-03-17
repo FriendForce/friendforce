@@ -1,4 +1,4 @@
-
+import styles from './TagEntrySearch.less'
 import React, { Component } from 'react';
 import Entry from './components/Entry/Entry.js';
 import Tags from './components/Tags/Tags.js';
@@ -23,7 +23,7 @@ export default class TagEntrySearch extends Component {
 
   render() {
     return (
-      <div>
+      <div className={styles.container}>
         <h2 >Examples</h2>
         <Tags infos={this.state.data} addInfo={this.addInfo} />
         <Entry infos={this.state.data} addInfo={this.addInfo} />

@@ -1,4 +1,4 @@
-
+import styles from './Tags.less';
 import React, { Component } from 'react';
 import isMobile from 'ismobilejs';
 import Autosuggest from 'react-autosuggest';
@@ -149,13 +149,13 @@ export default class Basic extends Component {
 
     return (
       //Finding Tags
-      <div id="tags-example" >
-        <div   >
-          <div   >Search</div>
-          <div   >Search for folks</div>
+       <div id="tags-example" className={styles.container}>
+          <div className={styles.textContainer}>
+            <div className={styles.title}>Search</div>
+            <div className={styles.description}>Search for Folks</div>
         </div>
         <div   >
-          <Autosuggest
+          <Autosuggest className={styles.autosuggest}
             suggestions={suggestions}
             onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
             onSuggestionsClearRequested={this.onSuggestionsClearRequested}

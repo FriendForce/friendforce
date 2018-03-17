@@ -1,3 +1,4 @@
+import styles from './Entry.less';
 import React, { Component } from 'react';
 import isMobile from 'ismobilejs';
 import Autosuggest from 'react-autosuggest';
@@ -283,14 +284,14 @@ export default class Basic extends Component {
 
     return (
       //Finding Tags
-      <div id="entry-example">
-        <div id="name-entry" >
-          <div>
-            <div >Entry</div>
-            <div >Enter Names</div>
+      <div id="entry-example" >
+        <div id="name-entry" className={styles.container}>
+          <div className={styles.textContainer}>
+            <div className={styles.title}>Entry</div>
+            <div className={styles.description}>Enter Names</div>
           </div>
           <div >
-            <Autosuggest
+            <Autosuggest className={styles.autosuggest}
               suggestions={people_suggestions}
               onSuggestionsFetchRequested={
                 this.onPeopleSuggestionsFetchRequested
@@ -312,7 +313,7 @@ export default class Basic extends Component {
             <div >Enter Tags</div>
           </div>
           <div>
-            <Autosuggest
+            <Autosuggest className={styles.autosuggest}
               suggestions={tag_suggestions}
               onSuggestionsFetchRequested={this.onTagSuggestionsFetchRequested}
               onSuggestionsClearRequested={this.onTagSuggestionsClearRequested}
