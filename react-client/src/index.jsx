@@ -27,10 +27,12 @@ class App extends React.Component {
       items: ['Ben', 'Micah', 'Adrienne'],
       status: 'signed out',
       displayName: 'anonymous',
+      email: 'anonymous',
     };
 
     this.signIn = this.signIn.bind(this);
     this.user = {};
+    this.db = firebase.firestore();
   }
 
   componentWillMount() {
@@ -44,6 +46,8 @@ class App extends React.Component {
         window.user = user;
         that.setState({ displayName: user.displayName });
         that.setState({ status: 'signed in'});
+
+        // populate friends
       }
     });
   }
@@ -58,14 +62,34 @@ class App extends React.Component {
       if (result.credential) {
         var token = result.credential.accessToken;
         that.user = result.user;
-        that.setState({ status: 'signed in'});
-        that.setState({ displayName: user.displayName });
+        that.setState({ status: 'signed in', displayName: user.displayName, email: user.email });
+
+        // user has been added to auth, next to do
+        // add user to database
+        // TODO: check for user's email in database before adding
+        var userRef = that.db.collection("users").doc(user.email)
+        userRef.set({
+          name: user.displayName,
+          email: user.email,
+          accessToken: { facebook: token },
+          photoURL: user.photoURL,
+        }).then(function(docRef) {
+          console.log("Document written with ID: ", docRef.id);
+        })
+        .catch(function(error){
+          console.error("Error adding new user: ". error);
+        })
+
         var friendsUrl = 'https://graph.facebook.com/me/taggable_friends?access_token=' + token;
         function recur() {
           axios.get(friendsUrl)
             .then(function(res) {
               var friends = res.data.data;
-              console.log('friends', friends);
+
+              // add friends
+              userRef.set({
+                friends: friends,
+              }, { merge: true });
             });
         }
         recur();
@@ -85,7 +109,7 @@ class App extends React.Component {
       <List items={this.state.items}/>
       <button onClick={this.signIn}>Sign in with facebook</button>
       <div id="firebaseui-auth-container"></div>
-	<TagEntrySearch />
+      <TagEntrySearch />
     </div>)
   }
 }
