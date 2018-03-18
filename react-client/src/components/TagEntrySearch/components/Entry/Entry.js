@@ -177,6 +177,7 @@ export default class Basic extends Component {
         subject: this.state.person.id,
         originator: this.props.user.id,
         tag: suggestion,
+        // TODO: turn into firebase class
         timestamp: Date().toString()
       });
       // This is mostly for speed, would it be better
@@ -202,6 +203,7 @@ export default class Basic extends Component {
         subject: this.state.person.id,
         originator: this.props.user.id,
         tag: new_tag,
+        // TODO: replace Date with firebase class
         timestamp: Date().toString()
       });
       if (this.state.person.name.length > 0) {
