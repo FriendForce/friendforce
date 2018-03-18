@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import List from './components/List.jsx';
 import TagEntrySearch from './components/TagEntrySearch/TagEntrySearch.js';
+import './main.css';
 import * as firebase from 'firebase';
 import * as firebaseui from 'firebaseui';
 import axios from 'axios';
