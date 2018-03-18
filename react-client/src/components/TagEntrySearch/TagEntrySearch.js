@@ -170,7 +170,7 @@ export default class TagEntrySearch extends Component {
         tag : temp_edges[i].tag,
       }, {merge : true});
     }
-
+  }
 
   render() {
     return (
@@ -193,6 +193,11 @@ export default class TagEntrySearch extends Component {
           addPerson={this.addPerson}
           addEdge={this.addEdge}
         />
+        <button onClick={this.loadFromDB}>Load Data</button>
+        <button onClick={this.saveToDB}>Save Data</button>
+        <button onClick={this.deleteDB}>Delete DB</button>  
+
+
       </div>
     );
   }
