@@ -120,54 +120,30 @@ export default class TagEntrySearch extends Component {
     console.log("loading!");
   };
 
+  
   saveToDB = db => {
     // create a person for each person in the people list
     //This line will become irrelevant once start sing data correctly
     db = this.props.db;
-    console.log(this.state.data);
-    var lists = infosToLists(this.state.data);
-    var tag_array = lists['tag_array'];
-    var people_array = lists['people_array'];
-    //todo, need to get originators out of people array
-    var temp_people = [];
-    for (var i = 0; i < people_array.length; i++) {
-      // create id
-      var id = uuid();
-      var name = people_array[i];
-      temp_people.push({id:id, name:name});
-    }
-    this.setState({people: temp_people});
-    var temp_edges = this.state.data;
-    for (var i = 0; i < temp_edges.length; i++) {
-      // replace edge names with ids 
-      var temp_edge = temp_edges[i];
-      var originator = temp_people.filter(person => person.name === temp_edge.originator);
-      var subject = temp_people.filter(person => person.name === temp_edge.subject);
-      temp_edge.originator = originator[0].id;
-      temp_edge.subject = subject[0].id;
-      temp_edges[i] = temp_edge;
-    }
-    // TODO: why isn't the state updating?
-    this.setState({edges: temp_edges});
-    // iterate through every in the infos 
-    
     console.log("saving! State = ");
     console.log(this.state);
-   
-    for (var i = 0; i < temp_people.length; i++) {
-      var person = db.collection("people").doc(temp_people[i].id);
-      person.set({
-        name : temp_people[i].name,
+    // Save People
+    for (var i = 0; i < this.state.people.length; i++) {
+      var person = this.state.people[i];
+      var db_person = db.collection("people").doc(person.id);
+      db_person.set({
+        name : person.name,
       }, {merge: true});
     }
-    for (var i = 0; i < temp_edges.length; i++) {
-      id = uuid();
-      var edge = db.collection("edges").doc(id);
-      edge.set({
-        subject : temp_edges[i].subject,
-        originator : temp_edges[i].originator,
-        timestamp : temp_edges[i].timestamp,
-        tag : temp_edges[i].tag,
+    // Save Edges
+    for (var i = 0; i < this.state.edges.length; i++) {
+      var edge = this.state.edges[i];
+      var db_edge = db.collection("edges").doc(edge.id);
+      db_edge.set({
+        subject : edge.subject,
+        originator : edge.originator,
+        timestamp : edge.timestamp,
+        tag : edge.tag,
       }, {merge : true});
     }
   }
