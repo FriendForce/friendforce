@@ -62,18 +62,12 @@ export default class TagEntrySearch extends Component {
 
 
   addPerson = person => {
-    //TODO - weird bug where it doesn't push a person until a new person
-    // is entered
-    var temp_array = this.state.people.slice();
-    temp_array.push(person);
-    this.setState({ people: temp_array });
+    this.setState({ people: this.state.people.concat(person)});
     console.log('updated people');
   };
 
   addEdge = edge => {
-    var temp_array = this.state.edges.slice();
-    temp_array.push(edge);
-    this.setState({ edges: temp_array });
+    this.setState({ edges: this.state.edges.concat(edge)});
     console.log('updated edges');
   };
 
