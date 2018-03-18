@@ -103,7 +103,8 @@ export default class Basic extends Component {
   };
 
   componentWillReceiveProps = new_props => {
-    console.log('entry props updated');
+    console.log('entry props updated: ');
+    console.log(new_props);
     var people_array = peopleToPeopleArray(new_props.people);
     var tag_array = edgesToTagArray(new_props.edges);
     this.setState({

@@ -115,12 +115,46 @@ export default class TagEntrySearch extends Component {
 
   loadFromDB = db => {
     // loads everything from the db
-    db = this.props.db;
-    
+    //overwrite data right now
+    var people = [];
     console.log("loading!");
-  };
+    db = this.props.db;
+    // TODO - why doesn't this work?
+    db.collection("people").get().then(function(querySnapshot) {
+      querySnapshot.forEach(function(doc) {
+        var data = doc.data();
+        var person = {
+          id: doc.id,
+          name: data.name
+        }
+        people.push(person);
+      });
+    });
 
-  
+    var edges = [];
+    var edges = db.collection("edges").get().then(function(querySnapshot) {
+      querySnapshot.forEach(function(doc) {
+        var data = doc.data();
+        var edge = {
+          id: doc.id,
+          originator: data.originator,
+          subject: data.subject,
+          timestamp: data.timestamp,
+          tag: data.tag
+        }
+        edges.push(edge);
+      });
+    });
+    console.log("edges, people");
+    console.log(edges);
+    console.log(people);
+    console.log("current edges, people");
+    console.log(this.state.edges);
+    console.log(this.state.people);
+    this.setState({edges:edges, people:people});
+  }
+
+
   saveToDB = db => {
     // create a person for each person in the people list
     //This line will become irrelevant once start sing data correctly
