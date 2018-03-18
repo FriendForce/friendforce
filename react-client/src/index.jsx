@@ -19,7 +19,6 @@ class App extends React.Component {
       databaseURL: "https://friendforce-25851.firebaseio.com",
       projectId: "friendforce-25851",
       storageBucket: "friendforce-25851.appspot.com",
-      // authDomain: '/',
     };
     firebase.initializeApp(config);
 
@@ -49,7 +48,6 @@ class App extends React.Component {
         that.setState({ status: 'signed in'});
 
         // populate friends
-        // db.collection("users").
         that.db.collection("users").where("email", "==", "adrienne@adriennetran.com")
           .get()
           .then(function(querySnapshot) { 
@@ -58,7 +56,6 @@ class App extends React.Component {
             });
           }
         );
-        // this.state.email
       }
     });
   }
@@ -113,22 +110,17 @@ class App extends React.Component {
   }
 
   render () {
-    // const friends = <div></div>
-    // if (this.state.friends[1]) {
     const friends = (this.state.friends).map((f) => 
       <li key={f["name"]}>
         { f["name"] }
       </li>
     )
-    // }
 
     return (<div>
       <h1>Friend Force</h1>
       <p>Hello { this.state.displayName }!</p>
       <p>Status: { this.state.status }</p>
-      {/* <List items={this.state.items}/> */}
       {this.state.status === "signed out" && <button onClick={this.signIn}>Sign in with facebook</button>}
-      {/* {this.state.friends[1] && this.state.friends[1]["name"]} */}
       <h1>Friends</h1>
       { friends }
       <div id="firebaseui-auth-container"></div>
