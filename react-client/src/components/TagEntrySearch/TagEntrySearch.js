@@ -57,37 +57,14 @@ export default class TagEntrySearch extends Component {
     var temp_array = this.state.data.slice();
     temp_array.push(info);
     this.setState({ data: temp_array });
-    console.log('updated Info');
   };
-
 
   addPerson = person => {
     this.setState({ people: this.state.people.concat(person)});
-    console.log('updated people');
   };
 
   addEdge = edge => {
     this.setState({ edges: this.state.edges.concat(edge)});
-    console.log('updated edges');
-  };
-
-
-  testDB = db => {
-    db.collection("people").where("Name", "==", "Benjamin Reinhardt")
-    .get()
-    .then(function(querySnapshot) {
-        querySnapshot.forEach(function(doc) {
-            // doc.data() is never undefined for query doc snapshots
-            console.log(doc.id, " => ", doc.data());
-        });
-    })
-    .catch(function(error) {
-        console.log("Error getting documents: ", error);
-    });
-  };
-
-  componentWillMount = value => {
-    //this.testDB(this.props.db);
   };
 
   deleteDB = db => {
@@ -111,10 +88,9 @@ export default class TagEntrySearch extends Component {
     // loads everything from the db
     //overwrite data right now
     var people = [];
-    console.log("loading!");
     db = this.props.db;
     // TODO - why doesn't this work?
-    db.collection("people").get().then(function(querySnapshot) {
+    db.collection("people").get().then((querySnapshot) => {
       querySnapshot.forEach(function(doc) {
         var data = doc.data();
         var person = {
@@ -123,10 +99,11 @@ export default class TagEntrySearch extends Component {
         }
         people.push(person);
       });
+      this.setState({people:people});
     });
 
     var edges = [];
-    var edges = db.collection("edges").get().then(function(querySnapshot) {
+    db.collection("edges").get().then((querySnapshot) => {
       querySnapshot.forEach(function(doc) {
         var data = doc.data();
         var edge = {
@@ -138,14 +115,8 @@ export default class TagEntrySearch extends Component {
         }
         edges.push(edge);
       });
-    });
-    console.log("edges, people");
-    console.log(edges);
-    console.log(people);
-    console.log("current edges, people");
-    console.log(this.state.edges);
-    console.log(this.state.people);
-    this.setState({edges:edges, people:people});
+      this.setState({edges:edges});
+    });    
   }
 
 
@@ -153,8 +124,6 @@ export default class TagEntrySearch extends Component {
     // create a person for each person in the people list
     //This line will become irrelevant once start sing data correctly
     db = this.props.db;
-    console.log("saving! State = ");
-    console.log(this.state);
     // Save People
     for (var i = 0; i < this.state.people.length; i++) {
       var person = this.state.people[i];
