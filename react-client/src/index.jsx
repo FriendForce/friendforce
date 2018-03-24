@@ -82,13 +82,14 @@ class App extends React.Component {
           accessToken: { facebook: token },
           photoURL: user.photoURL,
         }).then(function(docRef) {
-          console.log("Document written with ID: ", docRef.id);
+          // docRef is null
+          //console.log("Document written with ID: ", docRef.id);
         })
         .catch(function(error){
           console.error("Error adding new user: ", error);
         })
 
-        var friendsUrl = 'https://graph.facebook.com/me/access_token=' + token;
+        var friendsUrl = 'https://graph.facebook.com/me/friends?access_token=' + token;
         function recur() {
           axios.get(friendsUrl)
             .then(function(res) {
