@@ -41,8 +41,6 @@ class App extends React.Component {
     var that = this;
 
     firebase.auth().onAuthStateChanged(function(user) {
-      console.log('auth state changed!')
-      console.log('user', user);
       if (user) {
         window.user = user;
         that.setState({ displayName: user.displayName });
@@ -71,8 +69,6 @@ class App extends React.Component {
     firebase.auth().signInWithPopup(provider).then(function(result) {
       if (result.credential) {
         var token = result.credential.accessToken;
-        console.log("token");
-        console.log(token);
         var user = result.user;
         that.setState({ status: 'signed in', displayName: user.displayName, email: user.email });
 
@@ -89,12 +85,10 @@ class App extends React.Component {
           console.log("Document written with ID: ", docRef.id);
         })
         .catch(function(error){
-          console.error("Error adding new user: ". error);
+          console.error("Error adding new user: ", error);
         })
 
         var friendsUrl = 'https://graph.facebook.com/me/access_token=' + token;
-        console.log('url: ')
-        console.log(friendsUrl);
         function recur() {
           axios.get(friendsUrl)
             .then(function(res) {
@@ -122,8 +116,7 @@ class App extends React.Component {
     // Sign-out successful.
     }).catch(function(error) {
     // An error happened.
-      console.log("sign out error");
-      console.log(error);
+      console.log("sign out error", error);
     });
   }
 
