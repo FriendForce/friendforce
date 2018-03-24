@@ -92,15 +92,12 @@ export default class Basic extends Component {
   };
 
   componentWillReceiveProps = new_props => {
-    console.log('entry props updated');
     var people_array = peopleToPeopleArray(new_props.people);
     var tag_array = edgesToTagArray(new_props.edges);
     this.setState({
       tag_array: tag_array,
       people_array: people_array
     });
-    console.log(tag_array);
-    console.log(this.state.tag_array);
   };
 
   findTagsForPerson = person => {
@@ -156,14 +153,12 @@ export default class Basic extends Component {
   onPeopleSuggestionSelected = (event, { suggestion }) => {
     // This assumes there's only one person with the name
     // needs to change as it scales
-    console.log('people suggestoion: ' + suggestion);
     var person = this.props.people.filter(
       person => person.name == suggestion
     )[0];
     // Check if you're changing people
     if (this.state.person != person) {
       // if you're changing people pull up all the tags associated with that person
-      console.log('changing person');
       this.setState({ tags: this.findTagsForPerson(person) });
     }
     this.setState({ personValue: '', person: person });
@@ -172,7 +167,6 @@ export default class Basic extends Component {
   onTagSuggestionSelected = (event, { suggestion }) => {
     // add to the person
     if (this.state.person.name.length > 0) {
-      console.log('Add tag: ' + suggestion);
       this.props.addEdge({
         subject: this.state.person.id,
         originator: this.props.user.id,
@@ -219,13 +213,10 @@ export default class Basic extends Component {
   _handlePersonKeyPress = e => {
     if (e.key == 'Enter' && e.target.value.length > 0) {
       // Check if new person
-      console.log('entered name: ' + e.target.value);
       var matches = this.props.people.filter(
         person => person.name === e.target.value
       );
-      console.log('people matches ' + matches);
       if (matches.length == 0) {
-        console.log('new person entered: ' + e.target.value);
         var person = {
           name: e.target.value,
           id: uuid()
@@ -241,7 +232,6 @@ export default class Basic extends Component {
         // Check if you're changing people
         if (this.state.person != person) {
           // if you're changing people pull up all the tags associated with that person
-          console.log('changing person');
           this.setState({ tags: this.findTagsForPerson(person) });
         }
         this.setState({ personValue: '', person: person });
