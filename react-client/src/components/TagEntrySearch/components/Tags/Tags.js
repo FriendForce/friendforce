@@ -107,7 +107,6 @@ export default class Basic extends Component {
   };
 
   onSuggestionsFetchRequested = ({ value }) => {
-    console.log('options: ' + this.state.options);
     this.setState({
       suggestions: getSuggestions(value, this.state.options)
     });
