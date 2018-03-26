@@ -21,6 +21,17 @@ var tag_array = [];
 var people_array = [];
 var user = 'Trinity';
 
+const createEdge = (subject, originator, tag, timestamp) => {
+    var edge = {
+        id: uuid(),
+        subject: subject,
+        originator: originator,
+        tag: tag,
+        timestamp: timestamp
+      };
+    return edge;
+}
+
 const peopleToPeopleArray = people => {
   // Turns list of people with ids to a list of searchable names
   var people_set = people.map(x => x.name);
@@ -112,7 +123,7 @@ export default class Basic extends Component {
       personValue: newValue
     });
     if (method == 'enter') {
-      console.log('enter pressed');
+      console.log('enter pressed on person change');
     }
   };
 
@@ -122,7 +133,7 @@ export default class Basic extends Component {
       tagValue: newValue
     });
     if (method == 'enter') {
-      console.log('enter pressed');
+      console.log('enter pressed on tag change');
     }
   };
 
@@ -167,13 +178,14 @@ export default class Basic extends Component {
   onTagSuggestionSelected = (event, { suggestion }) => {
     // add to the person
     if (this.state.person.name.length > 0) {
-      this.props.addEdge({
-        subject: this.state.person.id,
-        originator: this.props.user.id,
-        tag: suggestion,
-        // TODO: turn into firebase class
-        timestamp: Date().toString()
-      });
+      this.props.addEdge(
+        createEdge(
+          this.state.person.id,
+          this.props.user.id,
+          suggestion,
+          Date().toString()
+        )
+      );
       // This is mostly for speed, would it be better
       // to regen tag list?
       var temp_array = this.state.tags.slice();
@@ -193,13 +205,14 @@ export default class Basic extends Component {
     ) {
       // Should it be legit to create a tag without a person? Why not?
       var new_tag = e.target.value;
-      this.props.addEdge({
-        subject: this.state.person.id,
-        originator: this.props.user.id,
-        tag: new_tag,
-        // TODO: replace Date with firebase class
-        timestamp: Date().toString()
-      });
+      this.props.addEdge(
+        createEdge(
+          this.state.person.id,
+          this.props.user.id,
+          new_tag,
+          Date().toString()
+        )
+      );
       if (this.state.person.name.length > 0) {
         var temp_array = this.state.tags.slice();
         temp_array.push(new_tag);
