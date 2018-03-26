@@ -46,11 +46,16 @@ export default class TagEntrySearch extends Component {
       user: {
         id: '4',
         name: 'Trinity'
-      }
+      },
+      user_id: '0'
     };
     this.addInfo = this.addInfo.bind(this);
     this.addPerson = this.addPerson.bind(this);
     this.addEdge = this.addEdge.bind(this);
+  }
+
+  componentWillMount = db => {
+    this.setState({user_id: this.props.user_id})
   }
 
   addInfo = info => {
@@ -127,10 +132,42 @@ export default class TagEntrySearch extends Component {
     // Save People
     for (var i = 0; i < this.state.people.length; i++) {
       var person = this.state.people[i];
-      var db_person = db.collection("people").doc(person.id);
-      db_person.set({
-        name : person.name,
-      }, {merge: true});
+      // Check if a person with duplicate info exists
+      // this will be a complicated flow eventually
+      // email, nicknames, etc, maybe feedback
+      // for now just check names
+      db.collection("people").where("name", "==", person.name)
+        .get()
+        .then(function(querySnapshot) {
+          if (querySnapshot.size == 0) {
+            //create a new person
+            var db_person = db.collection("people").doc(person.id);
+            db_person.set({
+              name : person.name,
+            }, {merge: true});
+          } else if (querySnapshot.size == 1) {
+            querySnapshot.forEach(function(doc) {
+              // Update all the edges
+              var new_edges = this.state.edges.map(function(edge) {
+                var temp_edge = edge;
+                if (edge.originator == person.id) {
+                  temp_edge.originator = doc.id;
+                }
+                if (edge.subject == person.id) {
+                  temp_edge.subject = doc.id;
+                }
+                return temp_edge;
+              });
+              this.setState({edges: new_edges});
+              var new_people = this.state.people;
+              new_people[i].id = doc.id;
+              this.setState({people: new_people});
+            }); 
+          } else {
+            console.log("ERP MULTIPLE PEOPLE WITH SAME NAME");
+          }
+        });
+      
     }
     // Save Edges
     for (var i = 0; i < this.state.edges.length; i++) {
