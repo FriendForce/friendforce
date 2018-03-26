@@ -29,6 +29,7 @@ class App extends React.Component {
       displayName: 'anonymous',
       email: 'anonymous',
       friends: [{name: "Jimmy"}, {name: "Jack"}],
+      user_id: '0'
     };
 
     this.signIn = this.signIn.bind(this);
@@ -45,6 +46,14 @@ class App extends React.Component {
         window.user = user;
         that.setState({ displayName: user.displayName });
         that.setState({ status: 'signed in'});
+        that.db.collection("people").where("email", "==", user.email)
+          .get()
+          .then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+              that.setState({user_id:doc.id});
+              console.log("logged in user " + doc.id);
+            });
+          });
         /* this is broken for not-adrienne
         // populate friends
         that.db.collection("users").where("email", "==", user.email)
