@@ -37,7 +37,7 @@ class App extends React.Component {
     // window.db = this.db;
   }
 
-  componentWillMount() {
+  componentWillMount = db => {
     var that = this;
 
     firebase.auth().onAuthStateChanged(function(user) {
@@ -72,6 +72,46 @@ class App extends React.Component {
         var user = result.user;
         that.setState({ status: 'signed in', displayName: user.displayName, email: user.email });
 
+        // Check if the user exists as a person
+        that.db.collection("people").where("email", "==", user.email).get().then(function(querySnapshot) {
+          var email_matches = querySnapshot.size;
+          querySnapshot.forEach(function(doc) {
+            that.db.collection("people").doc(doc.id)
+              .set({
+                name: user.displayName,
+                email: user.email,
+                accessToken: { facebook: token },
+                isUser: "true"
+                }, {merge: true}
+              );
+          });
+          return email_matches;
+        }).then(function(email_matches){
+          if (email_matches == 0) {
+            that.db.collection("people").where("name", "==", user.displayName).get().then(
+              function(querySnapshot) {
+                var name_matches = querySnapshot.size;
+                querySnapshot.forEach(function(doc) {
+                  that.db.collection("people").doc(doc.id)
+                    .set({
+                      name: user.displayName,
+                      email: user.email,
+                      accessToken: { facebook: token },
+                      isUser: "true"
+                      }, {merge: true}
+                    );
+                });
+                if (name_matches == 0 && email_matches == 0) {
+                  //create new user
+                }
+                return name_matches;
+              });
+          }
+        });
+          
+       //TODO: how to do logic on email matches and name matches?
+      
+       
         // user has been added to auth, next to do
         // add user to database
         // TODO: check for user's email in database before adding
