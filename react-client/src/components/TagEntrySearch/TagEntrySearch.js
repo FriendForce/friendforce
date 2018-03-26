@@ -5,13 +5,25 @@ import Tags from './components/Tags/Tags.js';
 import data from './infos';
 import people from './people';
 import edges from './edges';
-// TODO need to pass getter and setter functions
 
-const uuid = foo => {
+// TODO need to pass getter and setter functions
+export const uuid = foo => {
   // Get a random uuid
   return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
     (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
   )
+}
+
+
+const createEdge = (subject, originator, tag, timestamp) => {
+    var edge = {
+        id: uuid(),
+        subject: subject,
+        originator: originator,
+        tag: tag,
+        timestamp: timestamp
+      };
+    return edge;
 }
 
 Set.prototype.union = function(setB) {
@@ -182,6 +194,37 @@ export default class TagEntrySearch extends Component {
     }
   }
 
+  uploadFBData = files => {
+    var fr = new FileReader();
+    fr.onload = e => {
+      var parser = new DOMParser();
+      var htmlDoc = parser.parseFromString(e.target.result, "text/html");
+      var friend_html = htmlDoc.body.children[1].children[1].children[1].children;
+      for (var i = 0; i < friend_html.length; i ++) {
+        // TODO: need to handle corner case where person has >2 names
+        var first_name = friend_html[i].innerText.split(" ")[0];
+        var last_name = friend_html[i].innerText.split(" ")[1];
+        
+        // Create a person for each person
+        var person = {
+          name: first_name + " " + last_name,
+          id: uuid()
+        };
+        // TODO: obviously need to check for duplicates
+        this.addPerson(person);
+        this.addEdge(
+          createEdge(
+            person.id,
+            this.state.user.id,
+            "fb friend",
+            Date.toString()
+          )
+        );
+      }
+    } 
+    fr.readAsText(files[0]);
+  }
+
   render() {
     return (
       <div className={styles.container}>
@@ -205,8 +248,11 @@ export default class TagEntrySearch extends Component {
         />
         <button onClick={this.loadFromDB}>Load Data</button>
         <button onClick={this.saveToDB}>Save Data</button>
-        <button onClick={this.deleteDB}>Delete DB</button>  
-
+        <button onClick={this.deleteDB}>Delete DB</button>
+        <div>
+        Upload Facebook Data: 
+        <input type="file" id="files" name="files[]" multiple onChange={(e) => this.uploadFBData(e.target.files)} />  
+        </div>
 
       </div>
     );
