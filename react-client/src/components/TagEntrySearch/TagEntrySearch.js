@@ -194,14 +194,14 @@ export default class TagEntrySearch extends Component {
 
       db.collection("people").where("name", "==", person.name)
         .get()
-        .then(personQueryResponse.bind(null, i, that));
+        .then((querySnapshot) => personQueryResponse.bind(null, i, that));
       
     }
     // Save Edges
     for (var i = 0; i < this.state.edges.length; i++) {
       var edge = this.state.edges[i];
 
-      function edgeQueryResponse(querySnapshot, i, that) {
+      function edgeQueryResponse(querySnapshot, j, that) {
         if (querySnapshot.size == 0) {
             //create a new person
             var db_edge = db.collection("edges").doc(edge.id);
@@ -215,7 +215,9 @@ export default class TagEntrySearch extends Component {
             querySnapshot.forEach(doc => {
               // Update the local edge id
               var new_edges = that.state.edges;
-              new_edges[i].id = doc.id;
+              console.log(new_edges);
+              console.log(j);
+              new_edges[j].id = doc.id;
               that.setState({edges: new_edges});
             }); 
           } else {
@@ -232,7 +234,7 @@ export default class TagEntrySearch extends Component {
         .where("subject", "==", edge.subject)
         .where("tag", "==", edge.tag)
         .get()
-        .then(edgeQueryResponse.bind(null, i, that));
+        .then((querySnapshot) => edgeQueryResponse.bind(null, i, that));
     }
   }
 
