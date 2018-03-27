@@ -101,7 +101,6 @@ export default class TagEntrySearch extends Component {
     //overwrite data right now
     var people = [];
     db = this.props.db;
-    // TODO - why doesn't this work?
     db.collection("people").get().then((querySnapshot) => {
       querySnapshot.forEach(function(doc) {
         var data = doc.data();
@@ -145,8 +144,7 @@ export default class TagEntrySearch extends Component {
       }, {merge: true});
     }
     // Save Edges
-    for (var i = 0; i < this.state.edges.length; i++) {
-      var edge = this.state.edges[i];
+    this.state.edges.forEach(function(edge) {
       var db_edge = db.collection("edges").doc(edge.id);
       db_edge.set({
         subject : edge.subject,
@@ -154,7 +152,7 @@ export default class TagEntrySearch extends Component {
         timestamp : edge.timestamp,
         tag : edge.tag,
       }, {merge : true});
-    }
+    });
   }
 
   uploadFBData = files => {
@@ -162,15 +160,15 @@ export default class TagEntrySearch extends Component {
     fr.onload = e => {
       var parser = new DOMParser();
       var htmlDoc = parser.parseFromString(e.target.result, "text/html");
-      var friend_html = htmlDoc.body.children[1].children[1].children[1].children;
-      for (var i = 0; i < friend_html.length; i ++) {
+      var friend_html = htmlDoc.body.children[1].children[2].children;
+      for (var i = 0; i < friend_html.length; i++) {
         // TODO: need to handle corner case where person has >2 names
-        var first_name = friend_html[i].innerText.split(" ")[0];
-        var last_name = friend_html[i].innerText.split(" ")[1];
+        
+        var name = friend_html[i].innerText.split(" (")[0];
         
         // Create a person for each person
         var person = {
-          name: first_name + " " + last_name,
+          name: name,
           id: uuid()
         };
         // TODO: obviously need to check for duplicates
