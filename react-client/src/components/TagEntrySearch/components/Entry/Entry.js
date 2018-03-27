@@ -21,6 +21,17 @@ var tag_array = [];
 var people_array = [];
 var user = 'Trinity';
 
+const createEdge = (subject, originator, tag, timestamp) => {
+    var edge = {
+        id: uuid(),
+        subject: subject,
+        originator: originator,
+        tag: tag,
+        timestamp: timestamp
+      };
+    return edge;
+}
+
 const peopleToPeopleArray = people => {
   // Turns list of people with ids to a list of searchable names
   var people_set = people.map(x => x.name);
@@ -92,15 +103,12 @@ export default class Basic extends Component {
   };
 
   componentWillReceiveProps = new_props => {
-    console.log('entry props updated');
     var people_array = peopleToPeopleArray(new_props.people);
     var tag_array = edgesToTagArray(new_props.edges);
     this.setState({
       tag_array: tag_array,
       people_array: people_array
     });
-    console.log(tag_array);
-    console.log(this.state.tag_array);
   };
 
   findTagsForPerson = person => {
@@ -115,7 +123,7 @@ export default class Basic extends Component {
       personValue: newValue
     });
     if (method == 'enter') {
-      console.log('enter pressed');
+      console.log('enter pressed on person change');
     }
   };
 
@@ -125,7 +133,7 @@ export default class Basic extends Component {
       tagValue: newValue
     });
     if (method == 'enter') {
-      console.log('enter pressed');
+      console.log('enter pressed on tag change');
     }
   };
 
@@ -156,14 +164,12 @@ export default class Basic extends Component {
   onPeopleSuggestionSelected = (event, { suggestion }) => {
     // This assumes there's only one person with the name
     // needs to change as it scales
-    console.log('people suggestoion: ' + suggestion);
     var person = this.props.people.filter(
       person => person.name == suggestion
     )[0];
     // Check if you're changing people
     if (this.state.person != person) {
       // if you're changing people pull up all the tags associated with that person
-      console.log('changing person');
       this.setState({ tags: this.findTagsForPerson(person) });
     }
     this.setState({ personValue: '', person: person });
@@ -172,14 +178,14 @@ export default class Basic extends Component {
   onTagSuggestionSelected = (event, { suggestion }) => {
     // add to the person
     if (this.state.person.name.length > 0) {
-      console.log('Add tag: ' + suggestion);
-      this.props.addEdge({
-        subject: this.state.person.id,
-        originator: this.props.user.id,
-        tag: suggestion,
-        // TODO: turn into firebase class
-        timestamp: Date().toString()
-      });
+      this.props.addEdge(
+        createEdge(
+          this.state.person.id,
+          this.props.user.id,
+          suggestion,
+          Date().toString()
+        )
+      );
       // This is mostly for speed, would it be better
       // to regen tag list?
       var temp_array = this.state.tags.slice();
@@ -199,13 +205,14 @@ export default class Basic extends Component {
     ) {
       // Should it be legit to create a tag without a person? Why not?
       var new_tag = e.target.value;
-      this.props.addEdge({
-        subject: this.state.person.id,
-        originator: this.props.user.id,
-        tag: new_tag,
-        // TODO: replace Date with firebase class
-        timestamp: Date().toString()
-      });
+      this.props.addEdge(
+        createEdge(
+          this.state.person.id,
+          this.props.user.id,
+          new_tag,
+          Date().toString()
+        )
+      );
       if (this.state.person.name.length > 0) {
         var temp_array = this.state.tags.slice();
         temp_array.push(new_tag);
@@ -219,13 +226,10 @@ export default class Basic extends Component {
   _handlePersonKeyPress = e => {
     if (e.key == 'Enter' && e.target.value.length > 0) {
       // Check if new person
-      console.log('entered name: ' + e.target.value);
       var matches = this.props.people.filter(
         person => person.name === e.target.value
       );
-      console.log('people matches ' + matches);
       if (matches.length == 0) {
-        console.log('new person entered: ' + e.target.value);
         var person = {
           name: e.target.value,
           id: uuid()
@@ -241,7 +245,6 @@ export default class Basic extends Component {
         // Check if you're changing people
         if (this.state.person != person) {
           // if you're changing people pull up all the tags associated with that person
-          console.log('changing person');
           this.setState({ tags: this.findTagsForPerson(person) });
         }
         this.setState({ personValue: '', person: person });

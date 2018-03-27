@@ -6,7 +6,6 @@ import TagEntrySearch from './components/TagEntrySearch/TagEntrySearch.js';
 import './main.css';
 import * as firebase from 'firebase';
 import * as firebaseui from 'firebaseui';
-import '@firebase/firestore';
 import axios from 'axios';
 
 class App extends React.Component {
@@ -32,7 +31,7 @@ class App extends React.Component {
     };
 
     this.signIn = this.signIn.bind(this);
-    this.user = {};
+    this.user = {}; // why is this not part of the state?
     this.db = firebase.firestore();
     // window.db = this.db;
   }
@@ -62,7 +61,7 @@ class App extends React.Component {
   }
 
   signIn() {
-    var that = this;
+    var that = this; // Why?
     var provider = new firebase.auth.FacebookAuthProvider();
     provider.addScope('email');
     provider.addScope('user_friends');
@@ -94,7 +93,8 @@ class App extends React.Component {
           axios.get(friendsUrl)
             .then(function(res) {
               var friends = res.data.data;
-
+              console.log("friends: ");
+              console.log(friends);
               // add friends
               userRef.set({
                 friends: friends,
@@ -110,6 +110,37 @@ class App extends React.Component {
     })
   }
 
+  populateGraphFromFacebook = db => {
+    var that = this;
+    var provider = new firebase.auth.FacebookAuthProvider();
+    provider.addScope('email');
+    provider.addScope('user_friends');
+    // TODO: refactor out that's and use => instead
+    firebase.auth().signInWithPopup(provider).then(function(result) {
+      if (result.credential) {
+        var token = result.credential.accessToken;
+        that.user = result.user;
+        that.setState({ status: 'signed in', displayName: user.displayName, email: user.email });
+
+        var friendsUrl = 'https://graph.facebook.com/me/taggable_friends?access_token=' + token;
+        function recur() {
+          axios.get(friendsUrl)
+            .then(function(res) {
+              var friends = res.data.data;
+              console.log("friends: ");
+              console.log(friends);
+            });
+        }
+        recur();
+        // TODO: go to next page
+      }
+    }).catch(function(error){
+      that.setState({ status: 'signed out'});
+      console.log('error', error);
+    })
+  }
+
+
   render () {
     const friends = (this.state.friends).map((f) => 
       <li key={f["name"]}>
@@ -122,12 +153,13 @@ class App extends React.Component {
       <p>Hello { this.state.displayName }!</p>
       <p>Status: { this.state.status }</p>
       {this.state.status === "signed out" && <button onClick={this.signIn}>Sign in with facebook</button>}
+      <button onClick={this.populateGraphFromFacebook}>Grab friends from FB </button>
       <h1>Friends</h1>
       { friends }
       <div id="firebaseui-auth-container"></div>
-      <TagEntrySearch />
+	    <TagEntrySearch  db={this.db} />
     </div>)
   }
 }
 
-ReactDOM.render(<App />, document.getElementById('app'));
+ReactDOM.render(<App/>, document.getElementById('app'));

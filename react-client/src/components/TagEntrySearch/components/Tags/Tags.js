@@ -77,10 +77,6 @@ export default class Basic extends Component {
     var people_array = peopleToPeopleArray(this.props.people);
     var tag_array = edgesToTagArray(this.props.edges);
     var options = tag_array.concat(people_array);
-    console.log('people, tags, options');
-    console.log(people_array);
-    console.log(tag_array);
-    console.log(options);
     this.setState({
       tag_array: tag_array,
       people_array: people_array,
@@ -93,7 +89,6 @@ export default class Basic extends Component {
     var people_array = peopleToPeopleArray(new_props.people);
     var tag_array = edgesToTagArray(new_props.edges);
     var options = tag_array.concat(people_array);
-    console.log('tags props updated');
     this.setState({
       tag_array: tag_array,
       people_array: people_array,
