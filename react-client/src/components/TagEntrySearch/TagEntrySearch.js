@@ -140,6 +140,7 @@ export default class TagEntrySearch extends Component {
   saveToDB = db => {
     // create a person for each person in the people list
     //This line will become irrelevant once start sing data correctly
+    var that = this;
     db = this.props.db;
     // Save People
     for (var i = 0; i < this.state.people.length; i++) {
@@ -148,49 +149,90 @@ export default class TagEntrySearch extends Component {
       // this will be a complicated flow eventually
       // email, nicknames, etc, maybe feedback
       // for now just check names
-      db.collection("people").where("name", "==", person.name)
-        .get()
-        .then(function(querySnapshot) {
-          if (querySnapshot.size == 0) {
+      function personQueryResponse(querySnapshot, i, that) {
+        if (querySnapshot.size == 0) {
             //create a new person
             var db_person = db.collection("people").doc(person.id);
             db_person.set({
               name : person.name,
             }, {merge: true});
           } else if (querySnapshot.size == 1) {
-            querySnapshot.forEach(function(doc) {
+            querySnapshot.forEach(doc => {
               // Update all the edges
-              var new_edges = this.state.edges.map(function(edge) {
-                var temp_edge = edge;
-                if (edge.originator == person.id) {
-                  temp_edge.originator = doc.id;
+              if (doc) {
+                var new_edges = that.state.edges.map(edge => {
+                  var temp_edge = edge;
+                  if (edge.originator == person.id) {
+                    temp_edge.originator = doc.id;
+                  }
+                  if (edge.subject == person.id) {
+                    temp_edge.subject = doc.id;
+                  }
+                  return temp_edge;
+                });
+                that.setState({edges: new_edges});
+                var new_people = that.state.people;
+                // TODO: how do you pass this i into the async function
+                if (i < new_people.length) {
+                  new_people[i].id = doc.id;
+                } else {
+                  console.log("i = " + i + "new people = " + new_people.length);
                 }
-                if (edge.subject == person.id) {
-                  temp_edge.subject = doc.id;
-                }
-                return temp_edge;
-              });
-              this.setState({edges: new_edges});
-              var new_people = this.state.people;
-              new_people[i].id = doc.id;
-              this.setState({people: new_people});
+                that.setState({people: new_people});
+              } else {
+                console.log("error no doc");
+              }
             }); 
           } else {
             console.log("ERP MULTIPLE PEOPLE WITH SAME NAME");
+            console.log("querySnapshot size = " + querySnapshot.size);
+            querySnapshot.forEach(doc => {
+              console.log(doc.data());
+            });
           }
-        });
+      }
+
+      db.collection("people").where("name", "==", person.name)
+        .get()
+        .then(personQueryResponse.bind(null, i, that));
       
     }
     // Save Edges
     for (var i = 0; i < this.state.edges.length; i++) {
       var edge = this.state.edges[i];
-      var db_edge = db.collection("edges").doc(edge.id);
-      db_edge.set({
-        subject : edge.subject,
-        originator : edge.originator,
-        timestamp : edge.timestamp,
-        tag : edge.tag,
-      }, {merge : true});
+
+      function edgeQueryResponse(querySnapshot, i, that) {
+        if (querySnapshot.size == 0) {
+            //create a new person
+            var db_edge = db.collection("edges").doc(edge.id);
+            db_edge.set({
+              originator : edge.originator,
+              subject : edge.subject,
+              tag : edge.tag,
+              timestamp : edge.timestamp
+            }, {merge: true});
+          } else if (querySnapshot.size == 1) {
+            querySnapshot.forEach(doc => {
+              // Update the local edge id
+              var new_edges = that.state.edges;
+              new_edges[i].id = doc.id;
+              that.setState({edges: new_edges});
+            }); 
+          } else {
+            console.log("ERP MULTIPLE PEOPLE WITH SAME NAME");
+            console.log("querySnapshot size = " + querySnapshot.size);
+            querySnapshot.forEach(doc => {
+              console.log(doc.data());
+            });
+          }
+      }
+
+      db.collection("edges")
+        .where("originator", "==", edge.originator)
+        .where("subject", "==", edge.subject)
+        .where("tag", "==", edge.tag)
+        .get()
+        .then(edgeQueryResponse.bind(null, i, that));
     }
   }
 
@@ -199,7 +241,7 @@ export default class TagEntrySearch extends Component {
     fr.onload = e => {
       var parser = new DOMParser();
       var htmlDoc = parser.parseFromString(e.target.result, "text/html");
-      var friend_html = htmlDoc.body.children[1].children[1].children[1].children;
+      var friend_html = htmlDoc.body.children[1].children[2].children;
       for (var i = 0; i < friend_html.length; i ++) {
         // TODO: need to handle corner case where person has >2 names
         var first_name = friend_html[i].innerText.split(" ")[0];
@@ -223,6 +265,7 @@ export default class TagEntrySearch extends Component {
       }
     } 
     fr.readAsText(files[0]);
+    console.log("done uploading fb data!");
   }
 
   render() {
