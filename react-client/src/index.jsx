@@ -40,15 +40,13 @@ class App extends React.Component {
     var that = this;
 
     firebase.auth().onAuthStateChanged(function(user) {
-      console.log('auth state changed!')
-      console.log('user', user);
       if (user) {
         window.user = user;
         that.setState({ displayName: user.displayName });
         that.setState({ status: 'signed in'});
-
+        /* this is broken for not-adrienne
         // populate friends
-        that.db.collection("users").where("email", "==", "adrienne@adriennetran.com")
+        that.db.collection("users").where("email", "==", user.email)
           .get()
           .then(function(querySnapshot) { 
             querySnapshot.forEach(function(doc) {
@@ -56,6 +54,7 @@ class App extends React.Component {
             });
           }
         );
+        */
       }
     });
   }
@@ -69,7 +68,7 @@ class App extends React.Component {
     firebase.auth().signInWithPopup(provider).then(function(result) {
       if (result.credential) {
         var token = result.credential.accessToken;
-        that.user = result.user;
+        var user = result.user;
         that.setState({ status: 'signed in', displayName: user.displayName, email: user.email });
 
         // user has been added to auth, next to do
@@ -82,13 +81,14 @@ class App extends React.Component {
           accessToken: { facebook: token },
           photoURL: user.photoURL,
         }).then(function(docRef) {
-          console.log("Document written with ID: ", docRef.id);
+          // docRef is null
+          //console.log("Document written with ID: ", docRef.id);
         })
         .catch(function(error){
-          console.error("Error adding new user: ". error);
+          console.error("Error adding new user: ", error);
         })
 
-        var friendsUrl = 'https://graph.facebook.com/me/taggable_friends?access_token=' + token;
+        var friendsUrl = 'https://graph.facebook.com/me/friends?access_token=' + token;
         function recur() {
           axios.get(friendsUrl)
             .then(function(res) {
@@ -108,6 +108,17 @@ class App extends React.Component {
       that.setState({ status: 'signed out'});
       console.log('error', error);
     })
+  }
+
+  signOut = db => {
+    var that  = this;
+    firebase.auth().signOut().then(function() {
+      that.setState({status: 'signed out', displayName: 'anonymous', email: 'anonymous',});
+    // Sign-out successful.
+    }).catch(function(error) {
+    // An error happened.
+      console.log("sign out error", error);
+    });
   }
 
   populateGraphFromFacebook = db => {
@@ -140,7 +151,6 @@ class App extends React.Component {
     })
   }
 
-
   render () {
     const friends = (this.state.friends).map((f) => 
       <li key={f["name"]}>
@@ -153,6 +163,7 @@ class App extends React.Component {
       <p>Hello { this.state.displayName }!</p>
       <p>Status: { this.state.status }</p>
       {this.state.status === "signed out" && <button onClick={this.signIn}>Sign in with facebook</button>}
+      {this.state.status === "signed in" && <button onClick={this.signOut}> Sign out </button>}
       <button onClick={this.populateGraphFromFacebook}>Grab friends from FB </button>
       <h1>Friends</h1>
       { friends }
