@@ -42,31 +42,31 @@ class App extends React.Component {
 
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
-        window.user = user;
-        that.setState({ displayName: user.displayName });
-        that.setState({ status: 'signed in'});
+        // Check whether the person is a user in the db
         that.db.collection("people").where("email", "==", user.email)
           .get()
-          .then(function(querySnapshot) {
-            querySnapshot.forEach(function(doc) {
-              that.setState({user_id:doc.id});
-              console.log("logged in user " + doc.id);
-            });
-          });
-        /* this is broken for not-adrienne
-        // populate friends
-        that.db.collection("users").where("email", "==", user.email)
-          .get()
-          .then(function(querySnapshot) { 
-            querySnapshot.forEach(function(doc) {
-              that.setState({ friends: doc.data()["friends"] });
-            });
+          .then((querySnapshot) => {
+            if (querySnapshot.size == 0) {
+              // do new user flow
+              console.log("creating new user");
+            } else if (querySnapshot.size == 1) {
+              window.user = user;
+              that.setState({ displayName: user.displayName });
+              that.setState({ status: 'signed in'});
+              querySnapshot.forEach((doc) => {
+                that.setState({user_id:doc.id});
+              });
+          } else {
+            // multiple users - problem here
+            console.log("error - multiple users for email " + user.email);
           }
-        );
-        */
+        });
+      } else {
+        console.log("no user " + user);
       }
     });
   }
+
 
   signIn = db => {
     var that = this;
@@ -78,39 +78,56 @@ class App extends React.Component {
       if (result.credential) {
         var token = result.credential.accessToken;
         var user = result.user;
-        that.setState({ status: 'signed in', displayName: user.displayName, email: user.email });
-
+        
         // Check if the user exists as a person
         that.db.collection("people").where("email", "==", user.email).get().then(function(querySnapshot) {
           var email_matches = querySnapshot.size;
-          querySnapshot.forEach(function(doc) {
-            that.db.collection("people").doc(doc.id)
-              .set({
-                name: user.displayName,
-                email: user.email,
-                accessToken: { facebook: token },
-                isUser: "true"
-                }, {merge: true}
-              );
-          });
+          if (email_matches == 1) {
+            querySnapshot.forEach(function(doc) {
+              that.setState(
+                  { status: 'signed in', 
+                    displayName: user.displayName, 
+                    email: user.email, 
+                    user_id:doc.id });
+              that.db.collection("people").doc(doc.id)
+                .set({
+                  name: user.displayName,
+                  email: user.email,
+                  accessToken: { facebook: token },
+                  isUser: "true"
+                  }, {merge: true}
+                );
+            });
+          } else if (email_matches > 1) {
+              console.log("error: multiple matching users");
+          }
           return email_matches;
         }).then(function(email_matches){
           if (email_matches == 0) {
             that.db.collection("people").where("name", "==", user.displayName).get().then(
               function(querySnapshot) {
                 var name_matches = querySnapshot.size;
-                querySnapshot.forEach(function(doc) {
-                  that.db.collection("people").doc(doc.id)
-                    .set({
-                      name: user.displayName,
-                      email: user.email,
-                      accessToken: { facebook: token },
-                      isUser: "true"
-                      }, {merge: true}
-                    );
-                });
+                if (name_matches == 1) {
+                  that.setState({ 
+                    status: 'signed in', 
+                    displayName: user.displayName, 
+                    email: user.email, 
+                    user_id:doc.id });
+                  querySnapshot.forEach(function(doc) {
+                    that.db.collection("people").doc(doc.id)
+                      .set({
+                        name: user.displayName,
+                        email: user.email,
+                        accessToken: { facebook: token },
+                        isUser: "true"
+                        }, {merge: true}
+                      );
+                    });
+                } else if (email_matches > 1) {
+                  console.log("error: multiple matching users");
+                }
                 if (name_matches == 0 && email_matches == 0) {
-                  //create new user
+                  //create new person who is a user
                 }
                 return name_matches;
               });
@@ -216,7 +233,7 @@ class App extends React.Component {
       <h1>Friends</h1>
       { friends }
       <div id="firebaseui-auth-container"></div>
-	    <TagEntrySearch  db={this.db} />
+	    <TagEntrySearch  db={this.db} user_id={this.state.user_id} />
     </div>)
   }
 }

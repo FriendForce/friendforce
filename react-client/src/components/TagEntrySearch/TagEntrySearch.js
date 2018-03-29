@@ -14,6 +14,28 @@ export const uuid = foo => {
   )
 }
 
+const peopleArrayToPeopleMap = (people_array) => {
+  var people_map = new Map();
+  people_array.forEach(person => {
+    people_map.set(person.id, {
+      subject: person.subject,
+      originator: person.originator,
+      tag: person.tag,
+      timestamp: person.timestamp
+    });
+  })
+  return people_map;
+}
+
+const peopleMapToPeopleArray = (people_map) => {
+  var people_array = []
+  people_map.forEach((value, key)=>{
+    var person = people_map.get(key);
+    person['id'] = key;
+    people_array.push(person);
+  });
+  return people_array;
+}
 
 const createEdge = (subject, originator, tag, timestamp) => {
     var edge = {
@@ -70,6 +92,10 @@ export default class TagEntrySearch extends Component {
     this.setState({user_id: this.props.user_id})
   }
 
+   componentWillReceiveProps = new_props => {
+    this.setState({user_id: new_props.user_id});
+  };
+
   addInfo = info => {
     var temp_array = this.state.data.slice();
     temp_array.push(info);
@@ -106,40 +132,79 @@ export default class TagEntrySearch extends Component {
     //overwrite data right now
     var people = [];
     db = this.props.db;
-    // TODO - why doesn't this work?
-    db.collection("people").get().then((querySnapshot) => {
-      querySnapshot.forEach(function(doc) {
-        var data = doc.data();
-        var person = {
-          id: doc.id,
-          name: data.name
-        }
-        people.push(person);
-      });
-      this.setState({people:people});
-    });
 
-    var edges = [];
-    db.collection("edges").get().then((querySnapshot) => {
-      querySnapshot.forEach(function(doc) {
-        var data = doc.data();
-        var edge = {
-          id: doc.id,
-          originator: data.originator,
-          subject: data.subject,
-          timestamp: data.timestamp,
-          tag: data.tag
-        }
-        edges.push(edge);
+
+    // First, get all edges that you're allowed to get.
+    // Second, get all people who are related to the edges that you're
+    // allowed to get
+    db.collection("edges").where("originator", "==", this.state.user.id)
+      .get()
+      .then((querySnapshot) => {
+        var new_edges = this.state.edges
+        querySnapshot.forEach(function(doc) {
+          function findDuplicateEdge(edge, doc) {
+            return edge.id = doc.id || (edge.originator == doc.data().originator &&
+                         edge.subject == doc.data().subject &&
+                         edge.tag == doc.data().tag);
+          } 
+          var matches = new_edges.findIndex(edge => { return findDuplicateEdge(edge, doc); });
+          if (matches.length == 1) {
+            matches.forEach(match => {
+              new_edges[match] = {
+                id: doc.id,
+                originator: doc.data().originator,
+                subject: doc.data().subject,
+                timestamp: doc.data().timestamp,
+                tag: doc.data().tag
+              }
+            });
+          } else if (matches.length > 1) {
+            console.log("error: multiple matches for same edge");
+            // need to de dup edges here
+          } else {
+            // add new nedge
+            new_edges.push(
+              {
+                id: doc.id,
+                originator: doc.data().originator,
+                subject: doc.data().subject,
+                timestamp: doc.data().timestamp,
+                tag: doc.data().tag
+            });
+          }
+        });
+        this.setState({edges: new_edges});
+        return new_edges;
+      })
+      .then((new_edges) => {
+        var subject_ids = new_edges.map(edge => edge.subject);
+        // you get to tag yourself too
+        subject_ids.push(this.state.user_id);
+        subject_ids = new Set(subject_ids);
+        var new_people_map = peopleArrayToPeopleMap(this.state.people);
+        var promises = [];
+        subject_ids.forEach(id => {
+          var promise = db.collection("people").doc(id).get();
+          promises.push(promise);
+        });
+        Promise.all(promises)
+          .then((docs) => {
+            docs.forEach((doc) => {
+              var data = doc.data();
+              new_people_map.set(doc.id, doc.data());
+            });
+            
+            var new_array = peopleMapToPeopleArray(new_people_map);
+            this.setState({people:new_array});
+          });
       });
-      this.setState({edges:edges});
-    });    
   }
 
 
   saveToDB = db => {
     // create a person for each person in the people list
     //This line will become irrelevant once start sing data correctly
+    console.log("saving");
     var that = this;
     db = this.props.db;
     // Save People
@@ -149,13 +214,17 @@ export default class TagEntrySearch extends Component {
       // this will be a complicated flow eventually
       // email, nicknames, etc, maybe feedback
       // for now just check names
-      function personQueryResponse(querySnapshot, i, that) {
+      function personQueryResponse(querySnapshot, i, that, person) {
         if (querySnapshot.size == 0) {
             //create a new person
-            var db_person = db.collection("people").doc(person.id);
-            db_person.set({
-              name : person.name,
-            }, {merge: true});
+            var db_person = db.collection("people").doc(person.id).set({
+              name : person.name})
+            .then(function() {
+              console.log(person.name + "written!");
+            })
+            .catch(function(error) {
+              console.error("Error writing document: ", error);
+            });
           } else if (querySnapshot.size == 1) {
             querySnapshot.forEach(doc => {
               // Update all the edges
@@ -176,7 +245,7 @@ export default class TagEntrySearch extends Component {
                 if (i < new_people.length) {
                   new_people[i].id = doc.id;
                 } else {
-                  console.log("i = " + i + "new people = " + new_people.length);
+                  console.log("error: i = " + i + "new people = " + new_people.length);
                 }
                 that.setState({people: new_people});
               } else {
@@ -191,10 +260,15 @@ export default class TagEntrySearch extends Component {
             });
           }
       }
-
+      const i2 = i;
+      const that2 = that;
+      const person2 = person;
       db.collection("people").where("name", "==", person.name)
         .get()
-        .then((querySnapshot) => personQueryResponse.bind(null, i, that));
+                // TODO - get this working - right now doesn't call 
+        .then( function(querySnapshot) {
+          return personQueryResponse(querySnapshot, i2, that2, person2) 
+        });
       
     }
     // Save Edges
@@ -215,8 +289,6 @@ export default class TagEntrySearch extends Component {
             querySnapshot.forEach(doc => {
               // Update the local edge id
               var new_edges = that.state.edges;
-              console.log(new_edges);
-              console.log(j);
               new_edges[j].id = doc.id;
               that.setState({edges: new_edges});
             }); 
@@ -228,13 +300,17 @@ export default class TagEntrySearch extends Component {
             });
           }
       }
-
+      const i2 = i;
+      const that2 = that;
       db.collection("edges")
         .where("originator", "==", edge.originator)
         .where("subject", "==", edge.subject)
         .where("tag", "==", edge.tag)
         .get()
-        .then((querySnapshot) => edgeQueryResponse.bind(null, i, that));
+        // TODO - get this working
+        .then(function(querySnapshot) {
+          return edgeQueryResponse(querySnapshot, i2, that2)
+        });
     }
   }
 
