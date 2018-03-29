@@ -356,8 +356,11 @@ export default class TagEntrySearch extends Component {
         );
       }
     } 
-    fr.readAsText(files[0]);
-    console.log("done uploading fb data!");
+    fr.onloadend = e => {
+      this.saveToDB(this.props.db);
+      console.log("done uploading fb data!");
+    }
+    fr.readAsText(files[0]); 
   }
 // Current layout 
 // Search Box
