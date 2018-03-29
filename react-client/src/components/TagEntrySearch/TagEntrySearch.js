@@ -132,6 +132,20 @@ export default class TagEntrySearch extends Component {
     //overwrite data right now
     var people = [];
     db = this.props.db;
+<<<<<<< HEAD
+=======
+    db.collection("people").get().then((querySnapshot) => {
+      querySnapshot.forEach(function(doc) {
+        var data = doc.data();
+        var person = {
+          id: doc.id,
+          name: data.name
+        }
+        people.push(person);
+      });
+      this.setState({people:people});
+    });
+>>>>>>> origin/master
 
 
     // First, get all edges that you're allowed to get.
@@ -272,9 +286,7 @@ export default class TagEntrySearch extends Component {
       
     }
     // Save Edges
-    for (var i = 0; i < this.state.edges.length; i++) {
-      var edge = this.state.edges[i];
-
+    this.state.edges.forEach((edge) => {
       function edgeQueryResponse(querySnapshot, j, that) {
         if (querySnapshot.size == 0) {
             //create a new person
@@ -312,7 +324,7 @@ export default class TagEntrySearch extends Component {
           return edgeQueryResponse(querySnapshot, i2, that2)
         });
     }
-  }
+  });
 
   uploadFBData = files => {
     var fr = new FileReader();
@@ -320,14 +332,14 @@ export default class TagEntrySearch extends Component {
       var parser = new DOMParser();
       var htmlDoc = parser.parseFromString(e.target.result, "text/html");
       var friend_html = htmlDoc.body.children[1].children[2].children;
-      for (var i = 0; i < friend_html.length; i ++) {
+      for (var i = 0; i < friend_html.length; i++) {
         // TODO: need to handle corner case where person has >2 names
-        var first_name = friend_html[i].innerText.split(" ")[0];
-        var last_name = friend_html[i].innerText.split(" ")[1];
+        
+        var name = friend_html[i].innerText.split(" (")[0];
         
         // Create a person for each person
         var person = {
-          name: first_name + " " + last_name,
+          name: name,
           id: uuid()
         };
         // TODO: obviously need to check for duplicates

@@ -67,7 +67,6 @@ class App extends React.Component {
     });
   }
 
-
   signIn = db => {
     var that = this;
     var provider = new firebase.auth.FacebookAuthProvider();
@@ -192,6 +191,7 @@ class App extends React.Component {
     var provider = new firebase.auth.FacebookAuthProvider();
     provider.addScope('email');
     provider.addScope('user_friends');
+    // TODO: refactor out that's and use => instead
     firebase.auth().signInWithPopup(provider).then(function(result) {
       if (result.credential) {
         var token = result.credential.accessToken;
