@@ -132,22 +132,6 @@ export default class TagEntrySearch extends Component {
     //overwrite data right now
     var people = [];
     db = this.props.db;
-<<<<<<< HEAD
-=======
-    db.collection("people").get().then((querySnapshot) => {
-      querySnapshot.forEach(function(doc) {
-        var data = doc.data();
-        var person = {
-          id: doc.id,
-          name: data.name
-        }
-        people.push(person);
-      });
-      this.setState({people:people});
-    });
->>>>>>> origin/master
-
-
     // First, get all edges that you're allowed to get.
     // Second, get all people who are related to the edges that you're
     // allowed to get
@@ -323,8 +307,8 @@ export default class TagEntrySearch extends Component {
         .then(function(querySnapshot) {
           return edgeQueryResponse(querySnapshot, i2, that2)
         });
-    }
-  });
+    });
+  }
 
   uploadFBData = files => {
     var fr = new FileReader();
