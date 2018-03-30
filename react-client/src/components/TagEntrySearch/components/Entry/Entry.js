@@ -122,9 +122,6 @@ export default class Basic extends Component {
       //TODO: if it is a new person, assign them an id
       personValue: newValue
     });
-    if (method == 'enter') {
-      console.log('enter pressed on person change');
-    }
   };
 
   onTagChange = (event, { newValue, method }) => {
@@ -132,9 +129,6 @@ export default class Basic extends Component {
       //value: newValue,
       tagValue: newValue
     });
-    if (method == 'enter') {
-      console.log('enter pressed on tag change');
-    }
   };
 
   onTagSuggestionsFetchRequested = ({ value }) => {

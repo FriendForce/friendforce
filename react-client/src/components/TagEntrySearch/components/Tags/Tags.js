@@ -100,10 +100,6 @@ export default class Basic extends Component {
     this.setState({
       value: newValue
     });
-    console.log('method is: ' + method);
-    if (method == 'enter') {
-      console.log('enter pressed');
-    }
   };
 
   onSuggestionsFetchRequested = ({ value }) => {

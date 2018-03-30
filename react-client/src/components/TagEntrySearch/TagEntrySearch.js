@@ -119,7 +119,7 @@ export default class TagEntrySearch extends Component {
   addEdge = edge => {
     this.setState({ edges: this.state.edges.concat(edge)});
     // add to DB - for now, recklessly add things - add dedup later
-    var db_edge = this.db.props.collection("edges").doc(edge.id);
+    var db_edge = this.props.db.collection("edges").doc(edge.id);
     db_edge.set({
       originator : edge.originator,
       subject : edge.subject,
