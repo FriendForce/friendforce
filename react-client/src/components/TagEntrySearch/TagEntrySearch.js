@@ -91,7 +91,8 @@ export default class TagEntrySearch extends Component {
   componentWillMount = db => {
     this.setState({user_id: this.props.user_id}, x => {
       if (this.props.user_id != 'no_id') {
-        this.loadFromDB(this.props.db);
+        //this.loadFromDB(this.props.db);
+        console.log("not autoloading to avoid too many queries");
       }
     });
   }
@@ -99,7 +100,8 @@ export default class TagEntrySearch extends Component {
    componentWillReceiveProps = new_props => {
     this.setState({user_id: new_props.user_id}, x => {
       if (this.props.user_id != 'no_id') {
-        this.loadFromDB(this.props.db);
+        //this.loadFromDB(this.props.db);
+        console.log("not autoloading to avoid too many queries");
       }
     });
   };
