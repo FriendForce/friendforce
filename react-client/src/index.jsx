@@ -28,7 +28,7 @@ class App extends React.Component {
       displayName: 'anonymous',
       email: 'anonymous',
       friends: [{name: "Jimmy"}, {name: "Jack"}],
-      user_id: '0'
+      user_id: 'no_id'
     };
 
     this.signIn = this.signIn.bind(this);

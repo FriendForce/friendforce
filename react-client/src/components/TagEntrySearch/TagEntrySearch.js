@@ -89,11 +89,21 @@ export default class TagEntrySearch extends Component {
   }
 
   componentWillMount = db => {
-    this.setState({user_id: this.props.user_id})
+    this.setState({user_id: this.props.user_id}, x => {
+      if (this.props.user_id != 'no_id') {
+        //this.loadFromDB(this.props.db);
+        console.log("not autoloading to avoid too many queries");
+      }
+    });
   }
 
    componentWillReceiveProps = new_props => {
-    this.setState({user_id: new_props.user_id});
+    this.setState({user_id: new_props.user_id}, x => {
+      if (this.props.user_id != 'no_id') {
+        //this.loadFromDB(this.props.db);
+        console.log("not autoloading to avoid too many queries");
+      }
+    });
   };
 
   addInfo = info => {
@@ -104,10 +114,20 @@ export default class TagEntrySearch extends Component {
 
   addPerson = person => {
     this.setState({ people: this.state.people.concat(person)});
+    var db_person = this.props.db.collection("people").doc(person.id);
+    db_person.set({name : person.name}, {merge:true});
   };
 
   addEdge = edge => {
     this.setState({ edges: this.state.edges.concat(edge)});
+    // add to DB - for now, recklessly add things - add dedup later
+    var db_edge = this.props.db.collection("edges").doc(edge.id);
+    db_edge.set({
+      originator : edge.originator,
+      subject : edge.subject,
+      tag : edge.tag,
+      timestamp : edge.timestamp
+    }, {merge: true});
   };
 
   deleteDB = db => {
@@ -338,10 +358,17 @@ export default class TagEntrySearch extends Component {
         );
       }
     } 
-    fr.readAsText(files[0]);
-    console.log("done uploading fb data!");
+    fr.onloadend = e => {
+      this.saveToDB(this.props.db);
+      console.log("done uploading fb data!");
+    }
+    fr.readAsText(files[0]); 
   }
-
+// Current layout 
+// Search Box
+// Person Entry Box
+// Tag Entry Box
+// TODO: is there a way to make them one box?
   render() {
     return (
       <div className={styles.container}>
