@@ -80,7 +80,7 @@ class DataStore {
      * @return {Promise} promise for a {Person Array} of Persons
      *          with the given name
      */
-    return Promise.resolve(this._persons.find(d => d.name === name));
+    return Promise.resolve(this._persons.filter(d => d.name == name));
   }
 
   getAllPersons(){

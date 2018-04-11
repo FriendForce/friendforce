@@ -16,54 +16,55 @@ describe('DataStore', () => {
   });
   it('successfully resets data', () => {
     var oldNumPersons = DataStore.persons().length;
-    DataStore.addPerson({id:-1, name:'john doe'});
+    DataStore._persons= [{id:-1, name:'john doe'}];
     DataStore.resetData();
     var newNumPersons = DataStore.persons().length;
     expect(newNumPersons).toEqual(0);
   });
-  it('successfully adds person', () => {
+  it('successfully adds person', async () => {
     var oldNumPersons = DataStore._persons.length;
-    DataStore.addPerson({id:-1, name:'john doe'}).then(()=>{
-      var newNumPersons = DataStore.persons().length;
-      expect(newNumPersons-oldNumPersons).toEqual(1);
-      DataStore.resetData();
-    });
-
+    const data = await DataStore.addPerson({id:-1, name:'john doe'});
+    var newNumPersons = DataStore.persons().length;
+    expect(newNumPersons-oldNumPersons).toEqual(1);
+    DataStore.resetData();
   });
-  it('successfully adds tags', () => {
+
+  it('successfully adds tags', async () => {
     var oldNumTags = DataStore.tags().length;
-    DataStore.addTag({id:'z', label:'foo', 'originator':'0', 'subject':'0', 'publicity':'public'}).then(()=>{
-      var newNumTags = DataStore.tags().length;
-      expect(newNumTags-oldNumTags).toEqual(1);
-      DataStore.resetData(); 
-    });
+    const data = await DataStore.addTag({id:'z', label:'foo', 'originator':'0', 'subject':'0', 'publicity':'public'});
+    var newNumTags = DataStore.tags().length;
+    expect(newNumTags-oldNumTags).toEqual(1);
+    DataStore.resetData(); 
+  });
 
+  it('getPersonsByName', async () => {
+    await DataStore.addPerson({id:'z', name:'john doe'});
+    const data = await DataStore.getPersonsByName('john doe');
+    expect(data[0].id).toEqual('z');
   });
-  it('successfully adds tags', () => {
-    DataStore.addPerson({id:'z', name:'john doe'});
-    DataStore.getPersonsByName('john doe').then((result)=> {
-      expect(result.id).toEqual('z');
-      DataStore.resetData();
-    })
+
+  it('getTagsBySubect', async () => {
+    await DataStore.addTag({id:'z', label:'foo', 'originator':'0', 'subject':'0', 'publicity':'public'});
+    const data = await DataStore.getTagsBySubject('0');
+    expect(data[0].id).toEqual('z');
   });
-  it('personsToNameArray', () => {
+
+  it('personsToNameArray', async () => {
     var name = 'john doe';
     DataStore._persons=[{id:'z', name:name}];
-    DataStore.personsToNameArray().then((names)=> {
-      expect(names.length).toEqual(1);
-      expect(names[0]).toEqual(name);
-      DataStore.resetData(); 
-    });
-    
+    const names = await DataStore.personsToNameArray();
+    expect(names.length).toEqual(1);
+    expect(names[0]).toEqual(name);
+    DataStore.resetData(); 
   });
-  it('tagsToLabelArray', () => {
+
+  it('tagsToLabelArray', async () => {
     var label = 'foo';
     DataStore._tags=[{id:'z', label:label, 'originator':'0', 'subject':'0', 'publicity':'public'}];
-    DataStore.tagsToLabelArray().then((labels)=>{
-      expect(labels.length).toEqual(1);
-      expect(labels[0]).toEqual(label);
-      DataStore.resetData();
-    });
+    const labels = await DataStore.tagsToLabelArray();
+    expect(labels.length).toEqual(1);
+    expect(labels[0]).toEqual(label);
+    DataStore.resetData();
   });
-  //Todo - coverage for getpersonsbyname
+  
 })
