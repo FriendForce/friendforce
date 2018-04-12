@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 import Autosuggest from 'react-autosuggest';
 import styles from './Omnibox.less';
 import isMobile from 'ismobilejs';
+import './theme.css';
 
 
 const focusInputOnSuggestionClick = !isMobile.any;
-
 
 const personsToNameArray = persons => {
   // Turns list of people with ids to a list of searchable names
@@ -41,7 +41,18 @@ const getSuggestions = (value, options) => {
 };
 
 
-const renderSuggestion = suggestion => <span>{getSuggestionValue(suggestion)}</span>;
+const renderSuggestion = (suggestion, {query}) => {
+  var img = 'none';
+  if (suggestion.hasOwnProperty('label')) {
+    img = 'TAG';
+  } else if (suggestion.hasOwnProperty('name')) {
+    img = 'PERSON';
+  }
+  return(
+         //TODO: how do you get theme classes in?
+    <span className='sugestionContent'>{getSuggestionValue(suggestion) + ' ' + img}</span>
+    );
+}
 
 
 export default class OmniBox extends Component {
@@ -50,6 +61,7 @@ export default class OmniBox extends Component {
     this.state = {
       value: '',
       suggestions: [],
+      tags:[],
     }
   }
 
@@ -86,52 +98,39 @@ export default class OmniBox extends Component {
     });
   };
 
+  handleTagSelection = (tag) => {
+    console.log("tag selected: " + tag.label);
+  }
+
+  handlePersonSelection = (person) => {
+     console.log("person selected: " + person.name);
+  }
+
   onSuggestionSelected = (event, { suggestion }) => {
     /**
      *Handle existing selection
     */
     // determine whether suggestion is a person or a tag
-
-    var relevant_edges = this.props.edges.filter(
-      edge => edge.tag == suggestion
-    );
-    var relevant_ids = relevant_edges.map(id => id.subject);
-    var relevant_names = [];
-    for (var i = 0; i < relevant_ids.length; i++) {
-      var person = this.props.people.filter(
-        person => person.id === relevant_ids[i]
-      )[0];
-      var name = person['name'];
-      relevant_names.push(name);
+    if (suggestion.hasOwnProperty('label')) {
+      // handle selected tag
+      this.handleTagSelection(suggestion);
+    } else if (suggestion.hasOwnProperty('name')) {
+      // handle selected person
+      this.handlePersonSelection(suggestion);
     }
-    var html =
-      '<p> Relevant People! </p> <p>' + relevant_names.join('</p><p>') + '</p>';
-    document.getElementById('results').innerHTML = html;
+    this.setState({value:''});   
   };
-
+  
    _handleKeyPress = e => {
-    // Handles comlete entries
-    if (e.key === 'Enter') {
-      var relevant_edges = this.props.edges.filter(
-        edge => edge.tag == e.target.value
-      );
-      var relevant_ids = relevant_edges.map(id => id.subject);
-      var relevant_names = [];
-      for (var i = 0; i < relevant_ids.length; i++) {
-        var person = this.props.people.filter(
-          person => person.id === relevant_ids[i]
-        )[0];
-        var name = person['name'];
-        relevant_names.push(name);
+    if (this.state.suggestions.length == 0 && this.state.value != '') {
+          // Handles comlete entries
+      if (e.key === 'Enter') {
+        console.log('new thing entered = ' + e.target.value);
+        this.setState({value:''});
       }
-      var html =
-        '<p> Relevant People! </p> <p>' +
-        relevant_names.join('</p><p>') +
-        '</p>';
-      document.getElementById('results').innerHTML = html;
     }
   };
-
+  
   render() {
     const { value, suggestions } = this.state;
     const inputProps = {
