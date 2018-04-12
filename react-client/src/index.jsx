@@ -7,6 +7,9 @@ import './main.css';
 import * as firebase from 'firebase';
 import * as firebaseui from 'firebaseui';
 import axios from 'axios';
+import persons from './components/ConstData/persons.js';
+import tags from './components/ConstData/tags.js';
+import Omnibox from './components/Omnibox/Omnibox.jsx';
 
 class App extends React.Component {
   constructor(props) {
@@ -224,16 +227,8 @@ class App extends React.Component {
     )
 
     return (<div>
-      <h1>Friend Force</h1>
-      <p>Hello { this.state.displayName }!</p>
-      <p>Status: { this.state.status }</p>
-      {this.state.status === "signed out" && <button onClick={this.signIn}>Sign in with facebook</button>}
-      {this.state.status === "signed in" && <button onClick={this.signOut}> Sign out </button>}
-      <button onClick={this.populateGraphFromFacebook}>Grab friends from FB </button>
-      <h1>Friends</h1>
-      { friends }
       <div id="firebaseui-auth-container"></div>
-	    <TagEntrySearch  db={this.db} user_id={this.state.user_id} />
+      <Omnibox persons={persons} tags={tags} />
     </div>)
   }
 }
