@@ -220,12 +220,6 @@ class App extends React.Component {
   }
 
   render () {
-    const friends = (this.state.friends).map((f) => 
-      <li key={f["name"]}>
-        { f["name"] }
-      </li>
-    )
-
     return (<div>
       <div id="firebaseui-auth-container"></div>
       <Omnibox persons={persons} tags={tags} />

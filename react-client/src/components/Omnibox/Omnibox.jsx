@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Autosuggest from 'react-autosuggest';
 import styles from './Omnibox.less';
 import isMobile from 'ismobilejs';
-import './theme.css';
 
 
 const focusInputOnSuggestionClick = !isMobile.any;
@@ -134,7 +133,7 @@ export default class OmniBox extends Component {
   render() {
     const { value, suggestions } = this.state;
     const inputProps = {
-      placeholder: "Type 'c'",
+      placeholder: "Type a name or a tag!",
       value,
       onChange: this.onChange
     };
@@ -142,7 +141,7 @@ export default class OmniBox extends Component {
     const renderInputComponent = inputProps => (
       <div>
         <input {...inputProps} onKeyPress={this._handleKeyPress} />
-        <div>custom stuff</div>
+        <div id='results' />
       </div>
     );
 
@@ -151,6 +150,7 @@ export default class OmniBox extends Component {
       <div id="tags-example" className={styles.container}>
         <div className={styles.autosuggest}>
           <Autosuggest
+            highlightFirstSuggestion={true}
             suggestions={suggestions}
             onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
             onSuggestionsClearRequested={this.onSuggestionsClearRequested}

@@ -55,6 +55,7 @@
 .react-autosuggest__suggestion {
   cursor: pointer;
   padding: 10px 20px;
+ 
 }
 
 .react-autosuggest__suggestion--highlighted {
@@ -74,4 +75,6 @@
   font-size: 12px;
   color: #777;
 }
+
+
 
