@@ -49,5 +49,28 @@ describe('DataStore', () => {
     expect(data[0].id).toEqual('z');
   });
 
+  it('addPersonByName', async () => {
+    //NOT IMPLEMENTED
+  });
+
+  it('addTag', async () => {
+    //NOT IMPLEMENTED
+  });
+
+  it('deleteTag', async () => {
+    //NOT IMPLEMENTED
+  });
+
+  it('deletePerson', async () => {
+    //NOT IMPLEMENTED
+  });
+
+  it('updateTag', async () => {
+    //NOT IMPLEMENTED
+  });
+
+  it('updatePerson', async () => {
+    //NOT IMPLEMENTED
+  });
   
 })

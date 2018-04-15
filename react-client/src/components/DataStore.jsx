@@ -20,26 +20,6 @@ class DataStore {
     this._tags = [];
   }
 
-  personsToNameArray(){
-    /**
-     * Creates a duplicate-free array of names from the datastore
-     * @return {String Array} array of names
-     */
-    var persons_set = this._persons.map(x => x.name);
-    var persons_array = Array.from(new Set(persons_set));
-    return Promise.resolve(persons_array);
-  };
-
-  tagsToLabelArray(){
-    /**
-     * Creates a duplicate-free array of labels from the datastore
-     * @return {String Array} array of labels
-     */
-    var label_set = this._tags.map(x => x.label);
-    var label_array = Array.from(new Set(label_set));
-    return Promise.resolve(label_array);
-  }
-
   loadExternalPersons(persons){
      /**
      * Loads a list of external Persons into the DataStore
