@@ -109,22 +109,6 @@ class DataStore {
     return Promise.resolve(this._tags.filter(tag => tag.subject == id));
   }
 
-  getNameArray(){
-    /**
-     * Gets an array of all the names of persons in the datastore
-     * @return {Promise} promise for a {String Array} of all names 
-     */
-    return Promise.resolve(this.personsToNameArray());
-  }
-
-  getLabelArray(){
-    /**
-     * Gets an array of all the labels of all tags in the Datastore
-     * @return {Promise} promise for a {String Array} of all labels 
-     */
-    return Promise.resolve(this.tagsToLabelArray());
-  }
-
   /* test code */
   persons() {
     return this._persons;
