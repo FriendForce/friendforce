@@ -3,6 +3,7 @@ import React from 'react';
 import persons from './ConstData/persons.js';
 import tags from './ConstData/tags.js';
 
+
 class DataStore {
   constructor(){
      // TODO: Change what gets loaded 
@@ -55,6 +56,16 @@ class DataStore {
     this._tags = tags;
   }
 
+  addPersonByName(name) {
+    /** NOT IMPLEMENTED
+     * Creates a person by name and adds them to the Datastore. This 
+     * will always create a new person - caller needs to check if person
+     * already exists.
+     * @param person {string Name} with populated fields
+     * @return {Promise} promise resolves when person successfully added
+     */
+  }
+
   addPerson(person){
     /**
      * Adds a person object to the Datastore
@@ -64,6 +75,19 @@ class DataStore {
     return Promise.resolve(this._persons.push(person));
   }
 
+  addTag(subject, label, publicity='public', originator=''){
+    /** NOT IMPLEMENTED
+     * Adds a Tag object to the Datastore
+     * @param subject {string->id} subject of the tag
+     * @param label {string} label describing the subject
+     * @param publicity {string->public,private,tag} 
+          publicity level of the tag. Default='public'
+     * @param originator {string->id} originator of the tag
+          defaults to the active user
+     * @return {Promise} promise resolves when tag successfully added
+     */
+  }
+
   addTag(tag){
     /**
      * Adds a Tag object to the Datastore
@@ -71,6 +95,40 @@ class DataStore {
      * @return {Promise} promise resolves when tag successfully added
      */
     return Promise.resolve(this._tags.push(tag));
+  }
+
+  deleteTag(id) {
+    /** NOT IMPLEMENTED
+     * Deletes a Tag from the Datastore
+     * @param id {string->id} id 
+     * @return {Promise} promise resolves when tag successfully deleted
+     */
+  }
+
+  deletePerson(id) {
+    /** NOT IMPLEMENTED
+     * Deletes a Person from the Datastore
+     * @param id {string->id} id 
+     * @return {Promise} promise resolves when person successfully deleted
+     */
+  }
+
+  updateTag(id, params) {
+    /** NOT IMPLEMENTED
+     * Updates a Tag in the datastore
+     * @param id {string->id} id of tag
+     * @param params {dictionary} key-values to update 
+     * @return {Promise} promise resolves when tag successfully updated
+     */
+  }
+
+  updatePerson(id, params) {
+    /** NOT IMPLEMENTED
+     * Updates a Person in the datastore
+     * @param id {string->id} id of person
+     * @param params {dictionary} key-values to update 
+     * @return {Promise} promise resolves when person successfully updated
+     */
   }
 
   getPersonsByName(name){

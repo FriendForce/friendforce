@@ -3,91 +3,104 @@ export default [
     id: 'a',
     subject: '1',
     originator: '3',
-    tag: 'PM',
-    timestamp: '02-19-2018'
+    label: 'PM',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'b',
     subject: '1',
     originator: '3',
-    tag: 'Brown',
-    timestamp: '02-19-2018'
+    label: 'Brown',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'c',
     subject: '1',
     originator: '3',
-    tag: 'Tesla',
-    timestamp: '02-19-2018'
+    label: 'Tesla',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'd',
     subject: '1',
     originator: '3',
-    tag: 'LinkedIn',
-    timestamp: '02-19-2018'
+    label: 'LinkedIn',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'e',
     subject: '1',
     originator: '3',
-    tag: 'Climbing',
-    timestamp: '02-19-2018'
+    label: 'Climbing',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'f',
     subject: '1',
     originator: '3',
-    tag: 'Loc:SF',
-    timestamp: '02-19-2018'
+    label: 'Loc:SF',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'g',
     subject: '1',
     originator: '3',
-    tag: 'FriendForce',
-    timestamp: '02-19-2018'
+    label: 'FriendForce',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'h',
     subject: '2',
     originator: '3',
-    tag: 'Loc:SF',
-    timestamp: '02-19-2018'
+    label: 'Loc:SF',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'i',
     subject: '2',
     originator: '3',
-    tag: 'FriendForce',
-    timestamp: '02-19-2018'
+    label: 'FriendForce',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'j',
     subject: '2',
     originator: '3',
-    tag: 'Kansas',
-    timestamp: '02-19-2018'
+    label: 'Kansas',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'k',
     subject: '2',
     originator: '3',
-    tag: 'Bikes',
-    timestamp: '02-19-2018'
+    label: 'Bikes',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'l',
     subject: '2',
     originator: '3',
-    tag: 'Loc:Mission',
-    timestamp: '02-19-2018'
+    label: 'Loc:Mission',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   },
   {
     id: 'm',
     subject: '2',
     originator: '3',
-    tag: 'Beer',
-    timestamp: '02-19-2018'
+    label: 'Beer',
+    timestamp: '02-19-2018',
+    publicity: 'public'
   }
 ];
