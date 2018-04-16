@@ -3,6 +3,7 @@ import React from 'react';
 import persons from './ConstData/persons.js';
 import tags from './ConstData/tags.js';
 
+
 class DataStore {
   constructor(){
      // TODO: Change what gets loaded 
@@ -17,26 +18,6 @@ class DataStore {
      */
     this._persons = [];
     this._tags = [];
-  }
-
-  personsToNameArray(){
-    /**
-     * Creates a duplicate-free array of names from the datastore
-     * @return {String Array} array of names
-     */
-    var persons_set = this._persons.map(x => x.name);
-    var persons_array = Array.from(new Set(persons_set));
-    return Promise.resolve(persons_array);
-  };
-
-  tagsToLabelArray(){
-    /**
-     * Creates a duplicate-free array of labels from the datastore
-     * @return {String Array} array of labels
-     */
-    var label_set = this._tags.map(x => x.label);
-    var label_array = Array.from(new Set(label_set));
-    return Promise.resolve(label_array);
   }
 
   loadExternalPersons(persons){
@@ -55,6 +36,16 @@ class DataStore {
     this._tags = tags;
   }
 
+  addPersonByName(name) {
+    /** NOT IMPLEMENTED
+     * Creates a person by name and adds them to the Datastore. This 
+     * will always create a new person - caller needs to check if person
+     * already exists.
+     * @param person {string Name} with populated fields
+     * @return {Promise} promise resolves when person successfully added
+     */
+  }
+
   addPerson(person){
     /**
      * Adds a person object to the Datastore
@@ -64,6 +55,19 @@ class DataStore {
     return Promise.resolve(this._persons.push(person));
   }
 
+  addTag(subject, label, publicity='public', originator=''){
+    /** NOT IMPLEMENTED
+     * Adds a Tag object to the Datastore
+     * @param subject {string->id} subject of the tag
+     * @param label {string} label describing the subject
+     * @param publicity {string->public,private,tag} 
+          publicity level of the tag. Default='public'
+     * @param originator {string->id} originator of the tag
+          defaults to the active user
+     * @return {Promise} promise resolves when tag successfully added
+     */
+  }
+
   addTag(tag){
     /**
      * Adds a Tag object to the Datastore
@@ -71,6 +75,40 @@ class DataStore {
      * @return {Promise} promise resolves when tag successfully added
      */
     return Promise.resolve(this._tags.push(tag));
+  }
+
+  deleteTag(id) {
+    /** NOT IMPLEMENTED
+     * Deletes a Tag from the Datastore
+     * @param id {string->id} id 
+     * @return {Promise} promise resolves when tag successfully deleted
+     */
+  }
+
+  deletePerson(id) {
+    /** NOT IMPLEMENTED
+     * Deletes a Person from the Datastore
+     * @param id {string->id} id 
+     * @return {Promise} promise resolves when person successfully deleted
+     */
+  }
+
+  updateTag(id, params) {
+    /** NOT IMPLEMENTED
+     * Updates a Tag in the datastore
+     * @param id {string->id} id of tag
+     * @param params {dictionary} key-values to update 
+     * @return {Promise} promise resolves when tag successfully updated
+     */
+  }
+
+  updatePerson(id, params) {
+    /** NOT IMPLEMENTED
+     * Updates a Person in the datastore
+     * @param id {string->id} id of person
+     * @param params {dictionary} key-values to update 
+     * @return {Promise} promise resolves when person successfully updated
+     */
   }
 
   getPersonsByName(name){
@@ -107,22 +145,6 @@ class DataStore {
      *          with the given subject
      */
     return Promise.resolve(this._tags.filter(tag => tag.subject == id));
-  }
-
-  getNameArray(){
-    /**
-     * Gets an array of all the names of persons in the datastore
-     * @return {Promise} promise for a {String Array} of all names 
-     */
-    return Promise.resolve(this.personsToNameArray());
-  }
-
-  getLabelArray(){
-    /**
-     * Gets an array of all the labels of all tags in the Datastore
-     * @return {Promise} promise for a {String Array} of all labels 
-     */
-    return Promise.resolve(this.tagsToLabelArray());
   }
 
   /* test code */

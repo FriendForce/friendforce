@@ -49,22 +49,28 @@ describe('DataStore', () => {
     expect(data[0].id).toEqual('z');
   });
 
-  it('personsToNameArray', async () => {
-    var name = 'john doe';
-    DataStore._persons=[{id:'z', name:name}];
-    const names = await DataStore.personsToNameArray();
-    expect(names.length).toEqual(1);
-    expect(names[0]).toEqual(name);
-    DataStore.resetData(); 
+  it('addPersonByName', async () => {
+    //NOT IMPLEMENTED
   });
 
-  it('tagsToLabelArray', async () => {
-    var label = 'foo';
-    DataStore._tags=[{id:'z', label:label, 'originator':'0', 'subject':'0', 'publicity':'public'}];
-    const labels = await DataStore.tagsToLabelArray();
-    expect(labels.length).toEqual(1);
-    expect(labels[0]).toEqual(label);
-    DataStore.resetData();
+  it('addTag', async () => {
+    //NOT IMPLEMENTED
+  });
+
+  it('deleteTag', async () => {
+    //NOT IMPLEMENTED
+  });
+
+  it('deletePerson', async () => {
+    //NOT IMPLEMENTED
+  });
+
+  it('updateTag', async () => {
+    //NOT IMPLEMENTED
+  });
+
+  it('updatePerson', async () => {
+    //NOT IMPLEMENTED
   });
   
 })
