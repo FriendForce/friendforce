@@ -99,10 +99,12 @@ export default class OmniBox extends Component {
 
   handleTagSelection = (tag) => {
     console.log("tag selected: " + tag.label);
+    this.props.onSelectTag(tag);
   }
 
   handlePersonSelection = (person) => {
      console.log("person selected: " + person.name);
+     this.props.onSelectPerson(person);
   }
 
   onSuggestionSelected = (event, { suggestion }) => {
