@@ -9,7 +9,6 @@ import DataStore from './DataStore.jsx';
 import {
   BrowserRouter as Router,
   Route,
-  Link,
   withRouter,
 } from 'react-router-dom'
 
@@ -131,11 +130,11 @@ class App extends Component {
 
 const AppBox = withRouter(App);
 
-const BasicExample = () => (
+const FullApp = () => (
   <Router>
     <div>
       <AppBox/>
     </div>
   </Router>
 )
-export default BasicExample
+export default FullApp
