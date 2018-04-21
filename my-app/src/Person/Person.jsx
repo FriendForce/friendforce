@@ -3,23 +3,15 @@ import {
   Route,
 } from 'react-router-dom'
 
-class Person extends Component {
-  constructor({match}) {
+export default class Person extends Component {
+  constructor() {
     super();
-    this.match = match;
   }
   render() {
     return(
       <div>
-        <h2>Person: {this.match.params.personId}</h2>
+        <h2>Person: {this.props.personId}</h2>
       </div>
     );
   }
 }
-
-const PersonBox = ({ match }) => (
-    <Route path={`${match.path}/:personId`} component={Person}/>
-
-)
-
-export default PersonBox

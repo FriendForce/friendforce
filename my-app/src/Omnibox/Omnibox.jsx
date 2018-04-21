@@ -4,6 +4,25 @@ import Autosuggest from 'react-autosuggest';
 
 
 //const focusInputOnSuggestionClick = !isMobile.any;
+const uniqLabelFast = a => {
+  /**
+   * Quickly makes a list tags without repeating labels
+   * @param a {[Tag]} list of tags
+   */
+
+    var seen = {};
+    var out = [];
+    var len = a.length;
+    var j = 0;
+    for(var i = 0; i < len; i++) {
+         var item = a[i].label;
+         if(seen[item] !== 1) {
+               seen[item] = 1;
+               out[j++] = a[i];
+         }
+    }
+    return out;
+}
 
 const escapeRegexCharacters = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -50,7 +69,7 @@ export default class OmniBox extends Component {
   }
 
   componentWillMount = value => {
-    var options = this.props.persons.concat(this.props.tags);
+    var options = this.props.persons.concat(uniqLabelFast(this.props.tags));
     this.setState({
       options: options
     });
@@ -58,7 +77,7 @@ export default class OmniBox extends Component {
 
   componentWillReceiveProps = new_props => {
     // Update lists of things when props change
-     var options = this.props.persons.concat(new_props.tags);
+    var options = new_props.persons.concat(uniqLabelFast(new_props.tags));
     this.setState({
       options: options
     });
