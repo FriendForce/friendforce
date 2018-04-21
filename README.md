@@ -2,9 +2,12 @@
 
  
 ## Getting started ##
+`cd my-app`
 To install: `npm install`
 
-To run server + webpack: `npm run start`
+To run server: `npm start`
+
+See instruction in `my-app/README.md`
 
 ## Notes ##
 
