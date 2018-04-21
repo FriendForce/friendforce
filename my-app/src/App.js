@@ -14,34 +14,6 @@ import {
 } from 'react-router-dom'
 
 
-
-const Topics = ({ match }) => (
-  <div>
-    <h2>Topics</h2>
-    <ul>
-      <li>
-        <Link to={`${match.url}/rendering`}>
-          Rendering with React
-        </Link>
-      </li>
-      <li>
-        <Link to={`${match.url}/components`}>
-          Components
-        </Link>
-      </li>
-      <li>
-        <Link to={`${match.url}/props-v-state`}>
-          Props v. State
-        </Link>
-      </li>
-    </ul>
-
-    <Route exact path={match.path} render={() => (
-      <h3>Please select a topic.</h3>
-    )}/>
-  </div>
-)
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -94,7 +66,6 @@ class App extends Component {
       var originator = this.state.user;
       DataStore.addTag(subject, thing, originator)
       .then((id)=>{
-        console.log("added tag: " + id);
         DataStore.getAllTags()
         .then((tags) =>{
           this.setState({tags:tags});
@@ -145,7 +116,6 @@ class App extends Component {
           setTag={this.setTag} 
         />
         <Route exact path="/" component={Home}/>
-        <Route path="/topics" component={Topics}/>
         <Route path="/person/:personId" 
                render={(props)=><Person {...props.match.params} 
                                  tags={this.state.tags}

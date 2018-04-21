@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
-import {
-  Route,
-} from 'react-router-dom'
 
 export default class Person extends Component {
+  // eslint-disable-next-line
   constructor() {
     super();
   }

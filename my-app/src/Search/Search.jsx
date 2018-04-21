@@ -1,34 +1,15 @@
 import React, { Component } from 'react';
-import {
-  Route,
-} from 'react-router-dom'
 
 const getSearchLabels =(searchString) => {
-  return searchString.split("+");
+  var labels = searchString.split("+");
+  var formattedLabels = [];
+  labels.forEach(label => {
+    label.replace("%"," "); formattedLabels.push(label);});
+  return formattedLabels;
 }
-
-const uniqIdFast = a => {
-  /**
-   * Quickly makes a list tags without repeating labels
-   * @param a {[Tag]} list of tags
-   */
-
-    var seen = {};
-    var out = [];
-    var len = a.length;
-    var j = 0;
-    for(var i = 0; i < len; i++) {
-         var item = a[i];
-         if(seen[item] !== 1) {
-               seen[item] = 1;
-               out[j++] = item;
-         }
-    }
-    return out;
-}
-
 
 export default class Search extends Component {
+  // eslint-disable-next-line
   constructor() {
     super();
   }
@@ -38,27 +19,31 @@ export default class Search extends Component {
     var matchingTags = [];
     var potentialMatchingPersons = [];
     var matchingPersons = [];
-    for (var i = 0; i < searchLabels.length; i++) {
-      matchingTags.push(this.props.tags.filter(tag => 
-        {tag.label === searchLabels[i]}));
-    }
 
-    console.log(matchingTags);
     for (var i = 0; i < searchLabels.length; i++) {
-      potentialMatchingPersons.push(
-        matchingTags[i].map(tag => tag.subject));
+          // eslint-disable-next-line
+      var tags = this.props.tags.filter(tag => 
+        tag.label === searchLabels[i]);
+      matchingTags.push(tags);
     }
-    console.log(potentialMatchingPersons);
+    matchingTags.forEach(tags => {
+      potentialMatchingPersons.push(
+        tags.map(tag => tag.subject));
+    });
     // Persons must have all search terms to pass (for now)
-    potentialMatchingPersons[0].forEach(personId => {
-      var num_matches = potentialMatchingPersons.filter(personList => {
-        personList.indexOf(personId) > -1
-      });
-      if (num_matches === searchLabels.length) {
-        matchingPersons.push(personId);
+    potentialMatchingPersons[0].forEach(person => {
+      var match = true;
+      for (var i = 0; i < potentialMatchingPersons.length; i++) {
+        if (potentialMatchingPersons[i].indexOf(person) < 0) {
+          match = false;
+          break;
+        }
+      }
+      if (match === true) {
+        matchingPersons.push(person);
       }
     });
-    return potentialMatchingPersons;
+    return matchingPersons;
   }
 
 
