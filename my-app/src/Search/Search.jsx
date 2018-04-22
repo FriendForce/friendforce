@@ -2,9 +2,7 @@ import React, { Component } from 'react';
 
 const getSearchLabels =(searchString) => {
   var labels = searchString.split("+");
-  var formattedLabels = [];
-  labels.forEach(label => {
-    label.replace("%"," "); formattedLabels.push(label);});
+  const formattedLabels = labels.map(label => label.replace("%", " "))
   return formattedLabels;
 }
 

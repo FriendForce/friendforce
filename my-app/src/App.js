@@ -35,7 +35,7 @@ class App extends Component {
     };
     DataStore.getAllTags()
     .then((tags) =>{
-      this.setState({tags:tags});
+      this.setState({tags});
     });
     DataStore.getAllPersons()
     .then((persons) =>{

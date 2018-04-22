@@ -3,20 +3,20 @@
 import persons from './ConstData/persons.js';
 import tags from './ConstData/tags.js';
 
-export const nameToId = name => {
-  return name.replace(/[^A-Z0-9]/ig, "_") + crypto.getRandomValues(new Uint8Array(1));
-}
-
-export const tagToId = tag => {
-  return tag.label.replace(/[^A-Z0-9]/ig, "_") + crypto.getRandomValues(new Uint8Array(1));
-}
-
 class DataStore {
   constructor(){
      // TODO: Change what gets loaded 
      this._data = [];
      this.loadExternalPersons(persons);
      this.loadExternalTags(tags);
+  }
+
+  _nameToId(name) {
+    return name.replace(/[^A-Z0-9]/ig, "_") + crypto.getRandomValues(new Uint8Array(1));
+  } 
+
+  _tagToId(tag) {
+    return tag.label.replace(/[^A-Z0-9]/ig, "_") + crypto.getRandomValues(new Uint8Array(1));
   }
 
   resetData(){
@@ -51,7 +51,7 @@ class DataStore {
      * @param person {string Name} with populated fields
      * @return {Promise} promise resolves when person successfully added
      */
-     var id = nameToId(name);
+     var id = this._nameToId(name);
      var person = {
         id:id,
         name:name
@@ -87,7 +87,7 @@ class DataStore {
       publicity:publicity,
       originator:originator,
      }
-     tag.id = tagToId(tag);
+     tag.id = this._tagToId(tag);
      this._tags.push(tag);
      return Promise.resolve(tag.id);
   }
