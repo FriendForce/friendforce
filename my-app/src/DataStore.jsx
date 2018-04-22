@@ -1,8 +1,7 @@
-import React from 'react';
+
 //Remove these when we're done with constant data
 import persons from './ConstData/persons.js';
 import tags from './ConstData/tags.js';
-
 
 class DataStore {
   constructor(){
@@ -10,6 +9,14 @@ class DataStore {
      this._data = [];
      this.loadExternalPersons(persons);
      this.loadExternalTags(tags);
+  }
+
+  _nameToId(name) {
+    return name.replace(/[^A-Z0-9]/ig, "_") + crypto.getRandomValues(new Uint8Array(1));
+  } 
+
+  _tagToId(tag) {
+    return tag.label.replace(/[^A-Z0-9]/ig, "_") + crypto.getRandomValues(new Uint8Array(1));
   }
 
   resetData(){
@@ -44,6 +51,13 @@ class DataStore {
      * @param person {string Name} with populated fields
      * @return {Promise} promise resolves when person successfully added
      */
+     var id = this._nameToId(name);
+     var person = {
+        id:id,
+        name:name
+      };
+      this._persons.push(person);
+     return Promise.resolve(person.id);
   }
 
   addPerson(person){
@@ -55,7 +69,7 @@ class DataStore {
     return Promise.resolve(this._persons.push(person));
   }
 
-  addTag(subject, label, publicity='public', originator=''){
+  addTag(subject, label, originator, publicity='public'){
     /** NOT IMPLEMENTED
      * Adds a Tag object to the Datastore
      * @param subject {string->id} subject of the tag
@@ -66,16 +80,18 @@ class DataStore {
           defaults to the active user
      * @return {Promise} promise resolves when tag successfully added
      */
+     var tag = {
+      id:'',
+      subject:subject,
+      label:label,
+      publicity:publicity,
+      originator:originator,
+     }
+     tag.id = this._tagToId(tag);
+     this._tags.push(tag);
+     return Promise.resolve(tag.id);
   }
 
-  addTag(tag){
-    /**
-     * Adds a Tag object to the Datastore
-     * @param tag {Tag} with populated fields
-     * @return {Promise} promise resolves when tag successfully added
-     */
-    return Promise.resolve(this._tags.push(tag));
-  }
 
   deleteTag(id) {
     /** NOT IMPLEMENTED
@@ -118,7 +134,7 @@ class DataStore {
      * @return {Promise} promise for a {Person Array} of Persons
      *          with the given name
      */
-    return Promise.resolve(this._persons.filter(d => d.name == name));
+    return Promise.resolve(this._persons.filter(d => d.name === name));
   }
 
   getAllPersons(){
@@ -144,7 +160,7 @@ class DataStore {
      * @return {Promise} promise for a {Tag Array} of Tags
      *          with the given subject
      */
-    return Promise.resolve(this._tags.filter(tag => tag.subject == id));
+    return Promise.resolve(this._tags.filter(tag => tag.subject === id));
   }
 
   /* test code */

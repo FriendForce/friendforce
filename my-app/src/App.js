@@ -1,48 +1,17 @@
 import React, { Component } from 'react';
 import './App.css';
-import persons from './ConstData/persons.js';
-import tags from './ConstData/tags.js';
 import Omnibox from './Omnibox/Omnibox.jsx';
-import PersonBox from './Person/Person.jsx';
-import SearchBox from './Search/Search.jsx';
+import Person from './Person/Person.jsx';
+import Search from './Search/Search.jsx';
 import Home from './Home/Home.js';
+import DataStore from './DataStore.jsx';
 
 import {
   BrowserRouter as Router,
   Route,
-  Link,
-  Redirect,
   withRouter,
 } from 'react-router-dom'
 
-
-
-const Topics = ({ match }) => (
-  <div>
-    <h2>Topics</h2>
-    <ul>
-      <li>
-        <Link to={`${match.url}/rendering`}>
-          Rendering with React
-        </Link>
-      </li>
-      <li>
-        <Link to={`${match.url}/components`}>
-          Components
-        </Link>
-      </li>
-      <li>
-        <Link to={`${match.url}/props-v-state`}>
-          Props v. State
-        </Link>
-      </li>
-    </ul>
-
-    <Route exact path={match.path} render={() => (
-      <h3>Please select a topic.</h3>
-    )}/>
-  </div>
-)
 
 class App extends Component {
   constructor(props) {
@@ -60,14 +29,49 @@ class App extends Component {
     firebase.initializeApp(config);
   */
     this.state = { 
+      tags:[],
+      persons:[],
+      user:'default'
     };
+    DataStore.getAllTags()
+    .then((tags) =>{
+      this.setState({tags});
+    });
+    DataStore.getAllPersons()
+    .then((persons) =>{
+      this.setState({persons:persons});
+    });
     this.addThing = this.addThing.bind(this);
     this.setPerson = this.setPerson.bind(this);
     this.setTag = this.setTag.bind(this);
   }
 
   addThing = thing => {
-    console.log('adding thing: ' + thing);
+    // If you are in person mode the new thing will be a tag
+    // If you are in search mode you can't add new things
+    // If you are in home mode a new thing is a person
+    var path = this.props.location.pathname.split("/");
+    if (path[1] === ""){
+      DataStore.addPersonByName(thing)
+      .then((id)=>{
+        this.props.history.push('/person/'+id);
+        DataStore.getAllPersons()
+        .then((persons) =>{
+          this.setState({persons:persons});
+        });
+      });
+    } else if (path[1] === "person") {
+      var subject = path[2];
+      var originator = this.state.user;
+      DataStore.addTag(subject, thing, originator)
+      .then((id)=>{
+        DataStore.getAllTags()
+        .then((tags) =>{
+          this.setState({tags:tags});
+        });
+      });
+      console.log("creating and adding tag " + thing + " to " + path[2]);
+    } 
   }
 
   setPerson = person => {
@@ -76,8 +80,26 @@ class App extends Component {
   }
 
   setTag = tag => {
-    console.log('set tag: ' + tag.label);
-    this.props.history.push('/search/'+tag.id);
+    //If you are in person mode add that tag to a person
+    //If you are in home mode start searching
+    //If you are in search mode add that tag to the search
+    var path = this.props.location.pathname.split("/");
+    if (path[1] === ""){
+      this.props.history.push('/search/'+tag.id);
+    } else if (path[1]==="person") {
+      // Add Tag to person
+      console.log("adding " + tag.label + " to " + path[2]);
+    } else if (path[1]==="search") {
+      if (path.length === 2 || path[2] === "") {
+        var prettySlash = '/';
+        if (this.props.location.pathname.slice(-1)===prettySlash) {
+          prettySlash="";
+        }
+        this.props.history.push(this.props.location.pathname+ prettySlash + tag.label.replace(/[^A-Z0-9]/ig, "_"));
+      } else if (path.length === 3) {
+        this.props.history.push(this.props.location.pathname+"+"+tag.label.replace(/[^A-Z0-9]/ig, "_"));
+      }      
+    }
   }
 
 
@@ -86,30 +108,33 @@ class App extends Component {
       <div>
         <div id="firebaseui-auth-container"></div>
         <Omnibox 
-          persons={persons} 
-          tags={tags}
+          persons={this.state.persons} 
+          tags={this.state.tags}
           addThing={this.addThing}
           setPerson={this.setPerson}
           setTag={this.setTag} 
         />
-
+        <Route exact path="/" component={Home}/>
+        <Route path="/person/:personId" 
+               render={(props)=><Person {...props.match.params} 
+                                 tags={this.state.tags}
+                                 persons={this.state.persons}/>}/>
+        <Route path="/search/:searchString" 
+               render={(props)=><Search {...props.match.params} 
+                                 tags={this.state.tags}
+                                 persons={this.state.persons}/>}/>
       </div>
     )
   }
 }
 
-const AppWithRouter = withRouter(App);
+const AppBox = withRouter(App);
 
-const BasicExample = () => (
+const FullApp = () => (
   <Router>
     <div>
-      <AppWithRouter/>
-      <hr/>
-        <Route exact path="/" component={Home}/>
-        <Route path="/topics" component={Topics}/>
-        <Route path="/person" component={PersonBox}/>
-        <Route path="/search" component={SearchBox}/>
+      <AppBox/>
     </div>
   </Router>
 )
-export default BasicExample
+export default FullApp

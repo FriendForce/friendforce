@@ -1,18 +1,18 @@
 export default [
   {
-    id: '1',
+    id: 'Adrienne_Tran',
     name: 'Adrienne Tran'
   },
   {
-    id: '2',
+    id: 'Micah_Catlin',
     name: 'Micah Catlin'
   },
   {
-    id: '3',
+    id: 'Benjamin_Reinhardt',
     name: 'Benjamin Reinhardt'
   },
     {
-    id: '4',
+    id: 'Sasha_Sheng',
     name: 'Sasha Sheng'
   }
 ];
