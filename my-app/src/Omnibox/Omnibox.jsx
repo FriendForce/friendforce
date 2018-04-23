@@ -21,7 +21,6 @@ const uniqLabelFast = a => {
                out[j++] = a[i];
          }
     }
-    console.log(out);
     return out;
 }
 
