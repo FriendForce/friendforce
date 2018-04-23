@@ -5,7 +5,7 @@ import Person from './Person/Person.jsx';
 import Search from './Search/Search.jsx';
 import Home from './Home/Home.js';
 import DataStore from './DataStore.jsx';
-
+import { Container, Row, Col } from 'reactstrap';
 import {
   BrowserRouter as Router,
   Route,
@@ -107,22 +107,31 @@ class App extends Component {
     return (
       <div>
         <div id="firebaseui-auth-container"></div>
-        <Omnibox 
-          persons={this.state.persons} 
-          tags={this.state.tags}
-          addThing={this.addThing}
-          setPerson={this.setPerson}
-          setTag={this.setTag} 
-        />
-        <Route exact path="/" component={Home}/>
-        <Route path="/person/:personId" 
-               render={(props)=><Person {...props.match.params} 
-                                 tags={this.state.tags}
-                                 persons={this.state.persons}/>}/>
-        <Route path="/search/:searchString" 
-               render={(props)=><Search {...props.match.params} 
-                                 tags={this.state.tags}
-                                 persons={this.state.persons}/>}/>
+        <Container>
+        <Row>
+        <Col>
+          <Omnibox 
+            persons={this.state.persons} 
+            tags={this.state.tags}
+            addThing={this.addThing}
+            setPerson={this.setPerson}
+            setTag={this.setTag} 
+          />
+        </Col>
+        
+        <Col>
+          <Route exact path="/" component={Home}/>
+          <Route path="/person/:personId" 
+                 render={(props)=><Person {...props.match.params} 
+                                   tags={this.state.tags}
+                                   persons={this.state.persons}/>}/>
+          <Route path="/search/:searchString" 
+                 render={(props)=><Search {...props.match.params} 
+                                   tags={this.state.tags}
+                                   persons={this.state.persons}/>}/>
+        </Col>
+        </Row>
+      </Container>
       </div>
     )
   }

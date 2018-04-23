@@ -1,8 +1,11 @@
 import React from 'react';
+import { Container, Row, Col } from 'reactstrap';
 
 const Home = () => (
   <div>
-    <h2>Home</h2>
+  <Row>
+    <Col> Foo </Col><Col>Bar</Col>
+  </Row>
   </div>
 )
 
