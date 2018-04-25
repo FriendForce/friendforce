@@ -1,14 +1,7 @@
 import React, { Component } from 'react';
 import MiniPerson from './MiniPerson.jsx';
-import { Container, Row, Col } from 'reactstrap';
-import ReactRouterBootstrap, {LinkContainer} from 'react-router-bootstrap';
-import {Link} from 'react-router-dom';
+import { Container, Row} from 'reactstrap';
 
-const getSearchLabels =(searchString) => {
-  var labels = searchString.split("+");
-  const formattedLabels = labels.map(label => label.replace("%", " "))
-  return formattedLabels;
-}
 
 export default class Search extends Component {
   // eslint-disable-next-line
@@ -17,7 +10,7 @@ export default class Search extends Component {
   }
 
   getMatchingIds = () => {
-    var searchLabels = getSearchLabels(this.props.searchString);
+    var searchLabels = this.props.searchLabels;
     var matchingTags = [];
     var potentialMatchingIds = [];
     var matchingIds = [];
@@ -50,7 +43,6 @@ export default class Search extends Component {
 
 
   render() {
-    var searchLabels = getSearchLabels(this.props.searchString);
     var matchingIds = this.getMatchingIds();
 
     var matchingPersons = this.props.persons.filter(person=>(matchingIds.indexOf(person.id) > -1));
@@ -66,8 +58,6 @@ export default class Search extends Component {
     return(
       <div>
         <Container>
-        <h2>Searching for matches to tags: </h2>
-        <h4>{searchLabels}</h4>
         <h2>Resulting People</h2>
         {content}
         </Container>
