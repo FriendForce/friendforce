@@ -9,11 +9,15 @@ export default class Search extends Component {
   render() {
     return(
       <Container>
-        <Link to={this.props.link}>
-        <Row>
-          <Col> Picture </Col> <Col>{this.props.person.name} </Col><Col>INFO</Col>
+        
+        <Row className="miniperson-row">
+          <Link to={this.props.link} className="miniperson-link">
+          <div className="miniperson-box">
+          <Col> <span className="miniperson-picture"></span> </Col> <Col>{this.props.person.name} </Col><Col>INFO</Col>
+          </div>
+           </Link>
         </Row>
-        </Link>
+       
       </Container>
     );
   }

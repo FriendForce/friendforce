@@ -140,3 +140,43 @@
     }
   }
 }
+
+.miniperson-row {
+  display: flex;
+  align-items: stretch;
+  margin-top: 5px;
+}
+
+a.miniperson-link:link, a.miniperson-link:visited {
+  text-decoration: none;
+  color: black;
+  background-color: white;
+  padding: 0px 0px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+a.miniperson-link:hover {
+  text-decoration: none;
+  color: black;
+  background-color: green;
+}
+
+.miniperson-box {
+  display: flex;
+  align-items: center;
+  border-radius: 5px;
+  border: 2px solid black;
+  padding: 3px 3px;
+  width: 400px;
+}
+
+.miniperson-picture {
+  display: flex;
+  height: 80px;
+  width: 80px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+}
