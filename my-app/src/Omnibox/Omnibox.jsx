@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import Autosuggest from 'react-autosuggest';
-
+import SearchButton from './SearchButton.jsx';
 //import isMobile from 'ismobilejs';
 
 
@@ -146,7 +146,7 @@ export default class OmniBox extends Component {
     const renderInputComponent = inputProps => {
       var tagButtons = [];                                        
       this.props.searchLabels.forEach(label => {
-        tagButtons.push( <button key={label} type="tag">{label}</button>);
+        tagButtons.push( <SearchButton key={label} unsetLabel={this.props.unsetLabel} label={label}/>);
       });
       return(                            
         <div>
