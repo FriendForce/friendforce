@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Autosuggest from 'react-autosuggest';
+import { Container, Row} from 'reactstrap';
 
 //import isMobile from 'ismobilejs';
 
@@ -65,7 +66,9 @@ export default class AddBox extends Component {
       value: '',
       suggestions: [],
       tags:[],
+      publicity:"public"
     }
+    this.onPublicityChanged = this.onPublicityChanged.bind(this);
   }
 
   componentWillMount = value => {
@@ -102,25 +105,17 @@ export default class AddBox extends Component {
   };
 
   handleTagSelection = (tag) => {
-    this.props.addTagToPerson(tag.label);
+    this.props.addTagToPerson(tag.label, this.state.publicity);
   }
 
-  handlePersonSelection = (person) => {
-     this.props.setPerson(person);
-  }
 
   onSuggestionSelected = (event, { suggestion }) => {
     /**
      *Handle existing selection
     */
     // determine whether suggestion is a person or a tag
-    if (suggestion.hasOwnProperty('label')) {
       // handle selected tag
-      this.handleTagSelection(suggestion);
-    } else if (suggestion.hasOwnProperty('name')) {
-      // handle selected person
-      this.handlePersonSelection(suggestion);
-    }
+    this.handleTagSelection(suggestion);
     this.setState({value:''});   
   };
   
@@ -128,12 +123,22 @@ export default class AddBox extends Component {
     if (this.state.suggestions.length === 0 && this.state.value !== '') {
           // Handles comlete entries
       if (e.key === 'Enter') {
-        this.props.addThing(this.state.value);
+        console.log("publicity = " + this.state.publicity);
+        this.props.addTagToPerson(this.state.value, this.state.publicity);
         this.setState({value:''});
       }
     }
   };
   
+  onPublicityChanged = e => {   
+    if (this.state.publicity === "private") {
+      this.setState({publicity:"public"});
+    } else if (this.state.publicity === "public") {
+      this.setState({publicity:"private"});
+    }
+    
+  }
+
   render() {
     const { value, suggestions } = this.state;
     const inputProps = {
@@ -171,6 +176,11 @@ export default class AddBox extends Component {
             //focusInputOnSuggestionClick={focusInputOnSuggestionClick}
             id="tags-example"
           />
+        </div>
+        
+        <div className="form-check">
+          <input checked={this.state.publicity==="private"} onChange={this.onPublicityChanged}  type="checkbox" className="form-check-input" id="exampleCheck1"/>
+          <label className="form-check-label" htmlFor="exampleCheck1">Make Tag Private</label>
         </div>
         <div id="results" />
       </div>

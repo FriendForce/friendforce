@@ -3,9 +3,7 @@ import { Container, Row, Col } from 'reactstrap';
 import {Link} from 'react-router-dom';
 
 export default class Search extends Component {
-  constructor() {
-    super();
-  }
+  
   render() {
     return(
       <Container>

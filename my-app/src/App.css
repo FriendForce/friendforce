@@ -143,6 +143,10 @@
   }
 }
 
+.addperson-options {
+  display: flex;
+}
+
 .miniperson-row {
   display: flex;
   align-items: stretch;

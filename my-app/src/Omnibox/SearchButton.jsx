@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
 
 export default class SearchButton extends Component {
-  constructor() {
-    super();
-  }
 
   onClick = () => {
     this.props.unsetLabel(this.props.label);

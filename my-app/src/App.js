@@ -82,17 +82,18 @@ class App extends Component {
   }
   
 
-  addTagToPerson = label => {
+  addTagToPerson = (label, publicity='public') => {
     var subject = this.props.match.params.data;
     var originator = this.state.user;
-    DataStore.addTag(subject, label, originator)
+    DataStore.addTag(subject, label, originator, publicity)
     .then((id)=>{
       DataStore.getAllTags()
       .then((tags) =>{
         this.setState({tags:tags});
       });
     });
-    console.log("creating and adding tag " + label + " to " + subject);
+    console.log("creating and adding tag " + label + " to " 
+                + subject + "with publicity " + publicity);
   } 
   
 
