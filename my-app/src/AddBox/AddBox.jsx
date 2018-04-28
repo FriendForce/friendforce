@@ -73,7 +73,7 @@ export default class AddBox extends Component {
       value: '',
       suggestions: [],
       tags:[],
-      publicity:"public"
+      publicity:"public",
       options: options
     }
     this.onPublicityChanged = this.onPublicityChanged.bind(this);

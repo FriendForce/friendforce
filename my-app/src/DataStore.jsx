@@ -32,8 +32,7 @@ class DataStore {
      * Loads a list of external Persons into the DataStore
      * @param persons {Person Array} 
      */
-     var personsCopy = persons;
-    this._persons = personsCopy.map(person => {delete personsCopy.tags; return person;});
+    this._persons = persons;
   }
 
   loadExternalTags(tags){
@@ -42,12 +41,7 @@ class DataStore {
      * @param persons {Tag Array} 
      */
 
-    this._tags = [];
-    persons.forEach(person=>{
-        if (person.tags) {
-          this._tags = this._tags.concat(person.tags);
-        }
-    });
+    this._tags = tags;
   }
 
   addPersonByName(name) {
