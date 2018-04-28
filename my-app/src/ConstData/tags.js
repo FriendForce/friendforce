@@ -1,7 +1,7 @@
 export default [
   {
     id: 'PM0',
-    subject: 'Adriennne_Tran',
+    subject: 'Adrienne_Tran',
     originator: 'Benjamin_Reinhardt',
     label: 'PM',
     timestamp: '02-19-2018',
@@ -9,7 +9,7 @@ export default [
   },
   {
     id: 'Brown0',
-    subject: 'Adriennne_Tran',
+    subject: 'Adrienne_Tran',
     originator: 'Benjamin_Reinhardt',
     label: 'Brown',
     timestamp: '02-19-2018',
@@ -17,7 +17,7 @@ export default [
   },
   {
     id: 'Tesla0',
-    subject: 'Adriennne_Tran',
+    subject: 'Adrienne_Tran',
     originator: 'Benjamin_Reinhardt',
     label: 'Tesla',
     timestamp: '02-19-2018',
@@ -25,7 +25,7 @@ export default [
   },
   {
     id: 'LinkedIn0',
-    subject: 'Adriennne_Tran',
+    subject: 'Adrienne_Tran',
     originator: 'Benjamin_Reinhardt',
     label: 'LinkedIn',
     timestamp: '02-19-2018',
@@ -33,7 +33,7 @@ export default [
   },
   {
     id: 'Climbing0',
-    subject: 'Adriennne_Tran',
+    subject: 'Adrienne_Tran',
     originator: 'Benjamin_Reinhardt',
     label: 'Climbing',
     timestamp: '02-19-2018',
@@ -41,7 +41,7 @@ export default [
   },
   {
     id: 'Loc:SF0',
-    subject: 'Adriennne_Tran',
+    subject: 'Adrienne_Tran',
     originator: 'Benjamin_Reinhardt',
     label: 'Loc:SF',
     timestamp: '02-19-2018',
@@ -49,7 +49,7 @@ export default [
   },
   {
     id: 'FriendForce0',
-    subject: 'Adriennne_Tran',
+    subject: 'Adrienne_Tran',
     originator: 'Benjamin_Reinhardt',
     label: 'FriendForce',
     timestamp: '02-19-2018',

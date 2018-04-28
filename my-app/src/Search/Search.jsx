@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
+import MiniPerson from './MiniPerson.jsx';
+import { Container, Row} from 'reactstrap';
 
-const getSearchLabels =(searchString) => {
-  var labels = searchString.split("+");
-  const formattedLabels = labels.map(label => label.replace("%", " "))
-  return formattedLabels;
-}
 
 export default class Search extends Component {
   // eslint-disable-next-line
@@ -12,11 +9,11 @@ export default class Search extends Component {
     super();
   }
 
-  getMatchingPersons = () => {
-    var searchLabels = getSearchLabels(this.props.searchString);
+  getMatchingIds = () => {
+    var searchLabels = this.props.searchLabels;
     var matchingTags = [];
-    var potentialMatchingPersons = [];
-    var matchingPersons = [];
+    var potentialMatchingIds = [];
+    var matchingIds = [];
 
     for (var i = 0; i < searchLabels.length; i++) {
           // eslint-disable-next-line
@@ -25,35 +22,45 @@ export default class Search extends Component {
       matchingTags.push(tags);
     }
     matchingTags.forEach(tags => {
-      potentialMatchingPersons.push(
+      potentialMatchingIds.push(
         tags.map(tag => tag.subject));
     });
     // Persons must have all search terms to pass (for now)
-    potentialMatchingPersons[0].forEach(person => {
+    potentialMatchingIds[0].forEach(person => {
       var match = true;
-      for (var i = 0; i < potentialMatchingPersons.length; i++) {
-        if (potentialMatchingPersons[i].indexOf(person) < 0) {
+      for (var i = 0; i < potentialMatchingIds.length; i++) {
+        if (potentialMatchingIds[i].indexOf(person) < 0) {
           match = false;
           break;
         }
       }
       if (match === true) {
-        matchingPersons.push(person);
+        matchingIds.push(person);
       }
     });
-    return matchingPersons;
+    return matchingIds;
   }
 
 
   render() {
-    var searchLabels = getSearchLabels(this.props.searchString);
-    var matchingPersons = this.getMatchingPersons();
+    var matchingIds = this.getMatchingIds();
+
+    var matchingPersons = this.props.persons.filter(person=>(matchingIds.indexOf(person.id) > -1));
+    let content = [];
+    matchingPersons.forEach(person => {
+      var link = "/person/"+person.id;
+      content.push(
+                   <Row key={person.name}>
+                    <MiniPerson key={person.name} person={person} link={link}/>
+                   </Row>
+                   );
+    });
     return(
       <div>
-        <h2>Searching for matches to tags: </h2>
-        <h4>{searchLabels}</h4>
+        <Container>
         <h2>Resulting People</h2>
-        <h4>{matchingPersons}</h4>
+        {content}
+        </Container>
       </div>
     );
   }

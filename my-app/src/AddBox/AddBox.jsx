@@ -3,7 +3,6 @@ import Autosuggest from 'react-autosuggest';
 
 //import isMobile from 'ismobilejs';
 
-
 //const focusInputOnSuggestionClick = !isMobile.any;
 const uniqLabelFast = a => {
   /**
@@ -27,11 +26,17 @@ const uniqLabelFast = a => {
 
 const escapeRegexCharacters = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-const getSuggestionValue = (object) => {
-  if (object.hasOwnProperty('label')) {
-    return object.label;
-  } else if (object.hasOwnProperty('name')) {
-    return object.name;
+const getSuggestionValue = (personOrTag) => {
+   /**
+   * Get the string to show as a suggestion value for an object
+   * Currently the options or persons or tags - this might change
+   * @param {personOrTag} - a Tag or a Person Object
+   * @return {string} - suggestionvalue 
+   */
+  if (personOrTag.hasOwnProperty('label')) {
+    return personOrTag.label;
+  } else if (personOrTag.hasOwnProperty('name')) {
+    return personOrTag.name;
   }
 }
 
@@ -59,26 +64,21 @@ const renderSuggestion = (suggestion, {query}) => {
 }
 
 
-export default class OmniBox extends Component {
-  constructor() {
+export default class AddBox extends Component {
+  constructor(props) {
     super();
+    var options = uniqLabelFast(props.tags);
     this.state = {
       value: '',
       suggestions: [],
       tags:[],
+      options: options
     }
   }
 
-  componentWillMount = value => {
-    var options = this.props.persons.concat(uniqLabelFast(this.props.tags));
-    this.setState({
-      options: options
-    });
-  };
-
   componentWillReceiveProps = new_props => {
     // Update lists of things when props change
-    var options = new_props.persons.concat(uniqLabelFast(new_props.tags));
+    var options = uniqLabelFast(new_props.tags);
     this.setState({
       options: options
     });
@@ -103,7 +103,7 @@ export default class OmniBox extends Component {
   };
 
   handleTagSelection = (tag) => {
-    this.props.setTag(tag);
+    this.props.addTagToPerson(tag.label);
   }
 
   handlePersonSelection = (person) => {
@@ -129,7 +129,7 @@ export default class OmniBox extends Component {
     if (this.state.suggestions.length === 0 && this.state.value !== '') {
           // Handles comlete entries
       if (e.key === 'Enter') {
-        this.props.addPerson(this.state.value);
+        this.props.addThing(this.state.value);
         this.setState({value:''});
       }
     }
@@ -138,20 +138,15 @@ export default class OmniBox extends Component {
   render() {
     const { value, suggestions } = this.state;
     const inputProps = {
-      placeholder: "Type a name or a tag!",
+      placeholder: "Add Tags!",
       value,
       onChange: this.onChange
     };
 
     const renderInputComponent = inputProps => {
-      var tagButtons = [];                                        
-      this.props.searchLabels.forEach(label => {
-        tagButtons.push( <button key={label} type="tag">{label}</button>);
-      });
       return(                            
         <div>
           <div className="embed-submit-field">
-          {tagButtons}
           <input {...inputProps} onKeyPress={this._handleKeyPress} />
           <div id='results' />
           </div>
