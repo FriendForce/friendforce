@@ -40,6 +40,7 @@ class DataStore {
      * Loads a list of external Tags into the DataStore
      * @param persons {Tag Array} 
      */
+
     this._tags = tags;
   }
 

@@ -19,6 +19,18 @@ const getSearchLabels =(searchString) => {
   return formattedLabels;
 }
 
+const labelsToString = (labels) => {
+  const formattedLabels = labels.map(label=> label.replace(" ", "%"));
+  var labelString = "";
+  formattedLabels.forEach((label, i) => {
+    if (i > 0) {
+      labelString += "+";
+    }
+    labelString += label;
+  });
+  return labelString;
+}
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -52,9 +64,13 @@ class App extends Component {
     this.setTag = this.setTag.bind(this);
     this.addPerson = this.addPerson.bind(this);
     this.addTagToPerson = this.addTagToPerson.bind(this);
+    this.unsetLabel = this.unsetLabel.bind(this);
   }
 
   addPerson = name => {
+    // Todo: need to check if you actually want to add a person 
+    // When you're in search mode because people accidentally add new thing
+
     DataStore.addPersonByName(name)
       .then((id)=>{
         this.props.history.push('/person/'+id);
@@ -64,18 +80,20 @@ class App extends Component {
         });
       });
   }
+  
 
-  addTagToPerson = label => {
+  addTagToPerson = (label, publicity='public') => {
     var subject = this.props.match.params.data;
     var originator = this.state.user;
-    DataStore.addTag(subject, label, originator)
+    DataStore.addTag(subject, label, originator, publicity)
     .then((id)=>{
       DataStore.getAllTags()
       .then((tags) =>{
         this.setState({tags:tags});
       });
     });
-    console.log("creating and adding tag " + label + " to " + subject);
+    console.log("creating and adding tag " + label + " to " 
+                + subject + "with publicity " + publicity);
   } 
   
 
@@ -115,11 +133,17 @@ class App extends Component {
   }
 
   setTag = tag => {
-    if (this.props.match.params.mode === "search" && this.props.match.params.data.length > 0) {
+    if (this.props.match.params.mode === "search" && this.props.match.params.data) {
       this.props.history.push(this.props.location.pathname+"+"+tag.label.replace(/[^A-Z0-9]/ig, "_"));
     } else {
       this.props.history.push('/search/'+tag.label);
     }
+  }
+
+  unsetLabel = targetLabel => {
+    const searchLabels = getSearchLabels(this.props.match.params.data);
+    const newLabels = searchLabels.filter(label =>(label !== targetLabel));
+    this.props.history.push('/search/'+labelsToString(newLabels));
   }
 
 
@@ -145,6 +169,7 @@ class App extends Component {
             addThing={this.addThing}
             setPerson={this.setPerson}
             setTag={this.setTag} 
+            unsetLabel={this.unsetLabel}
           />
           <Route path="/person/:personId" 
                  render={(props)=><AddBox {...props.match.params} 

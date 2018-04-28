@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
 
 export default class Person extends Component {
-  // eslint-disable-next-line
-  constructor() {
-    super();
-  }
+
   render() {
     var tags = this.props.tags.filter(tag=>(tag.subject === this.props.personId));
     var tagButtons = [];
