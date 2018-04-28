@@ -49,7 +49,7 @@ class App extends Component {
     this.state = { 
       tags:[],
       persons:[],
-      user:'default'
+      user:'benjamin_reinhardt'
     };
     DataStore.getAllTags()
     .then((tags) =>{
@@ -80,6 +80,16 @@ class App extends Component {
         });
       });
   }
+
+    componentDidMount () {
+        const script = document.createElement("script");
+
+        script.src = "https://www.gstatic.com/firebasejs/4.13.0/firebase.js";
+        script.async = true;
+
+        document.body.appendChild(script);
+    }
+
   
 
   addTagToPerson = (label, publicity='public') => {
@@ -157,8 +167,12 @@ class App extends Component {
       <div>
         <div id="firebaseui-auth-container"></div>
         <Container>
+        <button onClick={()=>{DataStore.firebaseSync(this.state.user)}}>TEST SYNC </button>
+        </Container>
+        <Container>
         <Row>
         <Col>
+
           <Omnibox
             mode = {this.props.match.params.mode} 
             searchLabels = {searchLabels}

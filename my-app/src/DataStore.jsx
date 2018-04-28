@@ -1,7 +1,13 @@
 
 //Remove these when we're done with constant data
+
 import persons from './ConstData/persons.js';
 import tags from './ConstData/tags.js';
+import firebaseConfig from './ConstData/firebase_config.js';
+import firebase from 'firebase';
+import 'firebase/firestore';
+
+
 
 class DataStore {
   constructor(){
@@ -9,15 +15,52 @@ class DataStore {
      this._data = [];
      this.loadExternalPersons(persons);
      this.loadExternalTags(tags);
+     firebase.initializeApp(firebaseConfig);
+     this.db = firebase.firestore();
+     this._personDiffs = [];
+     this._tagDiffs = [];
   }
 
+
+
   _nameToId(name) {
-    return name.replace(/[^A-Z0-9]/ig, "_") + crypto.getRandomValues(new Uint8Array(1));
+    return name.replace(/[^A-Z0-9]/ig, "_") + Math.floor(Math.random() * 20);
   } 
 
   _tagToId(tag) {
-    return tag.label.replace(/[^A-Z0-9]/ig, "_") + crypto.getRandomValues(new Uint8Array(1));
+    return tag.label.replace(/[^A-Z0-9]/ig, "_") + Math.floor(Math.random() * 20);
   }
+
+  firebaseSync(user) {
+    //Pull from DB
+    //Push Diffs to DB
+    //console.log("syncing");
+    this._personDiffs.forEach((person)=>{this.firebasePushPerson(person, user);});
+  }
+
+  firebasePushPerson(person, user) {
+    // create storage 
+    var stagedDbPerson = person;
+    const id = person.id;
+    stagedDbPerson.tags = this._tags.filter(tag=>(tag.subject === id));
+    delete stagedDbPerson.id;
+
+    var dbPerson = this.db.collection("persons").doc(person.id);
+    dbPerson.set(stagedDbPerson, {merge:true});
+
+    var dbUser = this.db.collection("persons").doc(user.id);
+    dbUser.knownPersons.set({id: true}, {merge:true});
+  }
+
+  firebasePull() {
+    // Grab all the data you're allowed to get from firebase
+  }
+
+  firebasePush() {
+    // Put data in firebase format and push it up
+  }
+
+
 
   resetData(){
     /**
@@ -32,7 +75,7 @@ class DataStore {
      * Loads a list of external Persons into the DataStore
      * @param persons {Person Array} 
      */
-     var personsCopy = persons;
+    var personsCopy = persons;
     this._persons = personsCopy.map(person => {delete personsCopy.tags; return person;});
   }
 
@@ -58,12 +101,15 @@ class DataStore {
      * @param person {string Name} with populated fields
      * @return {Promise} promise resolves when person successfully added
      */
+     // TODO: check whether person exists in DB
+
      var id = this._nameToId(name);
      var person = {
         id:id,
         name:name
       };
       this._persons.push(person);
+      this._personDiffs.push(person);
      return Promise.resolve(person.id);
   }
 
@@ -96,6 +142,7 @@ class DataStore {
      }
      tag.id = this._tagToId(tag);
      this._tags.push(tag);
+     this._tagDiffs.push(tag);
      return Promise.resolve(tag.id);
   }
 
