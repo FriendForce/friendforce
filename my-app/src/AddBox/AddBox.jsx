@@ -26,11 +26,17 @@ const uniqLabelFast = a => {
 
 const escapeRegexCharacters = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-const getSuggestionValue = (object) => {
-  if (object.hasOwnProperty('label')) {
-    return object.label;
-  } else if (object.hasOwnProperty('name')) {
-    return object.name;
+const getSuggestionValue = (personOrTag) => {
+   /**
+   * Get the string to show as a suggestion value for an object
+   * Currently the options or persons or tags - this might change
+   * @param {personOrTag} - a Tag or a Person Object
+   * @return {string} - suggestionvalue 
+   */
+  if (personOrTag.hasOwnProperty('label')) {
+    return personOrTag.label;
+  } else if (personOrTag.hasOwnProperty('name')) {
+    return personOrTag.name;
   }
 }
 
@@ -59,21 +65,16 @@ const renderSuggestion = (suggestion, {query}) => {
 
 
 export default class AddBox extends Component {
-  constructor() {
+  constructor(props) {
     super();
+    var options = uniqLabelFast(props.tags);
     this.state = {
       value: '',
       suggestions: [],
       tags:[],
+      options: options
     }
   }
-
-  componentWillMount = value => {
-    var options = uniqLabelFast(this.props.tags);
-    this.setState({
-      options: options
-    });
-  };
 
   componentWillReceiveProps = new_props => {
     // Update lists of things when props change
