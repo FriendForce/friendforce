@@ -3,6 +3,8 @@
 
 import persons from './ConstData/persons.js';
 import tags from './ConstData/tags.js';
+import firebaseStyleTags from './ConstData/firebaseStyleTags.js';
+import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
 import firebaseConfig from './ConstData/firebase_config.js';
 import firebase from 'firebase';
 import 'firebase/firestore';
@@ -13,12 +15,19 @@ class DataStore {
   constructor(){
      // TODO: Change what gets loaded 
      this._data = [];
-     this.loadExternalPersons(persons);
-     this.loadExternalTags(tags);
+
      firebase.initializeApp(firebaseConfig);
-     this.db = firebase.firestore();
+     this.firestore = firebase.firestore();
+     const settings = {timestampsInSnapshots: true};
+     this.firestore.settings(settings);
      this._personDiffs = [];
      this._tagDiffs = [];
+     this._labelList = [];
+     this._persons_new = new Map();
+     this._tags_new = new Map();
+     this.loadExternalPersons(persons);
+     this.loadExternalTags(tags);
+
   }
 
 
@@ -32,34 +41,105 @@ class DataStore {
   }
 
   firebaseSync(user) {
-    //Pull from DB
-    //Push Diffs to DB
+    //Pull from firestore
+    //Push Diffs to firestore
     //console.log("syncing");
+    //proably should use batch here
     this._personDiffs.forEach((person)=>{this.firebasePushPerson(person, user);});
+    this._personDiffs = [];
+    this._tagDiffs.forEach((tag)=>{this.firebasePushTag(tag)});
+    this._tagDiffs = [];
   }
 
-  firebasePushPerson(person, user) {
+  firebasePushPerson(person, user_id) {
     // create storage 
-    var stagedDbPerson = person;
+    var stagedfirestorePerson = person;
     const id = person.id;
-    stagedDbPerson.tags = this._tags.filter(tag=>(tag.subject === id));
-    delete stagedDbPerson.id;
+    delete stagedfirestorePerson.id;
+    stagedfirestorePerson.knownPersons = {};
+    stagedfirestorePerson.knownByPersons[user_id] = true;
+    console.log(id + " " + user_id);
+    var firestorePerson = this.firestore.collection("persons").doc(id);
+    firestorePerson.set(stagedfirestorePerson, {merge:true})
+    .then(function(){console.log("set person")})
+    .catch(function(error){console.log("caught error " + error)});
 
-    var dbPerson = this.db.collection("persons").doc(person.id);
-    dbPerson.set(stagedDbPerson, {merge:true});
-
-    var dbUser = this.db.collection("persons").doc(user.id);
-    dbUser.knownPersons.set({id: true}, {merge:true});
+    var firestoreUser = this.firestore.collection("persons").doc(user_id);
+    var updatedData = {knownPersons:{}};
+    updatedData.knownPersons[id] = true;
+    console.log(updatedData);
+    firestoreUser.set(updatedData, {merge:true})
+      .then(function(){console.log("set user")})
+      .catch(function(error){console.log("caught error " + error)});
   }
 
-  firebasePull() {
+  firebasePushTag(tag) {
+    var stagedfirestoreTag = tag;
+    const id = tag.id;
+    delete stagedfirestoreTag.id;
+    var firestoreTag = this.firestore.collection("tags").doc(id);
+    firestoreTag.set(stagedfirestoreTag, {merge:true})
+    .then(function(){console.log("set tag")})
+    .catch(function(error){console.log("caught error " + error)});
+  }
+
+  firebasePull(user_id) {
     // Grab all the data you're allowed to get from firebase
+    //Get all people known by the user
+    // TODO make this totally Async
+    var p = new Promise((resolve, reject) => {
+     this.firestore.collection("persons")
+      .where("knownByPersons."+ user_id, "==", true)
+      .get()
+      .then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          // Do things with doc.id and doc.data()
+          var newPerson = doc.data();
+          newPerson.id = doc.id;
+          this._persons_new.set(doc.id, newPerson);
+        });
+      })
+      .then(() => {
+        var newTags = [];
+        this.firestore.collection("tags")
+        .where("originator", "==", user_id)
+        .where("publicity", "==", "private")
+        .get()
+        .then((querySnapshot)=>{
+          querySnapshot.forEach((doc)=>{
+            var newTag = doc.data();
+            newTag.id = doc.id;
+            this._tags_new.set(doc.id, newTag);
+          });
+        })
+        .then(()=>{
+          this.firestore.collection("tags")
+          .where("publicity", "==", "public")
+          .get()
+          .then((querySnapshot)=>{
+            querySnapshot.forEach((doc)=>{
+              var newTag = doc.data();
+              newTag.id = doc.id;
+              this._tags_new.set(doc.id, newTag);
+            });
+            resolve(true);
+          })
+        })
+      })
+      .catch(function(error) {
+        console.log("Error getting persons: ", error);
+      });
+    });
+    return p;  
   }
 
-  firebasePush() {
+  firebasePush(user_id) {
     // Put data in firebase format and push it up
+    this._personDiffs.forEach((person)=>{this.firebasePushPerson(person, user_id);});
+    this._personDiffs = [];
+    this._tagDiffs.forEach((tag)=>{this.firebasePushTag(tag)});
+    this._tagDiffs = [];
   }
-
 
 
   resetData(){
@@ -68,13 +148,22 @@ class DataStore {
      */
     this._persons = [];
     this._tags = [];
+    this._personDiffs = [];
+    this._persons_new = {};
+    this._tags_new = {};
   }
 
   loadExternalPersons(persons){
-     /**
-     * Loads a list of external Persons into the DataStore
-     * @param persons {Person Array} 
-     */
+    /**
+    * Loads a list of external Persons into the DataStore
+    * @param persons {Person Array} 
+    */
+    
+    Object.keys(firebaseStylePersons).forEach(key=>{
+      this._persons_new.set(key, firebaseStylePersons[key]);
+      //delete this._persons_new[key].knownByPersons;
+    })
+    
     var personsCopy = persons;
     this._persons = personsCopy.map(person => {delete personsCopy.tags; return person;});
   }
@@ -84,13 +173,12 @@ class DataStore {
      * Loads a list of external Tags into the DataStore
      * @param persons {Tag Array} 
      */
+    Object.keys(firebaseStyleTags).forEach(key=>{
+      this._tags_new.set(key, firebaseStyleTags[key]);
+    })
 
-    this._tags = [];
-    persons.forEach(person=>{
-        if (person.tags) {
-          this._tags = this._tags.concat(person.tags);
-        }
-    });
+    tags.forEach
+    this._tags = tags;
   }
 
   addPersonByName(name) {
@@ -101,7 +189,7 @@ class DataStore {
      * @param person {string Name} with populated fields
      * @return {Promise} promise resolves when person successfully added
      */
-     // TODO: check whether person exists in DB
+     // TODO: check whether person exists in firestore
 
      var id = this._nameToId(name);
      var person = {
@@ -196,7 +284,17 @@ class DataStore {
      * Gets all the Persons in the Datastore
      * @return {Promise} promise for a {Person Array} of all Persons
      */
-    return Promise.resolve(this._persons);
+     let p = new Promise(
+      (resolve, reject) => {
+     var personsList = [];
+      this._persons_new.forEach((value,key,map)=>{
+        var val = value;
+        val["id"] = key;
+        personsList.push(val);
+      });
+      resolve(personsList);
+    });
+    return p;
   }
 
   getAllTags(){
@@ -204,7 +302,18 @@ class DataStore {
      * Gets all the Tags in the Datastore
      * @return {Promise} promise for a {Tag Array} of all Tags
      */
-    return Promise.resolve(this._tags);
+    //return Promise.resolve(this._tags);
+    let p = new Promise(
+      (resolve, reject) => {
+        var tagList = [];
+        this._tags_new.forEach((value,key,map)=>{
+          var val = value;
+          val["id"] = key;
+          tagList.push(val);
+        });
+        resolve(tagList);
+      });
+    return p;
   }
 
   getTagsBySubject(id){
@@ -228,6 +337,14 @@ class DataStore {
 
   data() {
     return this._data;
+  }
+
+  numPersonDiffs() {
+    return this._personDiffs.length;
+  }
+
+  resetDiffs() {
+    this._personDiffs = [];
   }
 
   /* end test code */

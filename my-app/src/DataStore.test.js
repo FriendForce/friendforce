@@ -37,12 +37,32 @@ describe('DataStore', () => {
     await DataStore.addPersonByName('john doe');
     const data = await DataStore.getPersonsByName('john doe');
     expect(data[0].name).toEqual('john doe');
+    DataStore.resetData();
   });
 
   it('getTagsBySubect', async () => {
     await DataStore.addTag('z','foo', '0', '0', 'public');
     const data = await DataStore.getTagsBySubject('z');
     expect(data[0].subject).toEqual('z');
+    DataStore.resetData();
+  });
+
+  it('can firebasePushPerson', async() => {
+    var person = {name:"test", id:"test"}
+    var user = {name:"test_user", id:"test_user"}
+    DataStore.firebasePushPerson(person, user);
+    DataStore.resetData();
+  });
+
+  it ('can firebase sync', async() => {
+    var person = {name:"test", id:"test"}
+    var user = {name:"test_user", id:"test_user"}
+    DataStore.addPersonByName(person.name)
+    .then((id) =>{
+      DataStore.firebaseSync(user);
+      expect(DataStore.numPersonDiffs()).toEqual(0);
+    });
+    DataStore.resetData();
   });
 
   it('addPersonByName', async () => {

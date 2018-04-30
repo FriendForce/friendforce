@@ -49,7 +49,7 @@ class App extends Component {
     this.state = { 
       tags:[],
       persons:[],
-      user:'benjamin_reinhardt'
+      user_id:'benjamin_reinhardt'
     };
     DataStore.getAllTags()
     .then((tags) =>{
@@ -65,6 +65,18 @@ class App extends Component {
     this.addPerson = this.addPerson.bind(this);
     this.addTagToPerson = this.addTagToPerson.bind(this);
     this.unsetLabel = this.unsetLabel.bind(this);
+  }
+
+  updateData = () => {
+    DataStore.getAllTags()
+    .then((tags) =>{
+      console.log(tags);
+      this.setState({tags});
+    });
+    DataStore.getAllPersons()
+    .then((persons) =>{
+      this.setState({persons:persons});
+    });
   }
 
   addPerson = name => {
@@ -94,7 +106,7 @@ class App extends Component {
 
   addTagToPerson = (label, publicity='public') => {
     var subject = this.props.match.params.data;
-    var originator = this.state.user;
+    var originator = this.state.user_id;
     DataStore.addTag(subject, label, originator, publicity)
     .then((id)=>{
       DataStore.getAllTags()
@@ -123,7 +135,7 @@ class App extends Component {
       });
     } else if (path[1] === "person") {
       var subject = path[2];
-      var originator = this.state.user;
+      var originator = this.state.user_id;
       DataStore.addTag(subject, thing, originator)
       .then((id)=>{
         DataStore.getAllTags()
@@ -167,7 +179,10 @@ class App extends Component {
       <div>
         <div id="firebaseui-auth-container"></div>
         <Container>
-        <button onClick={()=>{DataStore.firebaseSync(this.state.user)}}>TEST SYNC </button>
+        <button onClick={()=>{DataStore.firebasePush(this.state.user_id)}}>TEST PIUSH </button>
+         <button onClick={()=>{DataStore.firebasePull(this.state.user_id)
+                              .then(()=>{this.updateData();});
+                               }}>TEST PULL </button>
         </Container>
         <Container>
         <Row>
