@@ -55,7 +55,7 @@ export default {
     timestamp: '02-19-2018',
     publicity: 'public'
   },
-     'FriendForce0'
+     'FriendForce1'
     :{subject: 'Micah_Catlin',
     originator: 'Benjamin_Reinhardt',
     label: 'FriendForce',

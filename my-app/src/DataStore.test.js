@@ -1,34 +1,44 @@
 import DataStore from './DataStore';
+import persons from './ConstData/persons.js';
+import tags from './ConstData/tags.js';
 
 describe('DataStore', () => {
   it('can be created without throwing', () => {
-    expect(DataStore.data().length).toEqual(0);
+    expect(DataStore.numData()).toEqual(0);
   });
   it('successfully loads persons', () => {
-    expect(DataStore.persons().length).toBeGreaterThan(0);
+    DataStore.loadExternalPersons(persons);
+    expect(DataStore.numPersons()).toBeGreaterThan(0);
   });
   it('successfully loads tags', () => {
-    expect(DataStore.tags().length).toBeGreaterThan(0);
+    DataStore.loadExternalTags(tags);
+    expect(DataStore.numTags()).toBeGreaterThan(0);
   });
   it('successfully resets data', () => {
-    var oldNumPersons = DataStore.persons().length;
-    DataStore._persons= [{id:-1, name:'john doe'}];
+    DataStore.loadExternalPersons(persons);
+    DataStore.loadExternalTags(tags);
+    var oldNumPersons = DataStore.numPersons();
+    var oldNumTags = DataStore.numTags();
+    expect(oldNumPersons).toBeGreaterThan(0);
+    expect(oldNumTags).toBeGreaterThan(0);
     DataStore.resetData();
-    var newNumPersons = DataStore.persons().length;
+    var newNumPersons = DataStore.numPersons();
     expect(newNumPersons).toEqual(0);
+    var newNumTags = DataStore.numTags();
+    expect(newNumTags).toEqual(0);
   });
   it('successfully adds person', async () => {
-    var oldNumPersons = DataStore._persons.length;
+    var oldNumPersons = DataStore.numPersons();
     const data = await DataStore.addPersonByName('john doe');
-    var newNumPersons = DataStore.persons().length;
+    var newNumPersons = DataStore.numPersons();
     expect(newNumPersons-oldNumPersons).toEqual(1);
     DataStore.resetData();
   });
 
   it('successfully adds tags', async () => {
-    var oldNumTags = DataStore.tags().length;
+    var oldNumTags = DataStore.numTags();
     const data = await DataStore.addTag('z','foo', '0', '0', 'public');
-    var newNumTags = DataStore.tags().length;
+    var newNumTags = DataStore.numTags();
     expect(newNumTags-oldNumTags).toEqual(1);
     DataStore.resetData(); 
   });
@@ -46,7 +56,7 @@ describe('DataStore', () => {
     expect(data[0].subject).toEqual('z');
     DataStore.resetData();
   });
-
+/*
   it('can firebasePushPerson', async() => {
     var person = {name:"test", id:"test"}
     var user = {name:"test_user", id:"test_user"}
@@ -64,6 +74,7 @@ describe('DataStore', () => {
     });
     DataStore.resetData();
   });
+  */
 
   it('addPersonByName', async () => {
     //NOT IMPLEMENTED

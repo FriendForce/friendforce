@@ -1,5 +1,5 @@
-export default [
-  {
+export default {
+ 'Adrienne_Tran': {
     id: 'Adrienne_Tran',
     name: 'Adrienne Tran',
     knownByPersons: [
@@ -7,7 +7,7 @@ export default [
       'Benjamin_Reinhardt'
     ]
   },
-  {
+ 'Micah_Catlin': {
     id: 'Micah_Catlin',
     name: 'Micah Catlin',
     knownByPersons: [
@@ -15,7 +15,7 @@ export default [
       'Benjamin_Reinhardt'
     ]
   },
-  {
+  'Benjamin_Reinhardt':{
     id: 'Benjamin_Reinhardt',
     name: 'Benjamin Reinhardt',
     knownByPersons: [
@@ -24,11 +24,11 @@ export default [
       'Sasha_Sheng'
     ]
   },
-    {
+    'Sasha_Sheng':{
     id: 'Sasha_Sheng',
     name: 'Sasha Sheng',
     knownByPersons: [
       'Benjamin_Reinhardt'
     ]
   }
-];
+};

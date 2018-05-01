@@ -41,7 +41,6 @@ const getSuggestions = (value, options) => {
     return [];
   }
   const regex = new RegExp('^' + escapedValue, 'i');
-  console.log(options);
   return options.filter(tag_or_person => regex.test(getSuggestionValue(tag_or_person)));
 };
 
@@ -75,16 +74,16 @@ export default class OmniBox extends Component {
     this.setState({
       options: options
     });
+
   };
 
   componentWillReceiveProps = new_props => {
     // Update lists of things when props change
-    console.log(new_props.persons);
-    console.log(new_props.tags);
     var options = new_props.persons.concat(uniqLabelFast(new_props.tags));
     this.setState({
       options: options
     });
+    console.log(options);
   };
 
   onChange = (event, { newValue, method }) => {
