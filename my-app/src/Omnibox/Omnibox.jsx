@@ -83,7 +83,6 @@ export default class OmniBox extends Component {
     this.setState({
       options: options
     });
-    console.log(options);
   };
 
   onChange = (event, { newValue, method }) => {
