@@ -7,6 +7,7 @@ import Home from './Home/Home.jsx';
 import DataStore from './DataStore.jsx';
 import AddBox from './AddBox/AddBox.jsx';
 import { Container, Row, Col } from 'reactstrap';
+import TestStuff from './TestStuff.jsx';
 import {
   BrowserRouter as Router,
   Route,
@@ -49,7 +50,8 @@ class App extends Component {
     this.state = { 
       tags:[],
       persons:[],
-      userId:'benjamin_reinhardt'
+      userId:'benjamin_reinhardt',
+      showTestStuff:false
     };
     
     //DataStore.firebasePull(this.state.userId)
@@ -59,10 +61,12 @@ class App extends Component {
     //});
     this.setPerson = this.setPerson.bind(this);
     this.setTag = this.setTag.bind(this);
+    this.setLabel = this.setLabel.bind(this);
     this.addPerson = this.addPerson.bind(this);
     this.addTagToPerson = this.addTagToPerson.bind(this);
     this.unsetLabel = this.unsetLabel.bind(this);
     this.updateData = this.updateData.bind(this);
+    this.setUser = this.setUser.bind(this);
   }
 
   loadState = () => {
@@ -74,7 +78,6 @@ class App extends Component {
   }
 
   componentDidMount = () => {
-    console.log("component mounted");
     this.loadState();
     this.updateData();
     this.saveState();
@@ -162,6 +165,14 @@ class App extends Component {
     this.props.history.push('/person/'+person.id);
   }
 
+  setLabel = label => {
+    if (this.props.match.params.mode === "search" && this.props.match.params.data) {
+      this.props.history.push(this.props.location.pathname+"+"+label.replace(/[^A-Z0-9]/ig, "_"));
+    } else {
+      this.props.history.push('/search/'+ label);
+    }
+  }
+
   setTag = tag => {
     if (this.props.match.params.mode === "search" && this.props.match.params.data) {
       this.props.history.push(this.props.location.pathname+"+"+tag.label.replace(/[^A-Z0-9]/ig, "_"));
@@ -176,6 +187,15 @@ class App extends Component {
     this.props.history.push('/search/'+labelsToString(newLabels));
   }
 
+  /* Test Instrumentation Code */
+  setUser = userId => {
+    this.setState({userId:userId});
+  }
+
+  toggleTestStuff = () => {
+    this.setState({showTestStuff:!this.state.showTestStuff});
+  }
+
 
   render () {
 
@@ -187,41 +207,14 @@ class App extends Component {
       <div>
         <div id="firebaseui-auth-container"></div>
         <Container>
-        <div className="test-stuff" id="experimenal Stuff">
-        <Row>
-        <Container>
-        <header> Test Stuff </header>
-        </Container>
-        <Container>
-        User = {this.state.userId}
-        </Container>
-        <Container>
-        <input id='userTest' onKeyPress= {
-          e => {
-            if (e.key === 'Enter') {
-              this.setState({userId:document.getElementById("userTest").value});
-              document.getElementById("userTest").value = "";
-            }
-          }
-        } />
-        </Container>
-        
-        <Container>
-       
-        <button onClick={()=>{DataStore.firebasePush(this.state.userId)}}>TEST PIUSH </button>
-         <button onClick={()=>{DataStore.firebasePull(this.state.userId)
-                              .then(()=>{this.updateData();});
-                               }}>TEST PULL </button>
-        </Container>
-        <Container>
-        NumPersonDiffs = {DataStore.numPersonDiffs()}
-        NumTagDiffs = {DataStore.numTagDiffs()}
-        </Container>
-        </Row>
-        
-
+        <div>
+        <button onClick={this.toggleTestStuff.bind(this)}>
+        Toggle Test Instrumentation
+        </button>
+        {this.state.showTestStuff && <TestStuff setUser={this.setUser} userId={this.state.userId}/>}
         </div>
         </Container>
+        
         <Container>
         <Row>
         <Col>
@@ -257,7 +250,8 @@ class App extends Component {
           <Route path="/person/:personId" 
                  render={(props)=><Person {...props.match.params} 
                                    tags={this.state.tags}
-                                   persons={this.state.persons}/>}/>
+                                   persons={this.state.persons}
+                                   setTag={this.setTag}/>}/>
           <Route path="/search/:searchString" 
                  render={(props)=><Search {...props.match.params} 
                                    tags={this.state.tags}

@@ -41,7 +41,6 @@ class DataStore {
   }
 
   loadState() {
-    console.log("loading state");
     if(typeof localStorage.dataStoreTags !== 'undefined') {
       this._tags = new Map(JSON.parse(localStorage.dataStoreTags));
       this._persons = new Map(JSON.parse(localStorage.dataStorePersons));
