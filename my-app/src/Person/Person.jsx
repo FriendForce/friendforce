@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 export default class Person extends Component {
-
+  // TODO - look at the tags for this person and display the info tags 
   render() {
     var tags = this.props.tags.filter(tag=>(tag.subject === this.props.personId));
     var tagButtons = [];

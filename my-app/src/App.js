@@ -3,7 +3,7 @@ import './App.css';
 import Omnibox from './Omnibox/Omnibox.jsx';
 import Person from './Person/Person.jsx';
 import Search from './Search/Search.jsx';
-import Home from './Home/Home.js';
+import Home from './Home/Home.jsx';
 import DataStore from './DataStore.jsx';
 import AddBox from './AddBox/AddBox.jsx';
 import { Container, Row, Col } from 'reactstrap';
@@ -49,103 +49,111 @@ class App extends Component {
     this.state = { 
       tags:[],
       persons:[],
-      user_id:'benjamin_reinhardt'
+      userId:'benjamin_reinhardt'
     };
-    DataStore.getAllTags()
-    .then((tags) =>{
-      this.setState({tags});
-    });
-    DataStore.getAllPersons()
-    .then((persons) =>{
-      this.setState({persons:persons});
-    });
-    this.addThing = this.addThing.bind(this);
+    
+    //DataStore.firebasePull(this.state.userId)
+    //.then(()=>{
+   
+    //this.saveState();
+    //});
     this.setPerson = this.setPerson.bind(this);
     this.setTag = this.setTag.bind(this);
     this.addPerson = this.addPerson.bind(this);
     this.addTagToPerson = this.addTagToPerson.bind(this);
     this.unsetLabel = this.unsetLabel.bind(this);
+    this.updateData = this.updateData.bind(this);
   }
+
+  loadState = () => {
+    DataStore.loadState();
+  }
+
+  saveState = () => {
+    DataStore.saveState();
+  }
+
+  componentDidMount = () => {
+    console.log("component mounted");
+    this.loadState();
+    this.updateData();
+    this.saveState();
+  }
+
 
   updateData = () => {
     DataStore.getAllTags()
     .then((tags) =>{
-      console.log(tags);
       this.setState({tags});
     });
     DataStore.getAllPersons()
     .then((persons) =>{
       this.setState({persons:persons});
     });
+  }
+
+  createPerson = (name, dontSync=false) => {
+    var p = new Promise((resolve, reject) => {
+      DataStore.addPersonByName(name, this.state.userId, dontSync)
+      .then((id)=>{
+        resolve(id);
+
+      });
+    });
+    return p;
   }
 
   addPerson = name => {
     // Todo: need to check if you actually want to add a person 
     // When you're in search mode because people accidentally add new thing
 
-    DataStore.addPersonByName(name)
+    DataStore.addPersonByName(name, this.state.userId)
       .then((id)=>{
         this.props.history.push('/person/'+id);
         DataStore.getAllPersons()
         .then((persons) =>{
           this.setState({persons:persons});
+          this.saveState();
         });
       });
   }
 
-    componentDidMount () {
-        const script = document.createElement("script");
+  componentDidMount () {
+      // Add firebase script
+      const script = document.createElement("script");
+      script.src = "https://www.gstatic.com/firebasejs/4.13.0/firebase.js";
+      script.async = true;
+      document.body.appendChild(script);
 
-        script.src = "https://www.gstatic.com/firebasejs/4.13.0/firebase.js";
-        script.async = true;
+  }
 
-        document.body.appendChild(script);
-    }
+  createTag = (label, subject, publicity='public', dontSync=false) => {
+     const originator = this.state.userId;
+     var p = new Promise((resolve, reject) => {
+      DataStore.addTag(subject, label, originator, this.state.userId, publicity, dontSync)
+      .then((id)=>{
+        resolve(id);
+      });
+     });
+     return p;    
+  }
 
-  
-
-  addTagToPerson = (label, publicity='public') => {
-    var subject = this.props.match.params.data;
-    var originator = this.state.user_id;
-    DataStore.addTag(subject, label, originator, publicity)
+  addTag = (label, subject, publicity='public', dontSync=false) => {
+    const originator = this.state.userId;
+    DataStore.addTag(subject, label, originator, this.state.userId, publicity, dontSync)
     .then((id)=>{
       DataStore.getAllTags()
       .then((tags) =>{
         this.setState({tags:tags});
+        this.saveState();
       });
     });
-    console.log("creating and adding tag " + label + " to " 
-                + subject + "with publicity " + publicity);
   } 
-  
 
-  addThing = thing => {
-    // If you are in person mode the new thing will be a tag
-    // If you are in search mode you can't add new things
-    // If you are in home mode a new thing is a person
-    var path = this.props.location.pathname.split("/");
-    if (path[1] === ""){
-      DataStore.addPersonByName(thing)
-      .then((id)=>{
-        this.props.history.push('/person/'+id);
-        DataStore.getAllPersons()
-        .then((persons) =>{
-          this.setState({persons:persons});
-        });
-      });
-    } else if (path[1] === "person") {
-      var subject = path[2];
-      var originator = this.state.user_id;
-      DataStore.addTag(subject, thing, originator)
-      .then((id)=>{
-        DataStore.getAllTags()
-        .then((tags) =>{
-          this.setState({tags:tags});
-        });
-      });
-      console.log("creating and adding tag " + thing + " to " + path[2]);
-    } 
-  }
+  addTagToPerson = (label, publicity='public') => {
+    var subject = this.props.match.params.data;
+    this.addTag(label, subject, publicity);
+  } 
 
 
 
@@ -179,10 +187,40 @@ class App extends Component {
       <div>
         <div id="firebaseui-auth-container"></div>
         <Container>
-        <button onClick={()=>{DataStore.firebasePush(this.state.user_id)}}>TEST PIUSH </button>
-         <button onClick={()=>{DataStore.firebasePull(this.state.user_id)
+        <div className="test-stuff" id="experimenal Stuff">
+        <Row>
+        <Container>
+        <header> Test Stuff </header>
+        </Container>
+        <Container>
+        User = {this.state.userId}
+        </Container>
+        <Container>
+        <input id='userTest' onKeyPress= {
+          e => {
+            if (e.key === 'Enter') {
+              this.setState({userId:document.getElementById("userTest").value});
+              document.getElementById("userTest").value = "";
+            }
+          }
+        } />
+        </Container>
+        
+        <Container>
+       
+        <button onClick={()=>{DataStore.firebasePush(this.state.userId)}}>TEST PIUSH </button>
+         <button onClick={()=>{DataStore.firebasePull(this.state.userId)
                               .then(()=>{this.updateData();});
                                }}>TEST PULL </button>
+        </Container>
+        <Container>
+        NumPersonDiffs = {DataStore.numPersonDiffs()}
+        NumTagDiffs = {DataStore.numTagDiffs()}
+        </Container>
+        </Row>
+        
+
+        </div>
         </Container>
         <Container>
         <Row>
@@ -195,7 +233,6 @@ class App extends Component {
             persons={this.state.persons} 
             tags={this.state.tags}
             addPerson={this.addPerson}
-            addThing={this.addThing}
             setPerson={this.setPerson}
             setTag={this.setTag} 
             unsetLabel={this.unsetLabel}
@@ -204,12 +241,19 @@ class App extends Component {
                  render={(props)=><AddBox {...props.match.params} 
                                    tags={this.state.tags}
                                    persons={this.state.persons}
-                                   addThing={this.addThing}
                                    addTagToPerson={this.addTagToPerson}/>}/>
+          <Row>
+          <Route exact path="/" render={(props)=><Home
+                                   createPerson={this.createPerson}
+                                   addTag={this.addTag}
+                                   updateData={this.updateData}
+                                   saveState={this.saveState}/>}/>
+          </Row>
         </Col>
         
         <Col>
-          <Route exact path="/" component={Home}/>
+          
+          
           <Route path="/person/:personId" 
                  render={(props)=><Person {...props.match.params} 
                                    tags={this.state.tags}

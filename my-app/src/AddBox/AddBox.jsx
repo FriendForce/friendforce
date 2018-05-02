@@ -46,7 +46,7 @@ const getSuggestions = (value, options) => {
   if (escapedValue === '') {
     return [];
   }
-  const regex = new RegExp('^' + escapedValue, 'i');
+  const regex = new RegExp(escapedValue, 'i');
   return options.filter(tag_or_person => regex.test(getSuggestionValue(tag_or_person)));
 };
 
@@ -73,7 +73,7 @@ export default class AddBox extends Component {
       value: '',
       suggestions: [],
       tags:[],
-      publicity:"public"
+      publicity:"public",
       options: options
     }
     this.onPublicityChanged = this.onPublicityChanged.bind(this);

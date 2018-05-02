@@ -15,7 +15,11 @@ class DataStore {
   constructor(){
      // TODO: Change what gets loaded 
      this._data = [];
-
+     this.MAX_TAG_DIFFS = 15;
+     this.MAX_PERSON_DIFFS = 10;
+     // Collection names changable so you can do some test dicking around
+     this._personCollection = "persons";
+     this._tagCollection = "tags";
      firebase.initializeApp(firebaseConfig);
      this.firestore = firebase.firestore();
      const settings = {timestampsInSnapshots: true};
@@ -27,7 +31,23 @@ class DataStore {
      this._tags = new Map();
      this.loadExternalPersons(persons);
      this.loadExternalTags(tags);
+  }
 
+  saveState() {
+    localStorage.dataStoreTags = JSON.stringify(Array.from(this._tags.entries()));
+    localStorage.dataStorePersons = JSON.stringify(Array.from(this._persons.entries()));
+    localStorage.dataStorePersonDiffs = JSON.stringify(Array.from(this._personDiffs.entries()));
+    localStorage.dataStoreTagDiffs = JSON.stringify(Array.from(this._tagDiffs.entries()));
+  }
+
+  loadState() {
+    console.log("loading state");
+    if(typeof localStorage.dataStoreTags !== 'undefined') {
+      this._tags = new Map(JSON.parse(localStorage.dataStoreTags));
+      this._persons = new Map(JSON.parse(localStorage.dataStorePersons));
+      this._tagDiffs = new Map(JSON.parse(localStorage.dataStoreTagDiffs));
+      this._personDiffs = new Map(JSON.parse(localStorage.dataStorePersonDiffs));
+    }
   }
 
   _nameToId(name) {
@@ -41,9 +61,18 @@ class DataStore {
   firebaseSync(userId) {
      /**
      * Synchronizes data between the local Datastore and firebase
+     * Also holds the rules for when to sync
      * @Param userId {string -> id} id of the current user
      */
     // Not Implemented Yet
+    // Right now you're just stuck with whatever data you pulled at the beginning of the session
+    //this.firebasePull(userId);
+    if(this._tagDiffs.size > this.MAX_TAG_DIFFS || 
+       this._personDiffs.size > this.MAX_PERSON_DIFFS) {
+      console.log("Syncing!");
+      this.firebasePush(userId);
+    } 
+    
   }
 
   firebasePushPerson(person, userId, id) {
@@ -55,6 +84,7 @@ class DataStore {
      */
     // create storage 
     var stagedfirestorePerson = person;
+    stagedfirestorePerson.timestamp = new Date(Date.now());
     delete stagedfirestorePerson.id;
     stagedfirestorePerson.knownByPersons = {};
     stagedfirestorePerson.knownByPersons[userId] = true;
@@ -80,6 +110,7 @@ class DataStore {
      * @Param id {string -> id} id of the tag
      */
     var stagedfirestoreTag = tag;
+    stagedfirestoreTag.timestamp = new Date(Date.now());
     delete stagedfirestoreTag.id;
     var firestoreTag = this.firestore.collection("tags").doc(id);
     firestoreTag.set(stagedfirestoreTag, {merge:true})
@@ -146,9 +177,11 @@ class DataStore {
      * @Param userId {string -> id} id of the user pushing the data
      */
     this._personDiffs.forEach((person, id)=>{this.firebasePushPerson(person, userId, id);});
-    this._personDiffs = new Map();
     this._tagDiffs.forEach((tag, id)=>{this.firebasePushTag(tag, id)});
+    this._personDiffs = new Map();
     this._tagDiffs = new Map();
+    localStorage.dataStorePersonDiffs = JSON.stringify(Array.from(this._personDiffs.entries()));
+    localStorage.dataStoreTagDiffs = JSON.stringify(Array.from(this._tagDiffs.entries()));
   }
 
 
@@ -185,7 +218,25 @@ class DataStore {
     })
   }
 
-  addPersonByName(name) {
+  checkPersonForDuplicate(person) {
+    var possibleMatchingIds = Array.from(this._persons)
+    .filter((obj)=>{
+      return obj[1].name === person.name;
+
+    })
+    .map((obj)=>{
+      return obj[0];
+    });
+    if(possibleMatchingIds.length > 0) {
+     console.log(person.name + "matches to ");
+     console.log(possibleMatchingIds);
+     return possibleMatchingIds[0]; 
+    } else {
+      return null;
+    }
+  }
+
+  addPersonByName(name, userId, dontSync=false) {
     /** Creates a person by name and adds them to the Datastore. This 
      * will always create a new person - caller needs to check if person
      * already exists.
@@ -199,8 +250,19 @@ class DataStore {
         id:id,
         name:name
       };
+      // Check whether you're repeating a person
+      const duplicate = this.checkPersonForDuplicate(person);
+      if(duplicate) {
+        // update data
+        // If the new person has a tag 
+        return Promise.resolve(duplicate);
+      }
       this._persons.set(id, person);
       this._personDiffs.set(id, person);
+      if (!dontSync) {
+        this.firebaseSync(userId);
+      }
+      console.log("creating person " + name);
      return Promise.resolve(person.id);
   }
 
@@ -213,7 +275,36 @@ class DataStore {
     return Promise.resolve(this._persons.set(person.id, person));
   }
 
-  addTag(subject, label, originator, publicity='public'){
+  getTagType(typeString) {
+    var regex = new RegExp("^Loc", 'i');
+    if (regex.test(typeString)) {
+      return "location";
+    } 
+    regex = new RegExp("^date", 'i');
+    if (regex.test(typeString)) {
+      return "date";
+    }
+    regex = new RegExp("^phone", 'i');
+    if (regex.test(typeString)) {
+      return "phoneNumber";
+    }
+    regex = new RegExp("^email", 'i');
+    if (regex.test(typeString)) {
+      return "email";
+    }
+  }
+
+  additionalTagLogic(tag) {
+    if (tag.label.split(":").length === 2) {
+      tag.type = this.getTagType(tag.label.split(":")[0]);
+    }
+    if (tag.type === "date") {
+      tag[tag.label.split(":")[0]] = new Date(tag.label.split(":")[0]);
+    }
+    return tag;
+  }
+
+  addTag(subject, label, originator, userId, publicity='public', dontSync=false){
     /** NOT IMPLEMENTED
      * Adds a Tag object to the Datastore
      * @param subject {string->id} subject of the tag
@@ -231,9 +322,14 @@ class DataStore {
       publicity:publicity,
       originator:originator,
      }
+     tag = this.additionalTagLogic(tag);
+     console.log(tag);
      tag.id = this._tagToId(tag);
      this._tags.set(tag.id, tag);
      this._tagDiffs.set(tag.id, tag);
+     if (!dontSync) {
+      this.firebaseSync(userId);
+     }
      return Promise.resolve(tag.id);
   }
 
@@ -329,7 +425,17 @@ class DataStore {
     return Promise.resolve(Array.from(this._tags).filter(obj => obj[1].subject === id).map(obj => obj[1]));
   }
 
+
   /* test code */
+  setPersonCollection(collection) {
+    this._personCollection = collection;
+  }
+
+  setTagCollection(collection) {
+    this._tagCollection = collection;
+  }
+
+ 
   persons() {
     return this._persons;
   }
@@ -344,6 +450,10 @@ class DataStore {
 
   numPersonDiffs() {
     return this._personDiffs.size;
+  }
+
+  numTagDiffs() {
+    return this._tagDiffs.size;
   }
 
   resetDiffs() {
