@@ -23,14 +23,20 @@ export default class TestStuff extends Component {
               }} />
           </Container>
           <Container>
-            <button onClick={()=>{DataStore.firebasePush(this.state.userId)}}>TEST PIUSH </button>
-            <button onClick={()=>{DataStore.firebasePull(this.state.userId)
-                              .then(()=>{this.updateData();});
+            <button onClick={()=>{DataStore.firebasePush(this.props.userId)}}>TEST PIUSH </button>
+            <button onClick={()=>{DataStore.firebasePull(this.props.userId)
+                              .then(()=>{this.props.updateData();});
                                }}>TEST PULL </button>
           </Container>
           <Container>
             NumPersonDiffs = {DataStore.numPersonDiffs()}
             NumTagDiffs = {DataStore.numTagDiffs()}
+          </Container>
+          <Container>
+          <button onClick={()=>{DataStore.processTags()}}>PROCESS TAGS </button>
+          </Container>
+          <Container>
+          <button onClick={()=>{DataStore.firebasePushLabels()}}>PUSH LABELS </button>
           </Container>
           </Row>
         </div> 

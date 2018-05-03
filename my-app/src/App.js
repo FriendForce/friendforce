@@ -6,6 +6,7 @@ import Search from './Search/Search.jsx';
 import Home from './Home/Home.jsx';
 import DataStore from './DataStore.jsx';
 import AddBox from './AddBox/AddBox.jsx';
+import LabelButton from './Person/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
 import TestStuff from './TestStuff.jsx';
 import {
@@ -36,20 +37,10 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    // *** Initialize Firebase
-    /*
-    var config = {
-      apiKey: "AIzaSyCMO50yQLEyIw_u6aptgBmK3qsRmhpUjxQ",
-      authDomain: "friendforce-25851.firebaseapp.com",
-      databaseURL: "https://friendforce-25851.firebaseio.com",
-      projectId: "friendforce-25851",
-      storageBucket: "friendforce-25851.appspot.com",
-    };
-    firebase.initializeApp(config);
-  */
     this.state = { 
       tags:[],
       persons:[],
+      labels:[],
       userId:'benjamin_reinhardt',
       showTestStuff:false
     };
@@ -92,6 +83,10 @@ class App extends Component {
     DataStore.getAllPersons()
     .then((persons) =>{
       this.setState({persons:persons});
+    });
+    DataStore.getAllLabels()
+    .then((labels) =>{
+      this.setState({labels:labels});
     });
   }
 
@@ -203,6 +198,10 @@ class App extends Component {
     if (this.props.match.params.mode === "search" && this.props.match.params.data) {
       searchLabels = getSearchLabels(this.props.match.params.data);
     } 
+    var labelButtons = [];
+    this.state.labels.forEach((label)=> {
+      labelButtons.push(<LabelButton key={label} label={label} setTag={this.setTag}/>);
+    });
     return (
       <div>
         <div id="firebaseui-auth-container"></div>
@@ -211,7 +210,7 @@ class App extends Component {
         <button onClick={this.toggleTestStuff.bind(this)}>
         Toggle Test Instrumentation
         </button>
-        {this.state.showTestStuff && <TestStuff setUser={this.setUser} userId={this.state.userId}/>}
+        {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
         </div>
         </Container>
         
@@ -242,6 +241,7 @@ class App extends Component {
                                    updateData={this.updateData}
                                    saveState={this.saveState}/>}/>
           </Row>
+          {labelButtons}
         </Col>
         
         <Col>
@@ -249,8 +249,8 @@ class App extends Component {
           
           <Route path="/person/:personId" 
                  render={(props)=><Person {...props.match.params} 
-                                   tags={this.state.tags}
-                                   persons={this.state.persons}
+                                   tags={this.state.tags.filter(tag=>tag.subject === props.match.params.personId)}
+                                   person={this.state.persons.filter(person=>person.id===props.match.params.personId)}
                                    setTag={this.setTag}/>}/>
           <Route path="/search/:searchString" 
                  render={(props)=><Search {...props.match.params} 

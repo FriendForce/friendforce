@@ -29,8 +29,9 @@ class DataStore {
      this._labelList = [];
      this._persons = new Map();
      this._tags = new Map();
-     this.loadExternalPersons(persons);
-     this.loadExternalTags(tags);
+     this._labels = new Set([]);
+     //this.loadExternalPersons(persons);
+     //this.loadExternalTags(tags);
   }
 
   saveState() {
@@ -38,15 +39,26 @@ class DataStore {
     localStorage.dataStorePersons = JSON.stringify(Array.from(this._persons.entries()));
     localStorage.dataStorePersonDiffs = JSON.stringify(Array.from(this._personDiffs.entries()));
     localStorage.dataStoreTagDiffs = JSON.stringify(Array.from(this._tagDiffs.entries()));
+    localStorage.dataStoreLabels = JSON.stringify(Array.from(this._labels));
   }
 
   loadState() {
     if(typeof localStorage.dataStoreTags !== 'undefined') {
       this._tags = new Map(JSON.parse(localStorage.dataStoreTags));
+    }
+    if(typeof localStorage.dataStorePersons !== 'undefined') {
       this._persons = new Map(JSON.parse(localStorage.dataStorePersons));
+    }
+    if(typeof localStorage.dataStoreTagDiffs !== 'undefined') {
       this._tagDiffs = new Map(JSON.parse(localStorage.dataStoreTagDiffs));
+    }
+    if(typeof localStorage.dataStorePersonDiffs !== 'undefined') {
       this._personDiffs = new Map(JSON.parse(localStorage.dataStorePersonDiffs));
     }
+    if(typeof localStorage.dataStoreLabels !== 'undefined') {
+      this._labels = new Set(JSON.parse(localStorage.dataStoreLabels));
+    }
+    
   }
 
   _nameToId(name) {
@@ -113,8 +125,17 @@ class DataStore {
     delete stagedfirestoreTag.id;
     var firestoreTag = this.firestore.collection("tags").doc(id);
     firestoreTag.set(stagedfirestoreTag, {merge:true})
-    .then(function(){console.log("set tag")})
-    .catch(function(error){console.log("caught error " + error)});
+    .then(function(){})
+    .catch(function(error){console.log("caught error pushing tag" + error)});
+  }
+
+  firebasePushLabels() {
+    var stagedLabels = {};
+    this._labels.forEach(label=>stagedLabels[label]=true);
+    var firestoreLabels = this.firestore.collection("labels").doc("labels");
+    firestoreLabels.set(stagedLabels, {merge:true})
+    .then(function(){})
+    .catch(function(error){console.log("caught error adding lables" + error)});
   }
 
   firebasePull(userId) {
@@ -159,8 +180,18 @@ class DataStore {
               newTag.id = doc.id;
               this._tags.set(doc.id, newTag);
             });
-            resolve(true);
           })
+        })
+        .then(()=>{
+          this.firestore.collection("labels").doc("labels")
+          .get()
+          .then((doc)=>{
+            Object.keys(doc.data()).forEach((label)=>
+              {this._labels.add(label)}
+            );
+            console.log(this._labels);
+          })
+          resolve(true);
         })
       })
       .catch(function(error) {
@@ -294,11 +325,18 @@ class DataStore {
   }
 
   additionalTagLogic(tag) {
-    if (tag.label.split(":").length === 2) {
+    if (tag.label.split(":").length > 2) {
       tag.type = this.getTagType(tag.label.split(":")[0]);
     }
     if (tag.type === "date") {
+      //console.log("date detected");
+      this._labels.delete(tag.label);
       tag[tag.label.split(":")[0]] = new Date(tag.label.split(":")[0]);
+    }
+    if (tag.type === "email") {
+      this._labels.delete(tag.label);
+      tag[tag.label.split(":")[0]] = new Date(tag.label.split(":")[0]);
+      tag.publicity = "private";
     }
     return tag;
   }
@@ -321,6 +359,7 @@ class DataStore {
       publicity:publicity,
       originator:originator,
      }
+     this._labels.add(tag.label);
      tag = this.additionalTagLogic(tag);
      console.log(tag);
      tag.id = this._tagToId(tag);
@@ -330,6 +369,17 @@ class DataStore {
       this.firebaseSync(userId);
      }
      return Promise.resolve(tag.id);
+  }
+
+  processTags = () => {
+    this._labels = new Set([]);
+    this._tags.forEach(
+      (tag, id) =>{
+        this._labels = this._labels.add(tag.label);
+        this._tags.set(id, this.additionalTagLogic(tag));
+      } );
+    this.saveState();
+    console.log(this._labels);
   }
 
 
@@ -411,6 +461,15 @@ class DataStore {
         });
         resolve(tagList);
       });
+    return p;
+  }
+
+  getAllLabels(){
+    let p = new Promise(
+      (resolve, reject) => {
+        var arr = Array.from(this._labels);
+        resolve(arr);
+    })
     return p;
   }
 
