@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { Container, Row, Col } from 'reactstrap';
+import { Container, Row } from 'reactstrap';
 import DataStore from './DataStore.jsx';
 
 export default class TestStuff extends Component {

@@ -1,8 +1,8 @@
 
 //Remove these when we're done with constant data
 
-import persons from './ConstData/persons.js';
-import tags from './ConstData/tags.js';
+//import persons from './ConstData/persons.js';
+//import tags from './ConstData/tags.js';
 import firebaseStyleTags from './ConstData/firebaseStyleTags.js';
 import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
 import firebaseConfig from './ConstData/firebase_config.js';
@@ -112,6 +112,7 @@ class DataStore {
     firestoreUser.set(updatedData, {merge:true})
       .then(function(){console.log("set user")})
       .catch(function(error){console.log("caught error " + error)});
+    return id;
   }
 
   firebasePushTag(tag, id) {
@@ -127,6 +128,7 @@ class DataStore {
     firestoreTag.set(stagedfirestoreTag, {merge:true})
     .then(function(){})
     .catch(function(error){console.log("caught error pushing tag" + error)});
+    return id;
   }
 
   firebasePushLabels() {
@@ -288,11 +290,12 @@ class DataStore {
         return Promise.resolve(duplicate);
       }
       this._persons.set(id, person);
-      this._personDiffs.set(id, person);
+      
       if (!dontSync) {
-        this.firebaseSync(userId);
+        this.firebasePushPerson(person, userId, id);
+      } else {
+        this._personDiffs.set(id, person);
       }
-      console.log("creating person " + name);
      return Promise.resolve(person.id);
   }
 
@@ -325,8 +328,10 @@ class DataStore {
   }
 
   additionalTagLogic(tag) {
-    if (tag.label.split(":").length > 2) {
+
+    if (tag.label.split(":").length > 1) {
       tag.type = this.getTagType(tag.label.split(":")[0]);
+      console.log("special tag");
     }
     if (tag.type === "date") {
       //console.log("date detected");
@@ -360,13 +365,16 @@ class DataStore {
       originator:originator,
      }
      this._labels.add(tag.label);
+
      tag = this.additionalTagLogic(tag);
      console.log(tag);
      tag.id = this._tagToId(tag);
      this._tags.set(tag.id, tag);
-     this._tagDiffs.set(tag.id, tag);
+     
      if (!dontSync) {
-      this.firebaseSync(userId);
+      this.firebasePushTag(tag, tag.id);
+     } else {
+       this._tagDiffs.set(tag.id, tag);
      }
      return Promise.resolve(tag.id);
   }

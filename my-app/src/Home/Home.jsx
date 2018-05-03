@@ -14,9 +14,6 @@ const facebookDateToDate = (facebookDate) => {
 }
 
 export default class Home extends Component {
-  constructor(props) {
-    super(props);
-  }
 
   uploadFBData = files => {
     console.log("uploading fb data from " + files);

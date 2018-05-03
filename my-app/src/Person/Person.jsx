@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import TagButton from './TagButton.jsx';
-import { Container, Row, Col } from 'reactstrap';
+import { Row} from 'reactstrap';
 
 
 export default class Person extends Component {
@@ -8,7 +8,6 @@ export default class Person extends Component {
   constructor(props) {
     super(props);
     this.specialTypes = ["email", "date"];
-    console.log(props.tags);
     this.state = {
       tags: props.tags.filter(tag=>this.specialTypes.indexOf(tag.type)<0),
       uniqueTags: props.tags.filter(tag=>this.specialTypes.indexOf(tag.type)>-1)
@@ -23,7 +22,6 @@ export default class Person extends Component {
   };
 
   filterTags = (tags) => {
-    console.log(tags);
     this.setState({
       tags: tags.filter(tag=>this.specialTypes.indexOf(tag.type)<0),
       uniqueTags: tags.filter(tag=>this.specialTypes.indexOf(tag.type)>-1)

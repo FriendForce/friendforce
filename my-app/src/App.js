@@ -145,6 +145,11 @@ class App extends Component {
         this.setState({tags:tags});
         this.saveState();
       });
+      DataStore.getAllLabels()
+      .then((labels) =>{
+        this.setState({labels:labels});
+        this.saveState();
+      });
     });
   } 
 
@@ -224,16 +229,19 @@ class App extends Component {
             searchString={this.props.match.params}
             persons={this.state.persons} 
             tags={this.state.tags}
+            labels={this.state.labels}
             addPerson={this.addPerson}
             setPerson={this.setPerson}
             setTag={this.setTag} 
             unsetLabel={this.unsetLabel}
+            setLabel={this.setLabel}
           />
           <Route path="/person/:personId" 
                  render={(props)=><AddBox {...props.match.params} 
                                    tags={this.state.tags}
                                    persons={this.state.persons}
-                                   addTagToPerson={this.addTagToPerson}/>}/>
+                                   addTagToPerson={this.addTagToPerson}
+                                   labels={this.state.labels}/>}/>
           <Row>
           <Route exact path="/" render={(props)=><Home
                                    createPerson={this.createPerson}

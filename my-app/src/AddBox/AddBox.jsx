@@ -5,41 +5,24 @@ import Autosuggest from 'react-autosuggest';
 //import isMobile from 'ismobilejs';
 
 //const focusInputOnSuggestionClick = !isMobile.any;
-const uniqLabelFast = a => {
-  /**
-   * Quickly makes a list tags without repeating labels
-   * @param a {[Tag]} list of tags
-   */
-
-    var seen = {};
-    var out = [];
-    var len = a.length;
-    var j = 0;
-    for(var i = 0; i < len; i++) {
-         var item = a[i].label;
-         if(seen[item] !== 1) {
-               seen[item] = 1;
-               out[j++] = a[i];
-         }
-    }
-    return out;
-}
 
 const escapeRegexCharacters = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-const getSuggestionValue = (personOrTag) => {
+const getSuggestionValue = (object) => {
    /**
    * Get the string to show as a suggestion value for an object
    * Currently the options or persons or tags - this might change
    * @param {personOrTag} - a Tag or a Person Object
    * @return {string} - suggestionvalue 
    */
-  if (personOrTag.hasOwnProperty('label')) {
-    return personOrTag.label;
-  } else if (personOrTag.hasOwnProperty('name')) {
-    return personOrTag.name;
+  if (object.hasOwnProperty('label')) {
+    return object.label;
+  } else if (object.hasOwnProperty('name')) {
+    return object.name;
+  } else if (typeof(object) === "string") {
+    return object;
   }
-}
+};
 
 const getSuggestions = (value, options) => {
   const escapedValue = escapeRegexCharacters(value.trim());
@@ -57,22 +40,23 @@ const renderSuggestion = (suggestion, {query}) => {
     img = 'TAG';
   } else if (suggestion.hasOwnProperty('name')) {
     img = 'PERSON';
+  } else if (typeof(suggestion) === "string") {
+    img =  'TAG';
   }
   return(
          //TODO: how do you get theme classes in?
     <span className='sugestionContent'>{getSuggestionValue(suggestion) + ' ' + img}</span>
     );
-}
+};
 
 
 export default class AddBox extends Component {
   constructor(props) {
     super();
-    var options = uniqLabelFast(props.tags);
+    var options = props.labels;
     this.state = {
       value: '',
       suggestions: [],
-      tags:[],
       publicity:"public",
       options: options
     }
@@ -81,7 +65,7 @@ export default class AddBox extends Component {
 
   componentWillReceiveProps = new_props => {
     // Update lists of things when props change
-    var options = uniqLabelFast(new_props.tags);
+    var options = new_props.labels;
     this.setState({
       options: options
     });
@@ -109,6 +93,10 @@ export default class AddBox extends Component {
     this.props.addTagToPerson(tag.label, this.state.publicity);
   }
 
+   handleLabelSelection = (label) => {
+    this.props.addTagToPerson(label, this.state.publicity);
+  }
+
 
   onSuggestionSelected = (event, { suggestion }) => {
     /**
@@ -116,7 +104,7 @@ export default class AddBox extends Component {
     */
     // determine whether suggestion is a person or a tag
       // handle selected tag
-    this.handleTagSelection(suggestion);
+    this.handleLabelSelection(suggestion);
     this.setState({value:''});   
   };
   

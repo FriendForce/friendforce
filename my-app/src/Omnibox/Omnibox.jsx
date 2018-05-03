@@ -5,33 +5,22 @@ import SearchButton from './SearchButton.jsx';
 
 
 //const focusInputOnSuggestionClick = !isMobile.any;
-const uniqLabelFast = a => {
-  /**
-   * Quickly makes a list tags without repeating labels
-   * @param a {[Tag]} list of tags
-   */
-
-    var seen = {};
-    var out = [];
-    var len = a.length;
-    var j = 0;
-    for(var i = 0; i < len; i++) {
-         var item = a[i].label;
-         if(seen[item] !== 1) {
-               seen[item] = 1;
-               out[j++] = a[i];
-         }
-    }
-    return out;
-}
 
 const escapeRegexCharacters = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const getSuggestionValue = (object) => {
+     /**
+   * Get the string to show as a suggestion value for an object
+   * Currently the options or persons or tags - this might change
+   * @param {personOrTag} - a Tag or a Person Object
+   * @return {string} - suggestionvalue 
+   */
   if (object.hasOwnProperty('label')) {
     return object.label;
   } else if (object.hasOwnProperty('name')) {
     return object.name;
+  } else if (typeof(object) === "string") {
+    return object;
   }
 }
 
@@ -51,6 +40,8 @@ const renderSuggestion = (suggestion, {query}) => {
     img = 'TAG';
   } else if (suggestion.hasOwnProperty('name')) {
     img = 'PERSON';
+  } else if (typeof(object) === "string") {
+    img = 'TAG';
   }
   return(
          //TODO: how do you get theme classes in?
@@ -60,26 +51,20 @@ const renderSuggestion = (suggestion, {query}) => {
 
 
 export default class OmniBox extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+    var options = props.persons.concat(props.labels);
     this.state = {
       value: '',
       suggestions: [],
-      tags:[],
+      options: options
     }
   }
 
-  componentWillMount = value => {
-    var options = this.props.persons.concat(uniqLabelFast(this.props.tags));
-    this.setState({
-      options: options
-    });
-
-  };
 
   componentWillReceiveProps = new_props => {
     // Update lists of things when props change
-    var options = new_props.persons.concat(uniqLabelFast(new_props.tags));
+    var options = new_props.persons.concat(new_props.labels);
     this.setState({
       options: options
     });
@@ -105,7 +90,12 @@ export default class OmniBox extends Component {
 
   handleTagSelection = (tag) => {
     this.props.setTag(tag);
-  }
+  };
+
+  handleLabelSelection = (label) => {
+    this.props.setLabel(label);
+  };
+
 
   handlePersonSelection = (person) => {
      this.props.setPerson(person);
@@ -122,6 +112,8 @@ export default class OmniBox extends Component {
     } else if (suggestion.hasOwnProperty('name')) {
       // handle selected person
       this.handlePersonSelection(suggestion);
+    } else if (typeof(suggestion) === "string") {
+      this.handleLabelSelection(suggestion);
     }
     this.setState({value:''});   
   };
