@@ -94,6 +94,9 @@ class DataStore {
      * @Param id {string -> id} id of the person
      */
     // create storage 
+    if (typeof id === "undefined") {
+      return id;
+    }
     var stagedfirestorePerson = person;
     stagedfirestorePerson.timestamp = new Date(Date.now());
     delete stagedfirestorePerson.id;
@@ -124,6 +127,9 @@ class DataStore {
     var stagedfirestoreTag = tag;
     stagedfirestoreTag.timestamp = new Date(Date.now());
     delete stagedfirestoreTag.id;
+    if (typeof stagedfirestoreTag.type === 'undefined') {
+      delete stagedfirestoreTag.type;
+    }
     var firestoreTag = this.firestore.collection("tags").doc(id);
     firestoreTag.set(stagedfirestoreTag, {merge:true})
     .then(function(){})
@@ -296,7 +302,7 @@ class DataStore {
       } else {
         this._personDiffs.set(id, person);
       }
-     return Promise.resolve(person.id);
+     return Promise.resolve(id);
   }
 
   addPerson(person){
@@ -309,21 +315,16 @@ class DataStore {
   }
 
   getTagType(typeString) {
-    var regex = new RegExp("^Loc", 'i');
-    if (regex.test(typeString)) {
+    if (RegExp("^Loc", 'i').test(typeString)) {
       return "location";
-    } 
-    regex = new RegExp("^date", 'i');
-    if (regex.test(typeString)) {
+    } else if (RegExp("^date", 'i').test(typeString)) {
       return "date";
-    }
-    regex = new RegExp("^phone", 'i');
-    if (regex.test(typeString)) {
+    } else if (RegExp("^phone", 'i').test(typeString)) {
       return "phoneNumber";
-    }
-    regex = new RegExp("^email", 'i');
-    if (regex.test(typeString)) {
+    } else if (RegExp("^email", 'i').test(typeString)) {
       return "email";
+    } else {
+      return "none";
     }
   }
 

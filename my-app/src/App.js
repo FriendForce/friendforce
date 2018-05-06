@@ -9,6 +9,7 @@ import AddBox from './AddBox/AddBox.jsx';
 import LabelButton from './Person/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
 import TestStuff from './TestStuff.jsx';
+import PersonList from './PersonList.js';
 import {
   BrowserRouter as Router,
   Route,
@@ -253,6 +254,12 @@ class App extends Component {
         </Col>
         
         <Col>
+
+          <Route path="/all_people/"
+                 render={(props)=><PersonList {...props.match.params}
+                                persons={this.state.persons}
+                                addTagToPerson={this.addTagToPerson}
+                                />}/>
           
           
           <Route path="/person/:personId" 
