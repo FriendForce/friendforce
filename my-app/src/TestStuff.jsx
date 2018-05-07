@@ -27,6 +27,10 @@ export default class TestStuff extends Component {
             <button onClick={()=>{DataStore.firebasePull(this.props.userId)
                               .then(()=>{this.props.updateData();});
                                }}>TEST PULL </button>
+            <button onClick={()=>{DataStore.resetData()
+                                  .then(()=>{this.props.updateData();});
+                                }}>
+                                  RESET LOCAL DATA</button>
           </Container>
           <Container>
             NumPersonDiffs = {DataStore.numPersonDiffs()}

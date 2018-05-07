@@ -227,10 +227,15 @@ class DataStore {
     /**
      * Deletes all local data in the datastore
      */
-    this._persons = new Map();
-    this._tags = new Map();
-    this._personDiffs = new Map();
-    this._tagDiffs = new Map();
+    var p = new Promise((resolve, reject) => {
+      this._persons = new Map();
+      this._tags = new Map();
+      this._personDiffs = new Map();
+      this._tagDiffs = new Map();
+      resolve(true);
+    });
+    return p;
+
   }
 
   loadExternalPersons(persons){
@@ -323,6 +328,8 @@ class DataStore {
       return "phoneNumber";
     } else if (RegExp("^email", 'i').test(typeString)) {
       return "email";
+    } else if (RegExp("^send", 'i').test(typeString)) {
+      return "send";
     } else {
       return "none";
     }
@@ -341,7 +348,10 @@ class DataStore {
     }
     if (tag.type === "email") {
       this._labels.delete(tag.label);
-      tag[tag.label.split(":")[0]] = new Date(tag.label.split(":")[0]);
+      tag.publicity = "private";
+    }
+    if (tag.type === "send") {
+      this._labels.delete(tag.label);
       tag.publicity = "private";
     }
     return tag;
@@ -389,6 +399,10 @@ class DataStore {
       } );
     this.saveState();
     console.log(this._labels);
+  }
+
+  dedupDB = () => {
+    return null;
   }
 
 
