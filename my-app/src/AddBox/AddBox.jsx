@@ -149,7 +149,7 @@ export default class AddBox extends Component {
 
     return (
       //Finding Tags
-      <div id="tags-example">
+      <div id="addBox">
         <div>
           
           <Autosuggest
@@ -163,7 +163,7 @@ export default class AddBox extends Component {
             renderInputComponent={renderInputComponent}
             inputProps={inputProps}
             //focusInputOnSuggestionClick={focusInputOnSuggestionClick}
-            id="tags-example"
+            id="addBox"
           />
         </div>
         

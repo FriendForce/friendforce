@@ -154,7 +154,7 @@ export default class OmniBox extends Component {
 
     return (
       //Finding Tags
-      <div id="tags-example">
+      <div id="searchBox">
         <div>
           
           <Autosuggest
@@ -168,7 +168,7 @@ export default class OmniBox extends Component {
             renderInputComponent={renderInputComponent}
             inputProps={inputProps}
             //focusInputOnSuggestionClick={focusInputOnSuggestionClick}
-            id="tags-example"
+            id="searchBox"
           />
         </div>
         <div id="results" />
