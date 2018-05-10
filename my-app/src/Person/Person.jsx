@@ -11,6 +11,7 @@ export default class Person extends Component {
     tags.forEach(tag=>{
       tagButtons.push( <button key={tag.label} type="tag">{tag.label}</button>);
     });
+    console.log('this.props', this.props)
     return(
       <div>
         <h2>Person: {this.props.personId}</h2>

@@ -138,7 +138,7 @@ export default class OmniBox extends Component {
   render() {
     const { value, suggestions } = this.state;
     const inputProps = {
-      placeholder: "Type a name or a tag!",
+      placeholder: this.props.placeholder,
       value,
       onChange: this.onChange
     };

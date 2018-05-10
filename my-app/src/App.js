@@ -45,6 +45,7 @@ class App extends Component {
     });
     DataStore.getAllPersons()
     .then((persons) =>{
+      console.log('persons', persons)
       this.setState({persons:persons});
     });
     this.addThing = this.addThing.bind(this);
@@ -129,6 +130,7 @@ class App extends Component {
     if (this.props.match.params.mode === "search" && this.props.match.params.data) {
       searchLabels = getSearchLabels(this.props.match.params.data);
     } 
+    console.log('this.props.match.params', this.props.match)
     return (
       <div>
         <div id="firebaseui-auth-container"></div>
@@ -141,30 +143,34 @@ class App extends Component {
             searchString={this.props.match.params}
             persons={this.state.persons} 
             tags={this.state.tags}
-            addPerson={this.addPerson}
-            addThing={this.addThing}
+            // addPerson={this.addPerson}
+            // addThing={this.addThing}
             setPerson={this.setPerson}
             setTag={this.setTag} 
+            placeholder="Search a name or a tag"
           />
+        </Col>
+        
+        <Col>
+          <Route exact path="/" component={Home}/>
+          {/* <Route path="/person/:personId" 
+                 render={(props)=><Person {...props.match.params} 
+                                   tags={this.state.tags}
+                                   persons={this.state.persons}/>}/> */}
+          <Route path="/person/:personId" 
+                 render={(props)=><Person {...props.match.params} 
+                                   tags={this.state.tags}/>}/>
+          <Route path="/search/:searchString" 
+                 render={(props)=><Search {...props.match.params} 
+                                   tags={this.state.tags}
+                                   persons={this.state.persons}
+                                   searchLabels={searchLabels}/>}/>
           <Route path="/person/:personId" 
                  render={(props)=><AddBox {...props.match.params} 
                                    tags={this.state.tags}
                                    persons={this.state.persons}
                                    addThing={this.addThing}
                                    addTagToPerson={this.addTagToPerson}/>}/>
-        </Col>
-        
-        <Col>
-          <Route exact path="/" component={Home}/>
-          <Route path="/person/:personId" 
-                 render={(props)=><Person {...props.match.params} 
-                                   tags={this.state.tags}
-                                   persons={this.state.persons}/>}/>
-          <Route path="/search/:searchString" 
-                 render={(props)=><Search {...props.match.params} 
-                                   tags={this.state.tags}
-                                   persons={this.state.persons}
-                                   searchLabels={searchLabels}/>}/>
         </Col>
         </Row>
       </Container>
