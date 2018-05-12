@@ -9,6 +9,7 @@ import axios from 'axios';
 import persons from './components/ConstData/persons.js';
 import tags from './components/ConstData/tags.js';
 import Omnibox from './components/Omnibox/Omnibox.jsx';
+import Person from './components/Person.jsx';
 
 class App extends React.Component {
   constructor(props) {
@@ -30,7 +31,9 @@ class App extends React.Component {
       displayName: 'anonymous',
       email: 'anonymous',
       friends: [{name: "Jimmy"}, {name: "Jack"}],
-      user_id: 'no_id'
+      user_id: 'no_id',
+      selected_person: null,
+      selected_tag: null,
     };
 
     this.signIn = this.signIn.bind(this);
@@ -218,11 +221,30 @@ class App extends React.Component {
     })
   }
 
+  handlePersonSelect = (person) => {
+    const tagsList = [
+    {id:1, text:"Apple"},
+    {id:2, text:"Ball"},
+    {id:3, text:"Cat"},
+    {id:4, text:"Dog"},
+    {id:5, text:"Engineer"}];
+    person.tagsList = tagsList;
+    this.setState((prevState, props) => {
+      return {selected_person: person};
+    });
+  }
+
+  handleTagSelect = (tag) => {
+    this.state.selected_tag = tag;
+    console.log(tag);
+  } 
+
   render () {
     return (<div>
       <div id="firebaseui-auth-container"></div>
-      <Omnibox persons={persons} tags={tags} />
-    </div>)
+      <Omnibox persons={persons} tags={tags} onSelectPerson={this.handlePersonSelect} onSelectTag={this.handleTagSelect}/>
+      {this.state.selected_person !== null ? <Person name={this.state.selected_person.name} tagsList={this.state.selected_person.tagsList}/> : <h1> nobody here </h1>}
+    </div>) 
   }
 }
 
