@@ -137,6 +137,18 @@ class DataStore {
     return Promise.resolve(this._persons.filter(d => d.name === name));
   }
 
+  getPersonByID(id){
+    /**
+     * Gets all the persons with an id
+     * @param id {string} id to search by
+     * @return {Promise} promise for a Person
+     *          with the given id
+     */
+    var persons = this._persons.filter(d => d.id === id);
+    // TODO: add invariant check to make sure length is < 2
+    return persons.length === 0 ? Promise.resolve(null) : Promise.resolve(persons[0]);
+  }
+
   getAllPersons(){
     /**
      * Gets all the Persons in the Datastore
