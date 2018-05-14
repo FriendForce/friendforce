@@ -144,6 +144,14 @@
   }
 }
 
+.tagbutton-private {
+  background-color:#42c8f4;
+}
+
+.tagbutton-public {
+  background-color:#a9b6ba;
+}
+
 .addperson-options {
   display: flex;
 }
@@ -273,3 +281,4 @@ a.miniperson-link:hover {
     content: attr(data-count);
     display: block;
 }
+

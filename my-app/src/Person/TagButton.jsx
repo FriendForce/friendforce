@@ -18,11 +18,15 @@ export default class TagButton extends Component {
   }
 
   render() {
+    var className = "tagbutton-public";
+    if (this.state.tag.publicity === 'private') {
+      className = 'tagbutton-private'
+    }
     return(
            <div>
       
       <ContextMenuTrigger id={this.props.tag.label}>
-        <button onClick={() => this.onClick(this.state.tag)} key={this.props.tag.label} type="tag">{this.props.tag.label}</button>
+        <button className={className} onClick={() => this.onClick(this.state.tag)} key={this.props.tag.label} type="tag">{this.props.tag.label}</button>
       </ContextMenuTrigger>
 
        <ContextMenu id={this.props.tag.label}>

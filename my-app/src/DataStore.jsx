@@ -412,6 +412,7 @@ class DataStore {
      * @param id {string->id} id 
      * @return {Promise} promise resolves when tag successfully deleted
      */
+     
   }
 
   deletePerson(id) {
@@ -429,6 +430,12 @@ class DataStore {
      * @param params {dictionary} key-values to update 
      * @return {Promise} promise resolves when tag successfully updated
      */
+     var newTag = this._tags.get(id);
+     for (var param in params) {
+       newTag[param] = params[param];
+     }
+     //TODO finish writing this function 
+
   }
 
   updatePerson(id, params) {
