@@ -16,11 +16,15 @@ import {
   withRouter,
 } from 'react-router-dom'
 
+
+
+
 const getSearchLabels =(searchString) => {
   var labels = searchString.split("+");
   const formattedLabels = labels.map(label => label.replace("%", " "))
   return formattedLabels;
 }
+
 
 const labelsToString = (labels) => {
   const formattedLabels = labels.map(label=> label.replace(" ", "%"));
@@ -43,7 +47,8 @@ class App extends Component {
       persons:[],
       labels:[],
       userId:'benjamin_reinhardt',
-      showTestStuff:false
+      showTestStuff:false,
+      showAllLabels:false
     };
     
     //DataStore.firebasePull(this.state.userId)
@@ -197,17 +202,27 @@ class App extends Component {
     this.setState({showTestStuff:!this.state.showTestStuff});
   }
 
+  toggleLabels = () => {
+    this.setState({showAllLabels:!this.state.showAllLabels});
+  }
 
   render () {
+
+    var labelButtons = [];
+    this.state.labels.forEach((label)=> {
+      labelButtons.push(<LabelButton key={label} label={label} setTag={this.setTag}/>);
+    });
 
     var searchLabels = [];
     if (this.props.match.params.mode === "search" && this.props.match.params.data) {
       searchLabels = getSearchLabels(this.props.match.params.data);
     } 
-    var labelButtons = [];
-    this.state.labels.forEach((label)=> {
-      labelButtons.push(<LabelButton key={label} label={label} setTag={this.setTag}/>);
-    });
+    
+        var labelToggleButtonName = "Show All Labels";
+    if (this.state.showAllLabels === true) {
+      labelToggleButtonName = "Hide All Labels";
+    }
+    
     return (
       <div>
         <div id="firebaseui-auth-container"></div>
@@ -250,7 +265,12 @@ class App extends Component {
                                    updateData={this.updateData}
                                    saveState={this.saveState}/>}/>
           </Row>
-          {labelButtons}
+ 
+          <button onClick={this.toggleLabels.bind(this)}>
+          {labelToggleButtonName}
+          </button>
+          {this.state.showAllLabels && labelButtons}
+
         </Col>
         
         <Col>
