@@ -3,15 +3,21 @@ import './App.css';
 import Omnibox from './Omnibox/Omnibox.jsx';
 import Person from './Person/Person.jsx';
 import Search from './Search/Search.jsx';
-import Home from './Home/Home.js';
+import Home from './Home/Home.jsx';
 import DataStore from './DataStore.jsx';
 import AddBox from './AddBox/AddBox.jsx';
+import LabelButton from './Person/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
+import TestStuff from './TestStuff.jsx';
+import PersonList from './PersonList.js';
 import {
   BrowserRouter as Router,
   Route,
   withRouter,
 } from 'react-router-dom'
+
+
+
 
 const getSearchLabels =(searchString) => {
   var labels = searchString.split("+");
@@ -19,26 +25,63 @@ const getSearchLabels =(searchString) => {
   return formattedLabels;
 }
 
+
+const labelsToString = (labels) => {
+  const formattedLabels = labels.map(label=> label.replace(" ", "%"));
+  var labelString = "";
+  formattedLabels.forEach((label, i) => {
+    if (i > 0) {
+      labelString += "+";
+    }
+    labelString += label;
+  });
+  return labelString;
+}
+
 class App extends Component {
   constructor(props) {
     super(props);
 
-    // *** Initialize Firebase
-    /*
-    var config = {
-      apiKey: "AIzaSyCMO50yQLEyIw_u6aptgBmK3qsRmhpUjxQ",
-      authDomain: "friendforce-25851.firebaseapp.com",
-      databaseURL: "https://friendforce-25851.firebaseio.com",
-      projectId: "friendforce-25851",
-      storageBucket: "friendforce-25851.appspot.com",
-    };
-    firebase.initializeApp(config);
-  */
     this.state = { 
       tags:[],
       persons:[],
-      user:'default'
+      labels:[],
+      userId:'benjamin_reinhardt',
+      showTestStuff:false,
+      showAllLabels:false
     };
+    
+    //DataStore.firebasePull(this.state.userId)
+    //.then(()=>{
+   
+    //this.saveState();
+    //});
+    this.setPerson = this.setPerson.bind(this);
+    this.setTag = this.setTag.bind(this);
+    this.setLabel = this.setLabel.bind(this);
+    this.addPerson = this.addPerson.bind(this);
+    this.addTagToPerson = this.addTagToPerson.bind(this);
+    this.unsetLabel = this.unsetLabel.bind(this);
+    this.updateData = this.updateData.bind(this);
+    this.setUser = this.setUser.bind(this);
+  }
+
+  loadState = () => {
+    DataStore.loadState();
+  }
+
+  saveState = () => {
+    DataStore.saveState();
+  }
+
+  componentDidMount = () => {
+    this.loadState();
+    this.updateData();
+    this.saveState();
+  }
+
+
+  updateData = () => {
     DataStore.getAllTags()
     .then((tags) =>{
       this.setState({tags});
@@ -47,65 +90,79 @@ class App extends Component {
     .then((persons) =>{
       this.setState({persons:persons});
     });
-    this.addThing = this.addThing.bind(this);
-    this.setPerson = this.setPerson.bind(this);
-    this.setTag = this.setTag.bind(this);
-    this.addPerson = this.addPerson.bind(this);
-    this.addTagToPerson = this.addTagToPerson.bind(this);
+    DataStore.getAllLabels()
+    .then((labels) =>{
+      this.setState({labels:labels});
+    });
+  }
+
+  createPerson = (name, dontSync=false) => {
+    var p = new Promise((resolve, reject) => {
+      DataStore.addPersonByName(name, this.state.userId, dontSync)
+      .then((id)=>{
+        resolve(id);
+
+      });
+    });
+    return p;
   }
 
   addPerson = name => {
-    DataStore.addPersonByName(name)
+    // Todo: need to check if you actually want to add a person 
+    // When you're in search mode because people accidentally add new thing
+
+    DataStore.addPersonByName(name, this.state.userId)
       .then((id)=>{
         this.props.history.push('/person/'+id);
         DataStore.getAllPersons()
         .then((persons) =>{
           this.setState({persons:persons});
+          this.saveState();
         });
       });
   }
 
-  addTagToPerson = label => {
-    var subject = this.props.match.params.data;
-    var originator = this.state.user;
-    DataStore.addTag(subject, label, originator)
+  componentDidMount () {
+      // Add firebase script
+      const script = document.createElement("script");
+      script.src = "https://www.gstatic.com/firebasejs/4.13.0/firebase.js";
+      script.async = true;
+      document.body.appendChild(script);
+
+  }
+
+  createTag = (label, subject, publicity='public', dontSync=false) => {
+     const originator = this.state.userId;
+     var p = new Promise((resolve, reject) => {
+      DataStore.addTag(subject, label, originator, this.state.userId, publicity, dontSync)
+      .then((id)=>{
+        resolve(id);
+      });
+     });
+     return p;    
+  }
+
+  addTag = (label, subject, publicity='public', dontSync=false) => {
+    const originator = this.state.userId;
+    DataStore.addTag(subject, label, originator, this.state.userId, publicity, dontSync)
     .then((id)=>{
       DataStore.getAllTags()
       .then((tags) =>{
         this.setState({tags:tags});
+        this.saveState();
+      });
+      DataStore.getAllLabels()
+      .then((labels) =>{
+        this.setState({labels:labels});
+        this.saveState();
       });
     });
-    console.log("creating and adding tag " + label + " to " + subject);
   } 
-  
 
-  addThing = thing => {
-    // If you are in person mode the new thing will be a tag
-    // If you are in search mode you can't add new things
-    // If you are in home mode a new thing is a person
-    var path = this.props.location.pathname.split("/");
-    if (path[1] === ""){
-      DataStore.addPersonByName(thing)
-      .then((id)=>{
-        this.props.history.push('/person/'+id);
-        DataStore.getAllPersons()
-        .then((persons) =>{
-          this.setState({persons:persons});
-        });
-      });
-    } else if (path[1] === "person") {
-      var subject = path[2];
-      var originator = this.state.user;
-      DataStore.addTag(subject, thing, originator)
-      .then((id)=>{
-        DataStore.getAllTags()
-        .then((tags) =>{
-          this.setState({tags:tags});
-        });
-      });
-      console.log("creating and adding tag " + thing + " to " + path[2]);
-    } 
-  }
+  addTagToPerson = (label, publicity='public') => {
+    var subject = this.props.match.params.data;
+    this.addTag(label, subject, publicity);
+  } 
 
 
 
@@ -114,52 +171,122 @@ class App extends Component {
     this.props.history.push('/person/'+person.id);
   }
 
+  setLabel = label => {
+    if (this.props.match.params.mode === "search" && this.props.match.params.data) {
+      this.props.history.push(this.props.location.pathname+"+"+label.replace(/[^A-Z0-9]/ig, "_"));
+    } else {
+      this.props.history.push('/search/'+ label);
+    }
+  }
+
   setTag = tag => {
-    if (this.props.match.params.mode === "search" && this.props.match.params.data.length > 0) {
+    if (this.props.match.params.mode === "search" && this.props.match.params.data) {
       this.props.history.push(this.props.location.pathname+"+"+tag.label.replace(/[^A-Z0-9]/ig, "_"));
     } else {
       this.props.history.push('/search/'+tag.label);
     }
   }
 
+  unsetLabel = targetLabel => {
+    const searchLabels = getSearchLabels(this.props.match.params.data);
+    const newLabels = searchLabels.filter(label =>(label !== targetLabel));
+    this.props.history.push('/search/'+labelsToString(newLabels));
+  }
+
+  /* Test Instrumentation Code */
+  setUser = userId => {
+    this.setState({userId:userId});
+  }
+
+  toggleTestStuff = () => {
+    this.setState({showTestStuff:!this.state.showTestStuff});
+  }
+
+  toggleLabels = () => {
+    this.setState({showAllLabels:!this.state.showAllLabels});
+  }
 
   render () {
+
+    var labelButtons = [];
+    this.state.labels.forEach((label)=> {
+      labelButtons.push(<LabelButton key={label} label={label} setTag={this.setTag}/>);
+    });
 
     var searchLabels = [];
     if (this.props.match.params.mode === "search" && this.props.match.params.data) {
       searchLabels = getSearchLabels(this.props.match.params.data);
     } 
+    
+        var labelToggleButtonName = "Show All Labels";
+    if (this.state.showAllLabels === true) {
+      labelToggleButtonName = "Hide All Labels";
+    }
+    
     return (
       <div>
         <div id="firebaseui-auth-container"></div>
         <Container>
+        <div>
+        <button onClick={this.toggleTestStuff.bind(this)}>
+        Toggle Test Instrumentation
+        </button>
+        {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
+        </div>
+        </Container>
+        
+        <Container>
         <Row>
         <Col>
+
           <Omnibox
             mode = {this.props.match.params.mode} 
             searchLabels = {searchLabels}
             searchString={this.props.match.params}
             persons={this.state.persons} 
             tags={this.state.tags}
+            labels={this.state.labels}
             addPerson={this.addPerson}
-            addThing={this.addThing}
             setPerson={this.setPerson}
             setTag={this.setTag} 
+            unsetLabel={this.unsetLabel}
+            setLabel={this.setLabel}
           />
           <Route path="/person/:personId" 
                  render={(props)=><AddBox {...props.match.params} 
                                    tags={this.state.tags}
                                    persons={this.state.persons}
-                                   addThing={this.addThing}
-                                   addTagToPerson={this.addTagToPerson}/>}/>
+                                   addTagToPerson={this.addTagToPerson}
+                                   labels={this.state.labels}/>}/>
+          <Row>
+          <Route exact path="/" render={(props)=><Home
+                                   createPerson={this.createPerson}
+                                   addTag={this.addTag}
+                                   updateData={this.updateData}
+                                   saveState={this.saveState}/>}/>
+          </Row>
+ 
+          <button onClick={this.toggleLabels.bind(this)}>
+          {labelToggleButtonName}
+          </button>
+          {this.state.showAllLabels && labelButtons}
+
         </Col>
         
         <Col>
-          <Route exact path="/" component={Home}/>
+
+          <Route path="/all_people/"
+                 render={(props)=><PersonList {...props.match.params}
+                                persons={this.state.persons}
+                                addTagToPerson={this.addTagToPerson}
+                                />}/>
+          
+          
           <Route path="/person/:personId" 
                  render={(props)=><Person {...props.match.params} 
-                                   tags={this.state.tags}
-                                   persons={this.state.persons}/>}/>
+                                   tags={this.state.tags.filter(tag=>tag.subject === props.match.params.personId)}
+                                   person={this.state.persons.filter(person=>person.id===props.match.params.personId)}
+                                   setTag={this.setTag}/>}/>
           <Route path="/search/:searchString" 
                  render={(props)=><Search {...props.match.params} 
                                    tags={this.state.tags}
