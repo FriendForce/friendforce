@@ -1,12 +1,7 @@
+import Person from '../Types/Person'
+
 export default {
- 'Adrienne_Tran': {
-    id: 'Adrienne_Tran',
-    name: 'Adrienne Tran',
-    knownByPersons: [
-      'Micah_Catlin',
-      'Benjamin_Reinhardt'
-    ]
-  },
+ 'Adrienne_Tran': new Person('Adrienne_Tran', 'Adrienne Tran', [ 'Micah_Catlin', 'Benjamin_Reinhardt' ]),
  'Micah_Catlin': {
     id: 'Micah_Catlin',
     name: 'Micah Catlin',
