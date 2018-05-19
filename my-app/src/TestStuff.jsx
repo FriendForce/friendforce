@@ -24,9 +24,8 @@ export default class TestStuff extends Component {
           </Container>
           <Container>
             <button onClick={()=>{DataStore.firebasePush(this.props.userId)}}>TEST PIUSH </button>
-            <button onClick={()=>{DataStore.firebasePull(this.props.userId)
-                              .then(()=>{this.props.updateData();});
-                               }}>TEST PULL </button>
+            <button onClick={()=>{DataStore.registerFirebaseListener(this.props.userId, ()=>{this.props.updateData();})}
+                               }>TEST PULL </button>
             <button onClick={()=>{DataStore.resetData()
                                   .then(()=>{this.props.updateData();});
                                 }}>

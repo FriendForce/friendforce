@@ -75,9 +75,9 @@ class App extends Component {
   }
 
   componentDidMount = () => {
-    this.loadState();
-    this.updateData();
-    this.saveState();
+    //this.loadState();
+    //this.updateData();
+    //this.saveState();
   }
 
 

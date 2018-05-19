@@ -10,8 +10,10 @@ import firebaseConfig from './ConstData/firebase_config.js';
 import firebase from 'firebase';
 import 'firebase/firestore';
 
-
-
+   firebase.initializeApp(firebaseConfig);
+   const settings = {timestampsInSnapshots: true};
+   firebase.firestore().settings(settings);
+   firebase.firestore().enablePersistence();
 class DataStore {
   constructor(){
      // TODO: Change what gets loaded 
@@ -21,10 +23,7 @@ class DataStore {
      // Collection names changable so you can do some test dicking around
      this._personCollection = "persons";
      this._tagCollection = "tags";
-     firebase.initializeApp(firebaseConfig);
      this.firestore = firebase.firestore();
-     const settings = {timestampsInSnapshots: true};
-     this.firestore.settings(settings);
      this._tagDiffs = new Map();
      this._personDiffs = new Map();
      this._labelList = [];
@@ -149,6 +148,64 @@ class DataStore {
     firestoreLabels.set(stagedLabels, {merge:true})
     .then(function(){})
     .catch(function(error){console.log("caught error adding lables" + error)});
+  }
+
+  registerFirebaseListener(userId, callback) {
+    /**
+     * Sets up a listener to firebase
+     * @Param userId {string -> id} id of the user pushing the data
+     * @Param callback - function to call when resolved
+     */
+     // TODO: Modify to react differently to snapshot.docChanges()
+       this.firestore.collection("persons")
+       .where("knownByPersons."+ userId, "==", true)
+       .onSnapshot({/*config object*/}, (querySnapshot)=> {
+          this._persons = new Map();
+          querySnapshot.forEach((doc) => {
+            // Do things with doc.id and doc.data()
+            var newPerson = doc.data();
+            newPerson.id = doc.id;
+            this._persons.set(doc.id, newPerson);
+          });
+          console.log("persons pull :", querySnapshot.size);
+          callback();
+       });
+       this.firestore.collection("tags")
+       .where("originator", "==", userId)
+       .where("publicity", "==", "private")
+       .onSnapshot({/*config object*/}, (querySnapshot)=> {
+          querySnapshot.forEach((doc)=>{
+            var newTag = doc.data();
+            newTag.id = doc.id;
+            this._tags.set(doc.id, newTag);
+          });
+          console.log("ptag pull1 :", querySnapshot.size);
+          callback();
+        })
+        this.firestore.collection("tags")
+        .where("publicity", "==", "public")
+        .onSnapshot({/*config object*/}, (querySnapshot)=> {
+          querySnapshot.forEach((doc)=>{
+            var newTag = doc.data();
+            newTag.id = doc.id;
+            this._tags.set(doc.id, newTag);
+          });
+          console.log("ptag pull2 :", querySnapshot.size);
+          callback();
+        })
+        this.firestore.collection("labels").doc("labels")
+        
+        .onSnapshot({/*config object*/}, (doc)=> {
+          this._labels = new Set([]);
+          if (doc && doc.data()) {
+            Object.keys(doc.data()).forEach((label)=>
+              {this._labels.add(label)}
+            );
+            console.log("labelpull");
+          }
+          
+          callback();
+        });
   }
 
   firebasePull(userId) {
