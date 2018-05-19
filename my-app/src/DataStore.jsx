@@ -1,8 +1,9 @@
 
 //Remove these when we're done with constant data
 
-//import persons from './ConstData/persons.js';
-//import tags from './ConstData/tags.js';
+import Person from './Types/Person';
+import Tag from './Types/Tag';
+
 import firebaseStyleTags from './ConstData/firebaseStyleTags.js';
 import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
 import firebaseConfig from './ConstData/firebase_config.js';
@@ -35,28 +36,32 @@ class DataStore {
   }
 
   saveState() {
-    localStorage.dataStoreTags = JSON.stringify(Array.from(this._tags.entries()));
-    localStorage.dataStorePersons = JSON.stringify(Array.from(this._persons.entries()));
-    localStorage.dataStorePersonDiffs = JSON.stringify(Array.from(this._personDiffs.entries()));
-    localStorage.dataStoreTagDiffs = JSON.stringify(Array.from(this._tagDiffs.entries()));
-    localStorage.dataStoreLabels = JSON.stringify(Array.from(this._labels));
+    if (window && 'localStorage' in window) {
+      localStorage.dataStoreTags = JSON.stringify(Array.from(this._tags.entries()));
+      localStorage.dataStorePersons = JSON.stringify(Array.from(this._persons.entries()));
+      localStorage.dataStorePersonDiffs = JSON.stringify(Array.from(this._personDiffs.entries()));
+      localStorage.dataStoreTagDiffs = JSON.stringify(Array.from(this._tagDiffs.entries()));
+      localStorage.dataStoreLabels = JSON.stringify(Array.from(this._labels));
+    }
   }
 
   loadState() {
-    if(typeof localStorage.dataStoreTags !== 'undefined') {
-      this._tags = new Map(JSON.parse(localStorage.dataStoreTags));
-    }
-    if(typeof localStorage.dataStorePersons !== 'undefined') {
-      this._persons = new Map(JSON.parse(localStorage.dataStorePersons));
-    }
-    if(typeof localStorage.dataStoreTagDiffs !== 'undefined') {
-      this._tagDiffs = new Map(JSON.parse(localStorage.dataStoreTagDiffs));
-    }
-    if(typeof localStorage.dataStorePersonDiffs !== 'undefined') {
-      this._personDiffs = new Map(JSON.parse(localStorage.dataStorePersonDiffs));
-    }
-    if(typeof localStorage.dataStoreLabels !== 'undefined') {
-      this._labels = new Set(JSON.parse(localStorage.dataStoreLabels));
+    if (window && 'localStorage' in window) {
+      if(typeof localStorage.dataStoreTags !== 'undefined') {
+        this._tags = new Map(JSON.parse(localStorage.dataStoreTags));
+      }
+      if(typeof localStorage.dataStorePersons !== 'undefined') {
+        this._persons = new Map(JSON.parse(localStorage.dataStorePersons));
+      }
+      if(typeof localStorage.dataStoreTagDiffs !== 'undefined') {
+        this._tagDiffs = new Map(JSON.parse(localStorage.dataStoreTagDiffs));
+      }
+      if(typeof localStorage.dataStorePersonDiffs !== 'undefined') {
+        this._personDiffs = new Map(JSON.parse(localStorage.dataStorePersonDiffs));
+      }
+      if(typeof localStorage.dataStoreLabels !== 'undefined') {
+        this._labels = new Set(JSON.parse(localStorage.dataStoreLabels));
+      }
     }
     
   }
@@ -218,8 +223,10 @@ class DataStore {
     this._tagDiffs.forEach((tag, id)=>{this.firebasePushTag(tag, id)});
     this._personDiffs = new Map();
     this._tagDiffs = new Map();
-    localStorage.dataStorePersonDiffs = JSON.stringify(Array.from(this._personDiffs.entries()));
-    localStorage.dataStoreTagDiffs = JSON.stringify(Array.from(this._tagDiffs.entries()));
+    if (window && 'localStorage' in window) {
+      localStorage.dataStorePersonDiffs = JSON.stringify(Array.from(this._personDiffs.entries()));
+      localStorage.dataStoreTagDiffs = JSON.stringify(Array.from(this._tagDiffs.entries()));
+    }
   }
 
 
@@ -289,10 +296,7 @@ class DataStore {
      // TODO: check whether person exists in firestore
      // NEXT TODO: make addPerson, addTag use _persons 
      var id = this._nameToId(name);
-     var person = {
-        id:id,
-        name:name
-      };
+     var person = new Person(id, name);
       // Check whether you're repeating a person
       const duplicate = this.checkPersonForDuplicate(person);
       if(duplicate) {
@@ -368,16 +372,10 @@ class DataStore {
           defaults to the active user
      * @return {Promise} promise resolves when tag successfully added
      */
-     var tag = {
-      id:'',
-      subject:subject,
-      label:label,
-      publicity:publicity,
-      originator:originator,
-     }
+     var tag = new Tag('', subject, label, publicity, originator);
      this._labels.add(tag.label);
 
-     tag = this.additionalTagLogic(tag);
+     // tag = this.additionalTagLogic(tag);
      console.log(tag);
      tag.id = this._tagToId(tag);
      this._tags.set(tag.id, tag);

@@ -2,7 +2,7 @@ import DataStore from './DataStore';
 import persons from './ConstData/persons.js';
 import tags from './ConstData/tags.js';
 
-describe('DataStore', () => {
+xdescribe('DataStore', () => {
   it('can be created without throwing', () => {
     expect(DataStore.numData()).toEqual(0);
   });
