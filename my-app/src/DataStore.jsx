@@ -1,8 +1,9 @@
 
 //Remove these when we're done with constant data
 
-//import persons from './ConstData/persons.js';
-//import tags from './ConstData/tags.js';
+import Person from './Types/Person';
+import Tag from './Types/Tag';
+
 import firebaseStyleTags from './ConstData/firebaseStyleTags.js';
 import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
 import firebaseConfig from './ConstData/firebase_config.js';
