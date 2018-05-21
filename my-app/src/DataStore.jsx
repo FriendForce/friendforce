@@ -10,8 +10,10 @@ import firebaseConfig from './ConstData/firebase_config.js';
 import firebase from 'firebase';
 import 'firebase/firestore';
 
-
-
+   firebase.initializeApp(firebaseConfig);
+   const settings = {timestampsInSnapshots: true};
+   firebase.firestore().settings(settings);
+   firebase.firestore().enablePersistence();
 class DataStore {
   constructor(){
      // TODO: Change what gets loaded 
@@ -21,10 +23,7 @@ class DataStore {
      // Collection names changable so you can do some test dicking around
      this._personCollection = "persons";
      this._tagCollection = "tags";
-     firebase.initializeApp(firebaseConfig);
      this.firestore = firebase.firestore();
-     const settings = {timestampsInSnapshots: true};
-     this.firestore.settings(settings);
      this._tagDiffs = new Map();
      this._personDiffs = new Map();
      this._labelList = [];
@@ -35,36 +34,7 @@ class DataStore {
      //this.loadExternalTags(tags);
   }
 
-  saveState() {
-    if (window && 'localStorage' in window) {
-      localStorage.dataStoreTags = JSON.stringify(Array.from(this._tags.entries()));
-      localStorage.dataStorePersons = JSON.stringify(Array.from(this._persons.entries()));
-      localStorage.dataStorePersonDiffs = JSON.stringify(Array.from(this._personDiffs.entries()));
-      localStorage.dataStoreTagDiffs = JSON.stringify(Array.from(this._tagDiffs.entries()));
-      localStorage.dataStoreLabels = JSON.stringify(Array.from(this._labels));
-    }
-  }
 
-  loadState() {
-    if (window && 'localStorage' in window) {
-      if(typeof localStorage.dataStoreTags !== 'undefined') {
-        this._tags = new Map(JSON.parse(localStorage.dataStoreTags));
-      }
-      if(typeof localStorage.dataStorePersons !== 'undefined') {
-        this._persons = new Map(JSON.parse(localStorage.dataStorePersons));
-      }
-      if(typeof localStorage.dataStoreTagDiffs !== 'undefined') {
-        this._tagDiffs = new Map(JSON.parse(localStorage.dataStoreTagDiffs));
-      }
-      if(typeof localStorage.dataStorePersonDiffs !== 'undefined') {
-        this._personDiffs = new Map(JSON.parse(localStorage.dataStorePersonDiffs));
-      }
-      if(typeof localStorage.dataStoreLabels !== 'undefined') {
-        this._labels = new Set(JSON.parse(localStorage.dataStoreLabels));
-      }
-    }
-    
-  }
 
   _nameToId(name) {
     return name.replace(/[^A-Z0-9]/ig, "_") + Math.floor(Math.random() * 20);
@@ -109,7 +79,7 @@ class DataStore {
     stagedfirestorePerson.knownByPersons[userId] = true;
     console.log(id + " " + userId);
     var firestorePerson = this.firestore.collection("persons").doc(id);
-    firestorePerson.set(stagedfirestorePerson, {merge:true})
+    firestorePerson.set(Object.assign({}, stagedfirestorePerson), {merge:true})
     .then(function(){console.log("set person")})
     .catch(function(error){console.log("caught error " + error)});
 
@@ -136,7 +106,7 @@ class DataStore {
       delete stagedfirestoreTag.type;
     }
     var firestoreTag = this.firestore.collection("tags").doc(id);
-    firestoreTag.set(stagedfirestoreTag, {merge:true})
+    firestoreTag.set(Object.assign({}, stagedfirestoreTag), {merge:true})
     .then(function(){})
     .catch(function(error){console.log("caught error pushing tag" + error)});
     return id;
@@ -151,67 +121,64 @@ class DataStore {
     .catch(function(error){console.log("caught error adding lables" + error)});
   }
 
-  firebasePull(userId) {
+  registerFirebaseListener(userId, callback) {
     /**
-     * Pulls data from firebase
+     * Sets up a listener to firebase
      * @Param userId {string -> id} id of the user pushing the data
+     * @Param callback - function to call when resolved
      */
-    // Grab all the data you're allowed to get from firebase
-    //Get all people known by the user
-    // TODO make this totally Async
-    var p = new Promise((resolve, reject) => {
+     // TODO: Modify to react differently to snapshot.docChanges()
+
      this.firestore.collection("persons")
-      .where("knownByPersons."+ userId, "==", true)
-      .get()
-      .then((querySnapshot) => {
+     .where("knownByPersons."+ userId, "==", true)
+     .onSnapshot({/*config object*/}, (querySnapshot)=> {
+        this._persons = new Map();
         querySnapshot.forEach((doc) => {
           // Do things with doc.id and doc.data()
           var newPerson = doc.data();
           newPerson.id = doc.id;
           this._persons.set(doc.id, newPerson);
         });
+        console.log("persons pull :", querySnapshot.size);
+        callback();
+     })
+
+     this.firestore.collection("tags")
+     .where("originator", "==", userId)
+     .where("publicity", "==", "private")
+     .onSnapshot({/*config object*/}, (querySnapshot)=> {
+        querySnapshot.forEach((doc)=>{
+          var newTag = doc.data();
+          newTag.id = doc.id;
+          this._tags.set(doc.id, newTag);
+        });
+        console.log("ptag pull1 :", querySnapshot.size);
+        callback();
       })
-      .then(() => {
-        this.firestore.collection("tags")
-        .where("originator", "==", userId)
-        .where("publicity", "==", "private")
-        .get()
-        .then((querySnapshot)=>{
-          querySnapshot.forEach((doc)=>{
-            var newTag = doc.data();
-            newTag.id = doc.id;
-            this._tags.set(doc.id, newTag);
-          });
-        })
-        .then(()=>{
-          this.firestore.collection("tags")
-          .where("publicity", "==", "public")
-          .get()
-          .then((querySnapshot)=>{
-            querySnapshot.forEach((doc)=>{
-              var newTag = doc.data();
-              newTag.id = doc.id;
-              this._tags.set(doc.id, newTag);
-            });
-          })
-        })
-        .then(()=>{
-          this.firestore.collection("labels").doc("labels")
-          .get()
-          .then((doc)=>{
-            Object.keys(doc.data()).forEach((label)=>
-              {this._labels.add(label)}
-            );
-            console.log(this._labels);
-          })
-          resolve(true);
-        })
+
+      this.firestore.collection("tags")
+      .where("publicity", "==", "public")
+      .onSnapshot({/*config object*/}, (querySnapshot)=> {
+        querySnapshot.forEach((doc)=>{
+          var newTag = doc.data();
+          newTag.id = doc.id;
+          this._tags.set(doc.id, newTag);
+        });
+        console.log("ptag pull2 :", querySnapshot.size);
+        callback();
       })
-      .catch(function(error) {
-        console.log("Error in firebasePull: ", error);
-      });
-    });
-    return p;  
+
+      this.firestore.collection("labels").doc("labels")
+      .onSnapshot({/*config object*/}, (doc)=> {
+        this._labels = new Set([]);
+        if (doc && doc.data()) {
+          Object.keys(doc.data()).forEach((label)=>
+            {this._labels.add(label)}
+          );
+          console.log("labelpull");
+        }
+        callback();
+      })
   }
 
   firebasePush(userId) {
@@ -372,7 +339,7 @@ class DataStore {
           defaults to the active user
      * @return {Promise} promise resolves when tag successfully added
      */
-     var tag = new Tag('', subject, label, publicity, originator);
+     var tag = new Tag(null, subject, originator, label, null, publicity);
      this._labels.add(tag.label);
 
      // tag = this.additionalTagLogic(tag);
