@@ -51,11 +51,6 @@ class App extends Component {
       showAllLabels:false
     };
     
-    //DataStore.firebasePull(this.state.userId)
-    //.then(()=>{
-   
-    //this.saveState();
-    //});
     this.setPerson = this.setPerson.bind(this);
     this.setTag = this.setTag.bind(this);
     this.setLabel = this.setLabel.bind(this);
@@ -66,18 +61,9 @@ class App extends Component {
     this.setUser = this.setUser.bind(this);
   }
 
-  loadState = () => {
-    DataStore.loadState();
-  }
-
-  saveState = () => {
-    DataStore.saveState();
-  }
-
   componentDidMount = () => {
-    //this.loadState();
-    //this.updateData();
-    //this.saveState();
+    // Once we have a way of doing user login, make sure that that's happened already
+    DataStore.registerFirebaseListener(this.state.userId, this.updateData);
   }
 
 
