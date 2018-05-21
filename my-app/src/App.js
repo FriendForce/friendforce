@@ -103,7 +103,6 @@ class App extends Component {
         DataStore.getAllPersons()
         .then((persons) =>{
           this.setState({persons:persons});
-          this.saveState();
         });
       });
   }
@@ -135,12 +134,10 @@ class App extends Component {
       DataStore.getAllTags()
       .then((tags) =>{
         this.setState({tags:tags});
-        this.saveState();
       });
       DataStore.getAllLabels()
       .then((labels) =>{
         this.setState({labels:labels});
-        this.saveState();
       });
     });
   } 
@@ -248,8 +245,7 @@ class App extends Component {
           <Route exact path="/" render={(props)=><Home
                                    createPerson={this.createPerson}
                                    addTag={this.addTag}
-                                   updateData={this.updateData}
-                                   saveState={this.saveState}/>}/>
+                                   updateData={this.updateData}/>}/>
           </Row>
  
           <button onClick={this.toggleLabels.bind(this)}>

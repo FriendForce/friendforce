@@ -142,7 +142,6 @@ class DataStore {
         console.log("persons pull :", querySnapshot.size);
         callback();
      })
-     .catch(function(error){console.log("error pulling persons: " + error)});
 
      this.firestore.collection("tags")
      .where("originator", "==", userId)
@@ -156,7 +155,6 @@ class DataStore {
         console.log("ptag pull1 :", querySnapshot.size);
         callback();
       })
-     .catch(function(error){console.log("error pulling private tags: " + error)});
 
       this.firestore.collection("tags")
       .where("publicity", "==", "public")
@@ -169,7 +167,6 @@ class DataStore {
         console.log("ptag pull2 :", querySnapshot.size);
         callback();
       })
-      .catch(function(error){console.log("error pulling public tags: " + error)});
 
       this.firestore.collection("labels").doc("labels")
       .onSnapshot({/*config object*/}, (doc)=> {
@@ -182,7 +179,6 @@ class DataStore {
         }
         callback();
       })
-      .catch(function(error){console.log("error pulling persons: " + error)});
   }
 
   firebasePush(userId) {
@@ -343,7 +339,7 @@ class DataStore {
           defaults to the active user
      * @return {Promise} promise resolves when tag successfully added
      */
-     var tag = new Tag('', subject, label, publicity, originator);
+     var tag = new Tag(null, subject, originator, label, null, publicity);
      this._labels.add(tag.label);
 
      // tag = this.additionalTagLogic(tag);
