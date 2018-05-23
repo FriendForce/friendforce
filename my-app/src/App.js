@@ -57,7 +57,6 @@ class App extends Component {
     this.unsetLabel = this.unsetLabel.bind(this);
     this.updateData = this.updateData.bind(this);
     this.setUser = this.setUser.bind(this);
-    console.log(ENABLE_LOGIN);
     if (ENABLE_LOGIN) {
       this.login = this.login.bind(this);
       this.logout = this.logout.bind(this);
@@ -67,7 +66,6 @@ class App extends Component {
   login() {
     auth.signInWithPopup(provider).then((result) => {
       const user = result.user;
-      console.log(user);
       this.setState({
         userId: user.uid
       });
