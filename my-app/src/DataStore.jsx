@@ -10,10 +10,13 @@ import firebaseConfig from './ConstData/firebase_config.js';
 import firebase from 'firebase';
 import 'firebase/firestore';
 
+if (!ENABLE_LOGIN) {
    firebase.initializeApp(firebaseConfig);
    const settings = {timestampsInSnapshots: true};
    firebase.firestore().settings(settings);
    firebase.firestore().enablePersistence();
+}
+
 class DataStore {
   constructor(){
      // TODO: Change what gets loaded 
@@ -23,7 +26,9 @@ class DataStore {
      // Collection names changable so you can do some test dicking around
      this._personCollection = "persons";
      this._tagCollection = "tags";
-     this.firestore = firebase.firestore();
+
+     this.firestore = ENABLE_LOGIN ? null : firebase.firestore();
+
      this._tagDiffs = new Map();
      this._personDiffs = new Map();
      this._labelList = [];
@@ -530,4 +535,5 @@ class DataStore {
 
 }
 
+export const ENABLE_LOGIN = false;
 export default new DataStore();

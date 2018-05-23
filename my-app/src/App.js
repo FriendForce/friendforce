@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
+import firebase, { auth, provider } from './firebase.js';
 import './App.css';
 import Omnibox from './Omnibox/Omnibox.jsx';
 import Person from './Person/Person.jsx';
 import Search from './Search/Search.jsx';
 import Home from './Home/Home.jsx';
-import DataStore from './DataStore.jsx';
+import DataStore, {ENABLE_LOGIN} from './DataStore.jsx';
 import AddBox from './AddBox/AddBox.jsx';
 import LabelButton from './Person/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
@@ -15,9 +16,6 @@ import {
   Route,
   withRouter,
 } from 'react-router-dom'
-
-
-
 
 const getSearchLabels =(searchString) => {
   var labels = searchString.split("+");
@@ -46,7 +44,7 @@ class App extends Component {
       tags:[],
       persons:[],
       labels:[],
-      userId:'benjamin_reinhardt',
+      userId: ENABLE_LOGIN ? null : 'benjamin_reinhardt',
       showTestStuff:false,
       showAllLabels:false
     };
@@ -59,6 +57,23 @@ class App extends Component {
     this.unsetLabel = this.unsetLabel.bind(this);
     this.updateData = this.updateData.bind(this);
     this.setUser = this.setUser.bind(this);
+    if (ENABLE_LOGIN) {
+      this.login = this.login.bind(this);
+      this.logout = this.logout.bind(this);
+    }
+  }
+
+  login() {
+    auth.signInWithPopup(provider).then((result) => {
+      const user = result.user;
+      this.setState({
+        userId: user.uid
+      });
+    });
+  }
+
+  logout() {
+    // TODO: sasha - later
   }
 
   componentDidMount = () => {
@@ -190,7 +205,6 @@ class App extends Component {
   }
 
   render () {
-
     var labelButtons = [];
     this.state.labels.forEach((label)=> {
       labelButtons.push(<LabelButton key={label} label={label} setTag={this.setTag}/>);
@@ -201,7 +215,7 @@ class App extends Component {
       searchLabels = getSearchLabels(this.props.match.params.data);
     } 
     
-        var labelToggleButtonName = "Show All Labels";
+    var labelToggleButtonName = "Show All Labels";
     if (this.state.showAllLabels === true) {
       labelToggleButtonName = "Hide All Labels";
     }
@@ -210,75 +224,83 @@ class App extends Component {
       <div>
         <div id="firebaseui-auth-container"></div>
         <Container>
-        <div>
-        <button onClick={this.toggleTestStuff.bind(this)}>
-        Toggle Test Instrumentation
-        </button>
-        {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
-        </div>
+          <div>
+            <button onClick={this.toggleTestStuff.bind(this)}>
+              Toggle Test Instrumentation
+            </button>
+            {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
+          </div>
         </Container>
-        
+        {ENABLE_LOGIN ? 
+          <Container>
+           {this.state.userId ? 
+              <button onClick={this.logout}>Log Out</button>
+              :
+              <button onClick={this.login}>Log In</button>
+           }
+          </Container>
+          :
+          <div/>
+        }
         <Container>
-        <Row>
-        <Col>
-
-          <Omnibox
-            mode = {this.props.match.params.mode} 
-            searchLabels = {searchLabels}
-            searchString={this.props.match.params}
-            persons={this.state.persons} 
-            tags={this.state.tags}
-            labels={this.state.labels}
-            addPerson={this.addPerson}
-            setPerson={this.setPerson}
-            setTag={this.setTag} 
-            unsetLabel={this.unsetLabel}
-            setLabel={this.setLabel}
-          />
-          <Route path="/person/:personId" 
+          <Row>
+            <Col>
+              <Omnibox
+                mode = {this.props.match.params.mode} 
+                searchLabels = {searchLabels}
+                searchString={this.props.match.params}
+                persons={this.state.persons} 
+                tags={this.state.tags}
+                labels={this.state.labels}
+                addPerson={this.addPerson}
+                setPerson={this.setPerson}
+                setTag={this.setTag} 
+                unsetLabel={this.unsetLabel}
+                setLabel={this.setLabel}
+              />
+              <Route path="/person/:personId" 
                  render={(props)=><AddBox {...props.match.params} 
                                    tags={this.state.tags}
                                    persons={this.state.persons}
                                    addTagToPerson={this.addTagToPerson}
                                    labels={this.state.labels}/>}/>
-          <Row>
-          <Route exact path="/" render={(props)=><Home
+            <Row>
+              <Route exact path="/" render={(props)=><Home
                                    createPerson={this.createPerson}
                                    addTag={this.addTag}
                                    updateData={this.updateData}/>}/>
-          </Row>
- 
-          <button onClick={this.toggleLabels.bind(this)}>
-          {labelToggleButtonName}
-          </button>
-          {this.state.showAllLabels && labelButtons}
+            </Row>
+            <button onClick={this.toggleLabels.bind(this)}>
+              {labelToggleButtonName}
+            </button>
+            {this.state.showAllLabels && labelButtons}
 
-        </Col>
+          </Col>
         
-        <Col>
+          <Col>
+            <Route path="/all_people/"
+                   render={(props)=><PersonList {...props.match.params}
+                                  persons={this.state.persons}
+                                  addTagToPerson={this.addTagToPerson}
+                                  />}/>
+            
+            
+            <Route path="/person/:personId" 
+                   render={(props)=><Person {...props.match.params} 
+                                     tags={this.state.tags.filter(tag=>tag.subject === props.match.params.personId)}
+                                     person={this.state.persons.filter(person=>person.id===props.match.params.personId)}
+                                     setTag={this.setTag}/>}/>
+            <Route path="/search/:searchString" 
+                   render={(props)=><Search {...props.match.params} 
+                                     tags={this.state.tags}
+                                     persons={this.state.persons}
+                                     searchLabels={searchLabels}/>}/>
 
-          <Route path="/all_people/"
-                 render={(props)=><PersonList {...props.match.params}
-                                persons={this.state.persons}
-                                addTagToPerson={this.addTagToPerson}
-                                />}/>
-          
-          
-          <Route path="/person/:personId" 
-                 render={(props)=><Person {...props.match.params} 
-                                   tags={this.state.tags.filter(tag=>tag.subject === props.match.params.personId)}
-                                   person={this.state.persons.filter(person=>person.id===props.match.params.personId)}
-                                   setTag={this.setTag}/>}/>
-          <Route path="/search/:searchString" 
-                 render={(props)=><Search {...props.match.params} 
-                                   tags={this.state.tags}
-                                   persons={this.state.persons}
-                                   searchLabels={searchLabels}/>}/>
-        </Col>
-        </Row>
-      </Container>
+          </Col>
+          </Row>
+        </Container>
       </div>
-    )
+    );
   }
 }
 
