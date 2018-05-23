@@ -46,7 +46,7 @@ class App extends Component {
       tags:[],
       persons:[],
       labels:[],
-      userId:'benjamin_reinhardt',
+      userId: null,
       showTestStuff:false,
       showAllLabels:false
     };
@@ -207,7 +207,6 @@ class App extends Component {
   }
 
   render () {
-
     var labelButtons = [];
     this.state.labels.forEach((label)=> {
       labelButtons.push(<LabelButton key={label} label={label} setTag={this.setTag}/>);
@@ -218,7 +217,7 @@ class App extends Component {
       searchLabels = getSearchLabels(this.props.match.params.data);
     } 
     
-        var labelToggleButtonName = "Show All Labels";
+    var labelToggleButtonName = "Show All Labels";
     if (this.state.showAllLabels === true) {
       labelToggleButtonName = "Hide All Labels";
     }
@@ -227,76 +226,75 @@ class App extends Component {
       <div>
         <div id="firebaseui-auth-container"></div>
         <Container>
-        <div>
-        <button onClick={this.toggleTestStuff.bind(this)}>
-        Toggle Test Instrumentation
-        </button>
-        {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
-        </div>
+          <div>
+            <button onClick={this.toggleTestStuff.bind(this)}>
+              Toggle Test Instrumentation
+            </button>
+            {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
+          </div>
         </Container>
         
         <Container>
-        <Row>
-        <Col>
-
-          <Omnibox
-            mode = {this.props.match.params.mode} 
-            searchLabels = {searchLabels}
-            searchString={this.props.match.params}
-            persons={this.state.persons} 
-            tags={this.state.tags}
-            labels={this.state.labels}
-            addPerson={this.addPerson}
-            setPerson={this.setPerson}
-            setTag={this.setTag} 
-            unsetLabel={this.unsetLabel}
-            setLabel={this.setLabel}
-          />
-          <Route path="/person/:personId" 
+          <Row>
+            <Col>
+              <Omnibox
+                mode = {this.props.match.params.mode} 
+                searchLabels = {searchLabels}
+                searchString={this.props.match.params}
+                persons={this.state.persons} 
+                tags={this.state.tags}
+                labels={this.state.labels}
+                addPerson={this.addPerson}
+                setPerson={this.setPerson}
+                setTag={this.setTag} 
+                unsetLabel={this.unsetLabel}
+                setLabel={this.setLabel}
+              />
+              <Route path="/person/:personId" 
                  render={(props)=><AddBox {...props.match.params} 
                                    tags={this.state.tags}
                                    persons={this.state.persons}
                                    addTagToPerson={this.addTagToPerson}
                                    labels={this.state.labels}/>}/>
-          <Row>
-          <Route exact path="/" render={(props)=><Home
+            <Row>
+              <Route exact path="/" render={(props)=><Home
                                    createPerson={this.createPerson}
                                    addTag={this.addTag}
                                    updateData={this.updateData}
                                    saveState={this.saveState}/>}/>
-          </Row>
+            </Row>
  
-          <button onClick={this.toggleLabels.bind(this)}>
-          {labelToggleButtonName}
-          </button>
-          {this.state.showAllLabels && labelButtons}
+            <button onClick={this.toggleLabels.bind(this)}>
+              {labelToggleButtonName}
+            </button>
+            {this.state.showAllLabels && labelButtons}
 
-        </Col>
+          </Col>
         
-        <Col>
+          <Col>
+            <Route path="/all_people/"
+                   render={(props)=><PersonList {...props.match.params}
+                                  persons={this.state.persons}
+                                  addTagToPerson={this.addTagToPerson}
+                                  />}/>
+            
+            
+            <Route path="/person/:personId" 
+                   render={(props)=><Person {...props.match.params} 
+                                     tags={this.state.tags.filter(tag=>tag.subject === props.match.params.personId)}
+                                     person={this.state.persons.filter(person=>person.id===props.match.params.personId)}
+                                     setTag={this.setTag}/>}/>
+            <Route path="/search/:searchString" 
+                   render={(props)=><Search {...props.match.params} 
+                                     tags={this.state.tags}
+                                     persons={this.state.persons}
+                                     searchLabels={searchLabels}/>}/>
 
-          <Route path="/all_people/"
-                 render={(props)=><PersonList {...props.match.params}
-                                persons={this.state.persons}
-                                addTagToPerson={this.addTagToPerson}
-                                />}/>
-          
-          
-          <Route path="/person/:personId" 
-                 render={(props)=><Person {...props.match.params} 
-                                   tags={this.state.tags.filter(tag=>tag.subject === props.match.params.personId)}
-                                   person={this.state.persons.filter(person=>person.id===props.match.params.personId)}
-                                   setTag={this.setTag}/>}/>
-          <Route path="/search/:searchString" 
-                 render={(props)=><Search {...props.match.params} 
-                                   tags={this.state.tags}
-                                   persons={this.state.persons}
-                                   searchLabels={searchLabels}/>}/>
-        </Col>
-        </Row>
-      </Container>
+          </Col>
+          </Row>
+        </Container>
       </div>
-    )
+    );
   }
 }
 

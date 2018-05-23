@@ -43,7 +43,7 @@ export default class Home extends Component {
     fr.readAsText(files[0]); 
   }
 
-  //Todo LinkedIn Data
+  // Todo LinkedIn Data
   // Todo Contact Data
 
 
