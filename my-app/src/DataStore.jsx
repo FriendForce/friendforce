@@ -535,5 +535,5 @@ class DataStore {
 
 }
 
-export const ENABLE_LOGIN = true;
+export const ENABLE_LOGIN = false;
 export default new DataStore();
