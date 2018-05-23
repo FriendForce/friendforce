@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
+import firebase, { auth, provider } from './firebase.js';
 import './App.css';
 import Omnibox from './Omnibox/Omnibox.jsx';
 import Person from './Person/Person.jsx';
 import Search from './Search/Search.jsx';
 import Home from './Home/Home.jsx';
-import DataStore from './DataStore.jsx';
+import DataStore, {ENABLE_LOGIN} from './DataStore.jsx';
 import AddBox from './AddBox/AddBox.jsx';
 import LabelButton from './Person/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
@@ -15,9 +16,6 @@ import {
   Route,
   withRouter,
 } from 'react-router-dom'
-
-
-
 
 const getSearchLabels =(searchString) => {
   var labels = searchString.split("+");
@@ -46,16 +44,11 @@ class App extends Component {
       tags:[],
       persons:[],
       labels:[],
-      userId: null,
+      userId: ENABLE_LOGIN ? null : 'benjamin_reinhardt',
       showTestStuff:false,
       showAllLabels:false
     };
     
-    //DataStore.firebasePull(this.state.userId)
-    //.then(()=>{
-   
-    //this.saveState();
-    //});
     this.setPerson = this.setPerson.bind(this);
     this.setTag = this.setTag.bind(this);
     this.setLabel = this.setLabel.bind(this);
@@ -64,6 +57,25 @@ class App extends Component {
     this.unsetLabel = this.unsetLabel.bind(this);
     this.updateData = this.updateData.bind(this);
     this.setUser = this.setUser.bind(this);
+    console.log(ENABLE_LOGIN);
+    if (ENABLE_LOGIN) {
+      this.login = this.login.bind(this);
+      this.logout = this.logout.bind(this);
+    }
+  }
+
+  login() {
+    auth.signInWithPopup(provider).then((result) => {
+      const user = result.user;
+      console.log(user);
+      this.setState({
+        userId: user.uid
+      });
+    });
+  }
+
+  logout() {
+    // TODO: sasha - later
   }
 
   loadState = () => {
@@ -233,7 +245,17 @@ class App extends Component {
             {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
           </div>
         </Container>
-        
+        {ENABLE_LOGIN ? 
+          <Container>
+           {this.state.userId ? 
+              <button onClick={this.logout}>Log Out</button>
+              :
+              <button onClick={this.login}>Log In</button>
+           }
+          </Container>
+          :
+          <div/>
+        }
         <Container>
           <Row>
             <Col>
