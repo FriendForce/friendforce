@@ -31,7 +31,7 @@ class DataStore {
      //this.loadExternalTags(tags);
   }
 
-  _nameToId(name) {
+  nameToId(name) {
     return name.replace(/[^A-Z0-9]/ig, "_") + Math.floor(Math.random() * 20);
   } 
 

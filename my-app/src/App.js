@@ -65,7 +65,7 @@ class App extends Component {
     auth.signInWithPopup(provider).then((result) => {
       const user = result.user;
       this.setState({
-        userId: user.uid
+        userId: DataStore.nameToId(user.displayName)
       });
     });
   }
