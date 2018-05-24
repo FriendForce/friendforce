@@ -73,7 +73,12 @@ class App extends Component {
   }
 
   logout() {
-    // TODO: sasha - later
+    auth.signOut()
+    .then(() => {
+      this.setState({
+        userId: null
+      });
+    });
   }
 
   componentDidMount = () => {
