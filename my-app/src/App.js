@@ -82,8 +82,10 @@ class App extends Component {
   componentDidMount = () => {
     auth.onAuthStateChanged((user) => {
       if (user) {
-        this.setState({ userId: user.uid });
-        DataStore.registerFirebaseListener(user.uid, this.updateData);
+        // TODO: sasha - fetch user from db
+        var userid = 'benjamin_reinhardt';
+        this.setState({ userId: userid });
+        DataStore.registerFirebaseListener(userid, this.updateData);
       } 
     });
   }
