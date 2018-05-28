@@ -10,12 +10,6 @@ import firebaseConfig from './ConstData/firebase_config.js';
 import firebase from 'firebase';
 import 'firebase/firestore';
 
-if (!ENABLE_LOGIN) {
-   firebase.initializeApp(firebaseConfig);
-   const settings = {timestampsInSnapshots: true};
-   firebase.firestore().settings(settings);
-   firebase.firestore().enablePersistence();
-}
 
 class DataStore {
   constructor(){
@@ -47,6 +41,10 @@ class DataStore {
 
   _tagToId(tag) {
     return tag.label.replace(/[^A-Z0-9]/ig, "_") + Math.floor(Math.random() * 20);
+  }
+
+  _labelToId(label) {
+    return label.replace(/[^A-Z0-9]/ig, "_");
   }
 
   firebaseSync(userId) {
@@ -173,15 +171,12 @@ class DataStore {
         callback();
       })
 
-      this.firestore.collection("labels").doc("labels")
-      .onSnapshot({/*config object*/}, (doc)=> {
-        this._labels = new Set([]);
-        if (doc && doc.data()) {
-          Object.keys(doc.data()).forEach((label)=>
-            {this._labels.add(label)}
-          );
-          console.log("labelpull");
-        }
+      this.firestore.collection("labels")
+      .onSnapshot({/*config object*/}, (querySnapshot)=> {
+        querySnapshot.forEach((doc)=>{
+          this._labels.add(doc.label);
+        });
+        console.log("label pull :", querySnapshot.size);
         callback();
       })
   }
@@ -348,7 +343,6 @@ class DataStore {
      this._labels.add(tag.label);
 
      // tag = this.additionalTagLogic(tag);
-     console.log(tag);
      tag.id = this._tagToId(tag);
      this._tags.set(tag.id, tag);
      
@@ -358,6 +352,19 @@ class DataStore {
        this._tagDiffs.set(tag.id, tag);
      }
      return Promise.resolve(tag.id);
+  }
+
+  genLabels = () => {
+    var firestoreLabels = this.firestore.collection("labels");
+    this._tags.forEach(
+      (tag, id) =>{
+        // this is a heuristic right now
+        if (tag.publicity !== "private") {
+          this._labels = this._labels.add(tag.label);
+          firestoreLabels.doc(this._labelToId(tag.label))
+          .set({label:tag.label}, {merge:true});
+        }
+      });
   }
 
   processTags = () => {
