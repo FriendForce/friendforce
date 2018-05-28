@@ -44,7 +44,7 @@ class App extends Component {
       tags:[],
       persons:[],
       labels:[],
-      userId: null,
+      userId:'benjamin_reinhardt',
       showTestStuff:false,
       showAllLabels:false
     };
@@ -85,9 +85,9 @@ class App extends Component {
         // TODO: sasha - fetch user from db
         var userid = 'benjamin_reinhardt';
         this.setState({ userId: userid });
-        DataStore.registerFirebaseListener(userid, this.updateData);
       } 
     });
+    DataStore.registerFirebaseListener(this.state.userId, this.updateData);
   }
 
 
