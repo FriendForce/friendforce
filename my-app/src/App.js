@@ -63,10 +63,40 @@ class App extends Component {
 
   login() {
     auth.signInWithPopup(provider).then((result) => {
-      const user = result.user;
-      // this.setState({
-      //   userId: DataStore.nameToId(user.displayName)
-      // });
+      // Check if the current user already exists in DB
+      DataStore.getPersonByEmail(result.user.email).then((person) => {
+        // If user does not currently exist in DB
+        if (person === null) {
+          // Check if we could resolve to see if somebody else created such a user in the DB,
+          // Heurisitic for now, checking for name match
+          DataStore.getPersonsByName(result.user.displayName).then((persons) => {
+            if (persons.length > 0) {
+              let matchedPersonId = persons[0].id;
+              DataStore.updatePerson(matchedPersonId, {
+                email: result.user.email
+              }, matchedPersonId).then((userId) => {
+                this.setState({
+                  userId: userId
+                })
+              });              
+            } else {
+              // If we couldn't find a person in our DB that has the same name,
+              // then we create such a person
+              let newUserId = DataStore._nameToId(result.user.displayName);
+              DataStore.addPersonByName(result.user.displayName, newUserId, false, result.user.email).then((userId) => {
+                this.setState({
+                  userId: userId
+                })
+              });
+            }
+          })
+        } else {
+          // user currently exists in DB, and is a return user
+          this.setState({
+            userId: person.userId
+          })
+        }
+      })      
     });
   }
 

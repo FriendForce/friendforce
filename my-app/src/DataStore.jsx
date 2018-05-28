@@ -56,6 +56,7 @@ class DataStore {
     
   }
 
+  // TODO: ben, remove the id
   firebasePushPerson(person, userId, id) {
      /**
      * Pushes a single person to firebase
@@ -204,7 +205,6 @@ class DataStore {
       resolve(true);
     });
     return p;
-
   }
 
   loadExternalPersons(persons){
@@ -233,12 +233,13 @@ class DataStore {
   checkPersonForDuplicate(person) {
     var possibleMatchingIds = Array.from(this._persons)
     .filter((obj)=>{
-      return obj[1].name === person.name;
+      return obj[1].name === person.name || (person.email.length > 0 && obj[1].email === person.email);
 
     })
     .map((obj)=>{
       return obj[0];
     });
+
     if(possibleMatchingIds.length > 0) {
      console.log(person.name + "matches to ");
      console.log(possibleMatchingIds);
@@ -248,17 +249,21 @@ class DataStore {
     }
   }
 
-  addPersonByName(name, userId, dontSync=false) {
-    /** Creates a person by name and adds them to the Datastore. This 
+  addPersonByName(name, creatorUserId, dontSync=false, email = '') {
+    /** Creates a person by name & email and adds them to the Datastore. This 
      * will always create a new person - caller needs to check if person
      * already exists.
-     * @param person {string Name} with populated fields
+     * @param name {string Name} of the person being added
+     * @param creatorUserId {string creatorUserId} of the current signed in user
+     * @param email {string Email} of the person being added
      * @return {Promise} promise resolves when person successfully added
      */
-     // TODO: check whether person exists in firestore
-     // NEXT TODO: make addPerson, addTag use _persons 
-     var id = this._nameToId(name);
-     var person = new Person(id, name);
+     // TODO: make addPerson, addTag use _persons 
+      var id = this._nameToId(name);
+      var person = new Person(id, name);
+      if (email.length > 0) {
+        person.email = email;
+      }
       // Check whether you're repeating a person
       const duplicate = this.checkPersonForDuplicate(person);
       if(duplicate) {
@@ -269,7 +274,7 @@ class DataStore {
       this._persons.set(id, person);
       
       if (!dontSync) {
-        this.firebasePushPerson(person, userId, id);
+        this.firebasePushPerson(person, creatorUserId, id);
       } else {
         this._personDiffs.set(id, person);
       }
@@ -398,13 +403,19 @@ class DataStore {
 
   }
 
-  updatePerson(id, params) {
-    /** NOT IMPLEMENTED
+  updatePerson(id, params, currentPersonId) {
+    /**
      * Updates a Person in the datastore
      * @param id {string->id} id of person
      * @param params {dictionary} key-values to update 
+     * @param currentPersonId {string->id} the user id of the current logged in user 
      * @return {Promise} promise resolves when person successfully updated
      */
+     var newPerson = this._persons.get(id);
+     for (let param in params) {
+       newPerson[param] = params[param];
+     }
+     this.firebasePushPerson(newPerson, currentPersonId, '');
   }
 
   getPersonsByName(name){
@@ -415,6 +426,16 @@ class DataStore {
      *          with the given name
      */
     return Promise.resolve(Array.from(this._persons).filter(obj => obj[1].name === name).map(obj=>obj[1]));
+  }
+
+  getPersonByEmail(email){
+    /**
+     * Gets the person with an email
+     * @param email {string} email to search by
+     * @return {Promise} promise for a {Person}
+     *          with the given email
+     */
+    return Promise.resolve(Array.from(this._persons).filter(obj => obj[1].email === email).map(obj=>obj[1])[0]);
   }
 
   getAllPersons(){
