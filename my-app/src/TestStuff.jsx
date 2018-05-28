@@ -36,7 +36,7 @@ export default class TestStuff extends Component {
             NumTagDiffs = {DataStore.numTagDiffs()}
           </Container>
           <Container>
-          <button onClick={()=>{DataStore.processTags()}}>PROCESS TAGS </button>
+          <button onClick={()=>{DataStore.genLabels()}}>Generate Labels </button>
           </Container>
           <Container>
           <button onClick={()=>{DataStore.firebasePushLabels()}}>PUSH LABELS </button>

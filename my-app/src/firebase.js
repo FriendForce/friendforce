@@ -1,4 +1,6 @@
+
 import firebase from 'firebase'
+
 import 'firebase/firestore';
 
 const config = {
@@ -8,6 +10,7 @@ const config = {
 };
 
 firebase.initializeApp(config);
+
 
 const settings = {timestampsInSnapshots: true};
 firebase.firestore().settings(settings);
