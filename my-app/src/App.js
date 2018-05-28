@@ -5,7 +5,7 @@ import Omnibox from './Omnibox/Omnibox.jsx';
 import Person from './Person/Person.jsx';
 import Search from './Search/Search.jsx';
 import Home from './Home/Home.jsx';
-import DataStore, {ENABLE_LOGIN} from './DataStore.jsx';
+import DataStore from './DataStore.jsx';
 import AddBox from './AddBox/AddBox.jsx';
 import LabelButton from './Person/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
@@ -44,7 +44,7 @@ class App extends Component {
       tags:[],
       persons:[],
       labels:[],
-      userId: ENABLE_LOGIN ? null : 'benjamin_reinhardt',
+      userId:'benjamin_reinhardt',
       showTestStuff:false,
       showAllLabels:false
     };
@@ -57,27 +57,36 @@ class App extends Component {
     this.unsetLabel = this.unsetLabel.bind(this);
     this.updateData = this.updateData.bind(this);
     this.setUser = this.setUser.bind(this);
-    if (ENABLE_LOGIN) {
-      this.login = this.login.bind(this);
-      this.logout = this.logout.bind(this);
-    }
+    this.login = this.login.bind(this);
+    this.logout = this.logout.bind(this);
   }
 
   login() {
     auth.signInWithPopup(provider).then((result) => {
       const user = result.user;
-      this.setState({
-        userId: user.uid
-      });
+      // this.setState({
+      //   userId: DataStore.nameToId(user.displayName)
+      // });
     });
   }
 
   logout() {
-    // TODO: sasha - later
+    auth.signOut()
+    .then(() => {
+      this.setState({
+        userId: null
+      });
+    });
   }
 
   componentDidMount = () => {
-    // Once we have a way of doing user login, make sure that that's happened already
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        // TODO: sasha - fetch user from db
+        var userid = 'benjamin_reinhardt';
+        this.setState({ userId: userid });
+      } 
+    });
     DataStore.registerFirebaseListener(this.state.userId, this.updateData);
   }
 
@@ -231,17 +240,13 @@ class App extends Component {
             {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
           </div>
         </Container>
-        {ENABLE_LOGIN ? 
-          <Container>
-           {this.state.userId ? 
-              <button onClick={this.logout}>Log Out</button>
-              :
-              <button onClick={this.login}>Log In</button>
-           }
-          </Container>
-          :
-          <div/>
-        }
+        <Container>
+         {this.state.userId ? 
+            <button onClick={this.logout}>Log Out</button>
+            :
+            <button onClick={this.login}>Log In</button>
+         }
+        </Container> 
         <Container>
           <Row>
             <Col>

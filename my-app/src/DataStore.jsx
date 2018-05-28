@@ -7,8 +7,8 @@ import Tag from './Types/Tag';
 import firebaseStyleTags from './ConstData/firebaseStyleTags.js';
 import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
 import firebaseConfig from './ConstData/firebase_config.js';
-import firebase from 'firebase';
-import 'firebase/firestore';
+
+import firebase from './firebase';
 
 
 class DataStore {
@@ -21,7 +21,7 @@ class DataStore {
      this._personCollection = "persons";
      this._tagCollection = "tags";
 
-     this.firestore = ENABLE_LOGIN ? null : firebase.firestore();
+     this.firestore = firebase.firestore();
 
      this._tagDiffs = new Map();
      this._personDiffs = new Map();
@@ -32,8 +32,6 @@ class DataStore {
      //this.loadExternalPersons(persons);
      //this.loadExternalTags(tags);
   }
-
-
 
   _nameToId(name) {
     return name.replace(/[^A-Z0-9]/ig, "_") + Math.floor(Math.random() * 20);
@@ -542,5 +540,4 @@ class DataStore {
 
 }
 
-export const ENABLE_LOGIN = false;
 export default new DataStore();
