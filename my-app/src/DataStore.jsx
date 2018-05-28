@@ -172,7 +172,9 @@ class DataStore {
       this.firestore.collection("labels")
       .onSnapshot({/*config object*/}, (querySnapshot)=> {
         querySnapshot.forEach((doc)=>{
-          this._labels.add(doc.label);
+          if (doc.data().label !== null) {
+            this._labels.add(doc.data().label);
+          }
         });
         console.log("label pull :", querySnapshot.size);
         callback();
@@ -346,6 +348,9 @@ class DataStore {
      
      if (!dontSync) {
       this.firebasePushTag(tag, tag.id);
+      this.firestore.collection("labels")
+      .doc(this._labelToId(tag.label))
+      .set({label:tag.label}, {merge:true});
      } else {
        this._tagDiffs.set(tag.id, tag);
      }
