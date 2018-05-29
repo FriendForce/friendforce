@@ -10,7 +10,7 @@
     "source": "functions"
   },
   "hosting": {
-    "public": "./react-client/dist",
+    "public": "my-app/build",
     "ignore": [
       "firebase.json",
       "**/.*",
