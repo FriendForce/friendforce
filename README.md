@@ -21,6 +21,7 @@ Select `N` for `File my-app/build/index.html already exists. Overwrite? (y/N)`
 If you haven't, do all the pieces of [Firebase Setup](#firebase-setup)  
 `npm run build`  
 `firebase deploy`  
+To turn off deployment: `firebase hosting:disable`
 
 
 ## Facebook Data Upload Instructions 
