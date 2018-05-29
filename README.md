@@ -13,12 +13,12 @@ You may need to: `firebase login`
 ### Set up deployment    
 run `firebase init`
 
-Select `❯◉ Hosting: Configure and deploy Firebase Hosting sites`
+Select `❯◉ Hosting: Configure and deploy Firebase Hosting sites`  
 Enter `my-app/build` for `What do you want to use as your public directory? (public)`  
 Select `y` for  `Configure as a single-page app (rewrite all urls to /index.html)? (y/N)`    
 Select `N` for `File my-app/build/index.html already exists. Overwrite? (y/N)`  
 ## Deployment   
-If you haven't, do all the pieces of [Firebase Setup](#Firebase Setup)  
+If you haven't, do all the pieces of [Firebase Setup](#firebase-setup)  
 `npm run build`  
 `firebase deploy`  
 
