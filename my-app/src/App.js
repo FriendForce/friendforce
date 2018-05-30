@@ -44,7 +44,7 @@ class App extends Component {
       tags:[],
       persons:[],
       labels:[],
-      userId:'benjamin_reinhardt',
+      userId:null,
       showTestStuff:false,
       showAllLabels:false
     };
@@ -64,9 +64,9 @@ class App extends Component {
   login() {
     auth.signInWithPopup(provider).then((result) => {
       // Check if the current user already exists in DB
-      DataStore.getPersonByEmail(result.user.email).then((person) => {
+      DataStore.getPersonByEmail(result.user.email, (person) => {
         // If user does not currently exist in DB
-        if (person === null) {
+        if (person === undefined) {
           // Check if we could resolve to see if somebody else created such a user in the DB,
           // Heurisitic for now, checking for name match
           DataStore.getPersonsByName(result.user.displayName).then((persons) => {
@@ -74,11 +74,11 @@ class App extends Component {
               let matchedPersonId = persons[0].id;
               DataStore.updatePerson(matchedPersonId, {
                 email: result.user.email
-              }, matchedPersonId).then((userId) => {
-                this.setState({
-                  userId: userId
-                })
-              });              
+              }, matchedPersonId);
+              this.setState({
+                userId: matchedPersonId
+              });      
+              DataStore.registerFirebaseListener(matchedPersonId, this.updateData);     
             } else {
               // If we couldn't find a person in our DB that has the same name,
               // then we create such a person
@@ -87,14 +87,16 @@ class App extends Component {
                 this.setState({
                   userId: userId
                 })
+                DataStore.registerFirebaseListener(userId, this.updateData);
               });
             }
           })
         } else {
           // user currently exists in DB, and is a return user
           this.setState({
-            userId: person.userId
+            userId: person.id
           })
+          DataStore.registerFirebaseListener(person.id, this.updateData);
         }
       })      
     });
@@ -112,12 +114,14 @@ class App extends Component {
   componentDidMount = () => {
     auth.onAuthStateChanged((user) => {
       if (user) {
-        // TODO: sasha - fetch user from db
-        var userid = 'benjamin_reinhardt';
-        this.setState({ userId: userid });
-      } 
+        DataStore.getPersonByEmail(user.email, (person) => {
+          if (person !== undefined && person.id != this.state.userId) {
+            this.setState({ userId: person.id });
+            DataStore.registerFirebaseListener(person.id, this.updateData);
+          }
+        });
+      }
     });
-    DataStore.registerFirebaseListener(this.state.userId, this.updateData);
   }
 
 
@@ -272,7 +276,10 @@ class App extends Component {
         </Container>
         <Container>
          {this.state.userId ? 
-            <button onClick={this.logout}>Log Out</button>
+            <div>
+              <h3>Welcome! {this.state.userId}</h3>
+              <button onClick={this.logout}>Log Out</button>
+            </div>
             :
             <button onClick={this.login}>Log In</button>
          }

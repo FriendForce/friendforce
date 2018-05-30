@@ -238,7 +238,7 @@ class DataStore {
   checkPersonForDuplicate(person) {
     var possibleMatchingIds = Array.from(this._persons)
     .filter((obj)=>{
-      return obj[1].name === person.name || (person.email.length > 0 && obj[1].email === person.email);
+      return obj[1].name === person.name || (person.email !== undefined && person.email.length > 0 && obj[1].email === person.email);
 
     })
     .map((obj)=>{
@@ -435,7 +435,7 @@ class DataStore {
      for (let param in params) {
        newPerson[param] = params[param];
      }
-     this.firebasePushPerson(newPerson, currentPersonId, '');
+     this.firebasePushPerson(newPerson, currentPersonId, id);
   }
 
   getPersonsByName(name){
@@ -448,14 +448,38 @@ class DataStore {
     return Promise.resolve(Array.from(this._persons).filter(obj => obj[1].name === name).map(obj=>obj[1]));
   }
 
-  getPersonByEmail(email){
+  getPersonByEmail(email, callback){
     /**
      * Gets the person with an email
      * @param email {string} email to search by
      * @return {Promise} promise for a {Person}
      *          with the given email
      */
-    return Promise.resolve(Array.from(this._persons).filter(obj => obj[1].email === email).map(obj=>obj[1])[0]);
+    if (this._persons.keys.length == 0) {
+      this.firestore.collection("persons")
+      .onSnapshot({/*config object*/}, (querySnapshot)=> {
+        let person = undefined;
+        querySnapshot.forEach((doc) => {
+          if (doc.data().email === email) {
+            person = doc.data();
+            person.id = doc.id;
+          }
+        });
+        callback(person);
+      });
+    } else {
+      return callback(Array.from(this._persons).filter(obj => obj[1].email === email).map(obj=>obj[1])[0]);
+    }
+  }
+
+  getPersonByID(id) {
+    /**
+     * Gets the person with an id
+     * @param id {string} id to search by
+     * @return {Promise} promise for a {Person}
+     *          with the given id
+     */
+    return Promise.resolve(Array.from(this._persons).filter(obj => obj[1].id === id).map(obj=>obj[1])[0]);
   }
 
   getAllPersons(){
