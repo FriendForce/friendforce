@@ -233,14 +233,6 @@ class App extends Component {
       <div>
         <div id="firebaseui-auth-container"></div>
         <Container>
-          <div>
-            <button onClick={this.toggleTestStuff.bind(this)}>
-              Toggle Test Instrumentation
-            </button>
-            {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
-          </div>
-        </Container>
-        <Container>
          {this.state.userId ? 
             <button onClick={this.logout}>Log Out</button>
             :
@@ -269,16 +261,6 @@ class App extends Component {
                                    persons={this.state.persons}
                                    addTagToPerson={this.addTagToPerson}
                                    labels={this.state.labels}/>}/>
-            <Row>
-              <Route exact path="/" render={(props)=><Home
-                                   createPerson={this.createPerson}
-                                   addTag={this.addTag}
-                                   updateData={this.updateData}/>}/>
-            </Row>
-            <button onClick={this.toggleLabels.bind(this)}>
-              {labelToggleButtonName}
-            </button>
-            {this.state.showAllLabels && labelButtons}
 
           </Col>
         
