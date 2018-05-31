@@ -462,10 +462,8 @@ registerFirebaseListener(userId, callback) {
       .then(function(querySnapshot) {
         let person = undefined;
         querySnapshot.forEach((doc) => {
-          if (doc.data().email === email) {
-            person = doc.data();
-            person.id = doc.id;
-          }
+          person = doc.data();
+          person.id = doc.id;
         });
         callback(person);
       });
