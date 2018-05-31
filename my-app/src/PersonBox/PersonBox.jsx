@@ -3,7 +3,7 @@ import TagButton from './TagButton.jsx';
 import { Row} from 'reactstrap';
 
 
-export default class Person extends Component {
+export default class PersonBox extends Component {
   // TODO - look at the tags for this person and display the info tags 
   constructor(props) {
     super(props);

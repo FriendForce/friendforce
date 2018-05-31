@@ -254,9 +254,9 @@ registerFirebaseListener(userId, callback) {
     }
   }
 
-  addPersonByName(name, creatorUserId, dontSync=false, email = '') {
+  addPersonByName(name, creatorUserId='', dontSync=false, email = '') {
     /** Creates a person by name & email and adds them to the Datastore. This 
-     * will always create a new person - caller needs to check if person
+     * will always create a new person with a new id - caller needs to check if person
      * already exists.
      * @param name {string Name} of the person being added
      * @param creatorUserId {string creatorUserId} of the current signed in user
@@ -265,6 +265,9 @@ registerFirebaseListener(userId, callback) {
      */
      // TODO: make addPerson, addTag use _persons 
       var id = this._nameToId(name);
+      if (creatorUserId.length === 0) {
+        creatorUserId = id;
+      }
       var person = new Person(id, name);
       if (email.length > 0) {
         person.email = email;
@@ -286,13 +289,18 @@ registerFirebaseListener(userId, callback) {
      return Promise.resolve(id);
   }
 
-  addPerson(person){
+  addPerson(person, creatorUserId, dontSync=false){
     /**
      * Adds a person object to the Datastore
      * @param person {Person} with populated fields
      * @return {Promise} promise resolves when person successfully added
      */
-    return Promise.resolve(this._persons.set(person.id, person));
+    if (!dontSync) {
+        this.firebasePushPerson(person, creatorUserId, person.id);
+      } else {
+        this._personDiffs.set(person.id, person);
+      }
+    return Promise.resolve(true);
   }
 
   getTagType(typeString) {
@@ -431,11 +439,38 @@ registerFirebaseListener(userId, callback) {
      * @param currentPersonId {string->id} the user id of the current logged in user 
      * @return {Promise} promise resolves when person successfully updated
      */
-     var newPerson = this._persons.get(id);
+     var person = this._persons.get(id);
+     if (person === undefined) {
+      person = new Person(id);
+     }  
      for (let param in params) {
-       newPerson[param] = params[param];
+        person[param] = params[param];
      }
-     this.firebasePushPerson(newPerson, currentPersonId, id);
+     // Make sure each param exists. If it doesn't remove it for firebase.
+     for (var property in person) {
+      if (person.hasOwnProperty(property) && person[property] === undefined) {
+        delete(person[property]);
+      }
+    } 
+
+    var stagedfirestorePerson = person;
+    delete stagedfirestorePerson.id;
+    stagedfirestorePerson.knownByPersons = {};
+    stagedfirestorePerson.knownByPersons[currentPersonId] = true;
+    console.log(id + " updated by " + currentPersonId);
+    var firestorePerson = this.firestore.collection("persons").doc(id);
+    firestorePerson.set(Object.assign({}, stagedfirestorePerson), {merge:true})
+    .then(function(){console.log("set person")})
+    .catch(function(error){console.log("caught error " + error)});
+
+    var firestoreUser = this.firestore.collection("persons").doc(currentPersonId);
+    var updatedData = {knownPersons:{}};
+    updatedData.knownPersons[id] = true;
+    console.log(updatedData);
+    firestoreUser.set(updatedData, {merge:true})
+      .then(function(){console.log("set user")})
+      .catch(function(error){console.log("caught error " + error)});
+    return id;
   }
 
   getPersonsByName(name){
@@ -445,31 +480,61 @@ registerFirebaseListener(userId, callback) {
      * @return {Promise} promise for a {Person Array} of Persons
      *          with the given name
      */
-    return Promise.resolve(Array.from(this._persons).filter(obj => obj[1].name === name).map(obj=>obj[1]));
+    let p = new Promise(
+      (resolve, reject) => {
+      var foundPersons  = Array.from(this._persons).filter(obj => obj[1].name === name).map(obj=>obj[1])
+      if (foundPersons.length > 0) {
+        //NOTE: this will silently fail if there are multiple people with the same email.
+        resolve(foundPersons);
+      } else {
+        // Check DB for person
+        this.firestore.collection("persons")
+        .where('name','==', name)
+        .get()
+        .then((querySnapshot) => {
+          foundPersons = [];
+          querySnapshot.forEach((doc) => {
+            var person = new Person(doc.id, doc.data().name);
+            foundPersons.push(person);
+          });
+          resolve(foundPersons);
+        });
+    }
+    });
+    return p;
   }
 
-  getPersonByEmail(email, callback){
+  getPersonByEmail(email){
     /**
      * Gets the person with an email
      * @param email {string} email to search by
      * @return {Promise} promise for a {Person}
-     *          with the given email
+     *          with the given email. 
      */
-    if (this._persons.keys.length == 0) {
+    let p = new Promise(
+      (resolve, reject) => {
+    var foundPersons  = Array.from(this._persons).filter(obj => obj[1].email === email).map(obj=>obj[1])
+    if (foundPersons.length > 0) {
+      //NOTE: this will silently fail if there are multiple people with the same email.
+      resolve(foundPersons[0]);
+    } else {
+      // Check DB for person
       this.firestore.collection("persons")
       .where('email','==', email)
       .get()
-      .then(function(querySnapshot) {
-        let person = undefined;
+      .then((querySnapshot) => {
+        // NOTE: this will silently fail if there are multiple people with the same email.
         querySnapshot.forEach((doc) => {
-          person = doc.data();
-          person.id = doc.id;
+          console.log("querysnapshot to person");
+          var person = new Person(doc.id, doc.data().name);
+          person.email = email;
+          resolve(person);
         });
-        callback(person);
+        resolve(undefined);
       });
-    } else {
-      return callback(Array.from(this._persons).filter(obj => obj[1].email === email).map(obj=>obj[1])[0]);
     }
+  });
+    return p;
   }
 
   getPersonByID(id) {
@@ -477,9 +542,27 @@ registerFirebaseListener(userId, callback) {
      * Gets the person with an id
      * @param id {string} id to search by
      * @return {Promise} promise for a {Person}
-     *          with the given id
+     *          with the given id. Null if person doesn't exist locally or in DB
      */
-    return Promise.resolve(Array.from(this._persons).filter(obj => obj[1].id === id).map(obj=>obj[1])[0]);
+    // Check local first
+    let p = new Promise(
+       (resolve, reject) => {
+          var foundPersons  = Array.from(this._persons).filter(obj => obj[1].id === id).map(obj=>obj[1])
+          if (foundPersons.length > 0) {
+            resolve(foundPersons[0]);
+          } else {
+            // Check DB for person
+            this.firestore.collection("persons").doc(id).get()
+            .then((doc)=>{
+              if(doc.exists) {
+                resolve(new Person(doc.id, doc.data().name));
+              } else {
+                resolve(undefined);
+              }
+            });
+          }
+      });
+    return p;
   }
 
   getAllPersons(){

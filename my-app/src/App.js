@@ -2,15 +2,16 @@ import React, { Component } from 'react';
 import firebase, { auth, provider } from './firebase.js';
 import './App.css';
 import Omnibox from './Omnibox/Omnibox.jsx';
-import Person from './Person/Person.jsx';
+import PersonBox from './PersonBox/PersonBox.jsx';
 import Search from './Search/Search.jsx';
 import Home from './Home/Home.jsx';
 import DataStore from './DataStore.jsx';
 import AddBox from './AddBox/AddBox.jsx';
-import LabelButton from './Person/LabelButton.jsx';
+import LabelButton from './PersonBox/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
 import TestStuff from './TestStuff.jsx';
 import PersonList from './PersonList.js';
+import Person from './Types/Person.js';
 import {
   BrowserRouter as Router,
   Route,
@@ -64,33 +65,38 @@ class App extends Component {
   login() {
     auth.signInWithPopup(provider).then((result) => {
       // Check if the current user already exists in DB
-      DataStore.getPersonByEmail(result.user.email, (person) => {
+      DataStore.getPersonByEmail(result.user.email)
+      .then((person) => {
         // If user does not currently exist in DB
         if (person === undefined) {
+          console.log("no person with email" + result.user.email);
           // Check if we could resolve to see if somebody else created such a user in the DB,
           // Heurisitic for now, checking for name match
-          DataStore.getPersonsByName(result.user.displayName).then((persons) => {
+          DataStore.getPersonsByName(result.user.displayName)
+          .then((persons) => {
             if (persons.length > 0) {
+              console.log("Logging in heuristically logged person: " + persons[0].id);
               let matchedPersonId = persons[0].id;
-              DataStore.updatePerson(matchedPersonId, {
-                email: result.user.email
-              }, matchedPersonId);
               this.setState({
                 userId: matchedPersonId
               });      
-              DataStore.registerFirebaseListener(matchedPersonId, this.updateData);     
+              DataStore.registerFirebaseListener(matchedPersonId, this.updateData);
+              DataStore.updatePerson(matchedPersonId, {
+                email: result.user.email
+              }, matchedPersonId);     
             } else {
+              console.log("couldn't find person with name " + result.user.displayName);
               // If we couldn't find a person in our DB that has the same name,
               // then we create such a person
-              let newUserId = DataStore._nameToId(result.user.displayName);
-              DataStore.addPersonByName(result.user.displayName, newUserId, false, result.user.email).then((userId) => {
+              DataStore.addPersonByName(result.user.displayName, '', false, result.user.email)
+              .then((userId) => {
                 this.setState({
                   userId: userId
                 })
                 DataStore.registerFirebaseListener(userId, this.updateData);
               });
             }
-          })
+          });
         } else {
           // user currently exists in DB, and is a return user
           this.setState({
@@ -328,7 +334,7 @@ class App extends Component {
             
             
             <Route path="/person/:personId" 
-                   render={(props)=><Person {...props.match.params} 
+                   render={(props)=><PersonBox {...props.match.params} 
                                      tags={this.state.tags.filter(tag=>tag.subject === props.match.params.personId)}
                                      person={this.state.persons.filter(person=>person.id===props.match.params.personId)}
                                      setTag={this.setTag}/>}/>
