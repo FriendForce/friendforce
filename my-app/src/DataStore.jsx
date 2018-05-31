@@ -123,7 +123,7 @@ class DataStore {
     .catch(function(error){console.log("caught error adding lables" + error)});
   }
 
-  registerFirebaseListener(userId, callback) {
+registerFirebaseListener(userId, callback) {
     /**
      * Sets up a listener to firebase
      * @Param userId {string -> id} id of the user pushing the data
@@ -457,7 +457,9 @@ class DataStore {
      */
     if (this._persons.keys.length == 0) {
       this.firestore.collection("persons")
-      .onSnapshot({/*config object*/}, (querySnapshot)=> {
+      .where('email','==', email)
+      .get()
+      .then(function(querySnapshot) {
         let person = undefined;
         querySnapshot.forEach((doc) => {
           if (doc.data().email === email) {
