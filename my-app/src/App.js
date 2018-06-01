@@ -74,7 +74,7 @@ class App extends Component {
           // Heurisitic for now, checking for name match
           DataStore.getPersonsByName(result.user.displayName)
           .then((persons) => {
-            if (persons.length > 0 && persons[0]['email'] === undefined || persons[0]['email'] === null) {
+            if (persons.length > 0 && (persons[0]['email'] === undefined || persons[0]['email'] === null)) {
               console.log("Logging in heuristically logged person: " + persons[0].id);
               let matchedPersonId = persons[0].id;
                 this.setState({

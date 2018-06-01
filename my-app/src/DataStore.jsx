@@ -494,7 +494,7 @@ registerFirebaseListener(userId, callback) {
         .then((querySnapshot) => {
           foundPersons = [];
           querySnapshot.forEach((doc) => {
-            var person = new Person(doc.id, doc.data().name);
+            var person = new Person(doc.id, doc.data());
             foundPersons.push(person);
           });
           resolve(foundPersons);
