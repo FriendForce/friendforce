@@ -120,13 +120,14 @@ class App extends Component {
   componentDidMount = () => {
     auth.onAuthStateChanged((user) => {
       if (user) {
-        DataStore.getPersonByEmail(user.email, (person) => {
-          if (person !== undefined && person.id != this.state.userId) {
+        DataStore.getPersonByEmail(user.email)
+        .then((person) => {
+          if (person !== undefined && person.id !== this.state.userId) {
             this.setState({ userId: person.id });
             DataStore.registerFirebaseListener(person.id, this.updateData);
           }
         });
-      }
+      } 
     });
   }
 
