@@ -74,18 +74,18 @@ class App extends Component {
           // Heurisitic for now, checking for name match
           DataStore.getPersonsByName(result.user.displayName)
           .then((persons) => {
-            if (persons.length > 0) {
+            if (persons.length > 0 && persons[0]['email'] === undefined || persons[0]['email'] === null) {
               console.log("Logging in heuristically logged person: " + persons[0].id);
               let matchedPersonId = persons[0].id;
-              this.setState({
+                this.setState({
                 userId: matchedPersonId
-              });      
-              DataStore.registerFirebaseListener(matchedPersonId, this.updateData);
-              DataStore.updatePerson(matchedPersonId, {
-                email: result.user.email
-              }, matchedPersonId);     
+                });      
+                DataStore.registerFirebaseListener(matchedPersonId, this.updateData);
+                DataStore.updatePerson(matchedPersonId, {
+                  email: result.user.email
+                }, matchedPersonId);       
             } else {
-              console.log("couldn't find person with name " + result.user.displayName);
+              console.log("couldn't find person with name: " + result.user.displayName + "or there is an existing user with that name");
               // If we couldn't find a person in our DB that has the same name,
               // then we create such a person
               DataStore.addPersonByName(result.user.displayName, '', false, result.user.email)
