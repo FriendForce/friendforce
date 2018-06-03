@@ -2,15 +2,16 @@ import React, { Component } from 'react';
 import firebase, { auth, provider } from './firebase.js';
 import './App.css';
 import Omnibox from './Omnibox/Omnibox.jsx';
-import Person from './Person/Person.jsx';
+import PersonBox from './PersonBox/PersonBox.jsx';
 import Search from './Search/Search.jsx';
 import Home from './Home/Home.jsx';
 import DataStore from './DataStore.jsx';
 import AddBox from './AddBox/AddBox.jsx';
-import LabelButton from './Person/LabelButton.jsx';
+import LabelButton from './PersonBox/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
 import TestStuff from './TestStuff.jsx';
 import PersonList from './PersonList.js';
+import Person from './Types/Person.js';
 import {
   BrowserRouter as Router,
   Route,
@@ -44,7 +45,7 @@ class App extends Component {
       tags:[],
       persons:[],
       labels:[],
-      userId:'benjamin_reinhardt',
+      userId:null,
       showTestStuff:false,
       showAllLabels:false
     };
@@ -63,10 +64,47 @@ class App extends Component {
 
   login() {
     auth.signInWithPopup(provider).then((result) => {
-      const user = result.user;
-      // this.setState({
-      //   userId: DataStore.nameToId(user.displayName)
-      // });
+      // Check if the current user already exists in DB
+      DataStore.getPersonByEmail(result.user.email)
+      .then((person) => {
+        // If user does not currently exist in DB
+        if (person === undefined) {
+          console.log("no person with email" + result.user.email);
+          // Check if we could resolve to see if somebody else created such a user in the DB,
+          // Heurisitic for now, checking for name match
+          DataStore.getPersonsByName(result.user.displayName)
+          .then((persons) => {
+            if (persons.length > 0 && (persons[0]['email'] === undefined || persons[0]['email'] === null)) {
+              console.log("Logging in heuristically logged person: " + persons[0].id);
+              let matchedPersonId = persons[0].id;
+                this.setState({
+                userId: matchedPersonId
+                });      
+                DataStore.registerFirebaseListener(matchedPersonId, this.updateData);
+                DataStore.updatePerson(matchedPersonId, {
+                  email: result.user.email
+                }, matchedPersonId);       
+            } else {
+              console.log("couldn't find person with name: " + result.user.displayName + "or there is an existing user with that name");
+              // If we couldn't find a person in our DB that has the same name,
+              // then we create such a person
+              DataStore.addPersonByName(result.user.displayName, '', false, result.user.email)
+              .then((userId) => {
+                this.setState({
+                  userId: userId
+                })
+                DataStore.registerFirebaseListener(userId, this.updateData);
+              });
+            }
+          });
+        } else {
+          // user currently exists in DB, and is a return user
+          this.setState({
+            userId: person.id
+          })
+          DataStore.registerFirebaseListener(person.id, this.updateData);
+        }
+      })      
     });
   }
 
@@ -82,12 +120,15 @@ class App extends Component {
   componentDidMount = () => {
     auth.onAuthStateChanged((user) => {
       if (user) {
-        // TODO: sasha - fetch user from db
-        var userid = 'benjamin_reinhardt';
-        this.setState({ userId: userid });
+        DataStore.getPersonByEmail(user.email)
+        .then((person) => {
+          if (person !== undefined && person.id !== this.state.userId) {
+            this.setState({ userId: person.id });
+            DataStore.registerFirebaseListener(person.id, this.updateData);
+          }
+        });
       } 
     });
-    DataStore.registerFirebaseListener(this.state.userId, this.updateData);
   }
 
 
@@ -242,7 +283,10 @@ class App extends Component {
         </Container>
         <Container>
          {this.state.userId ? 
-            <button onClick={this.logout}>Log Out</button>
+            <div>
+              <h3>Welcome! {this.state.userId}</h3>
+              <button onClick={this.logout}>Log Out</button>
+            </div>
             :
             <button onClick={this.login}>Log In</button>
          }
@@ -291,7 +335,7 @@ class App extends Component {
             
             
             <Route path="/person/:personId" 
-                   render={(props)=><Person {...props.match.params} 
+                   render={(props)=><PersonBox {...props.match.params} 
                                      tags={this.state.tags.filter(tag=>tag.subject === props.match.params.personId)}
                                      person={this.state.persons.filter(person=>person.id===props.match.params.personId)}
                                      setTag={this.setTag}/>}/>

@@ -62,6 +62,7 @@ class DataStore {
     
   }
 
+  // TODO: ben, remove the id
   firebasePushPerson(person, userId, id) {
      /**
      * Pushes a single person to firebase
@@ -122,7 +123,7 @@ class DataStore {
     .catch(function(error){console.log("caught error adding lables" + error)});
   }
 
-  registerFirebaseListener(userId, callback) {
+registerFirebaseListener(userId, callback) {
     /**
      * Sets up a listener to firebase
      * @Param userId {string -> id} id of the user pushing the data
@@ -209,7 +210,6 @@ class DataStore {
       resolve(true);
     });
     return p;
-
   }
 
   loadExternalPersons(persons){
@@ -238,12 +238,13 @@ class DataStore {
   checkPersonForDuplicate(person) {
     var possibleMatchingIds = Array.from(this._persons)
     .filter((obj)=>{
-      return obj[1].name === person.name;
+      return obj[1].name === person.name || (person.email !== undefined && person.email.length > 0 && obj[1].email === person.email);
 
     })
     .map((obj)=>{
       return obj[0];
     });
+
     if(possibleMatchingIds.length > 0) {
      console.log(person.name + "matches to ");
      console.log(possibleMatchingIds);
@@ -253,17 +254,24 @@ class DataStore {
     }
   }
 
-  addPersonByName(name, userId, dontSync=false) {
-    /** Creates a person by name and adds them to the Datastore. This 
-     * will always create a new person - caller needs to check if person
+  addPersonByName(name, creatorUserId='', dontSync=false, email = '') {
+    /** Creates a person by name & email and adds them to the Datastore. This 
+     * will always create a new person with a new id - caller needs to check if person
      * already exists.
-     * @param person {string Name} with populated fields
+     * @param name {string Name} of the person being added
+     * @param creatorUserId {string creatorUserId} of the current signed in user
+     * @param email {string Email} of the person being added
      * @return {Promise} promise resolves when person successfully added
      */
-     // TODO: check whether person exists in firestore
-     // NEXT TODO: make addPerson, addTag use _persons 
-     var id = this._nameToId(name);
-     var person = new Person(id, name);
+     // TODO: make addPerson, addTag use _persons 
+      var id = this._nameToId(name);
+      if (creatorUserId.length === 0) {
+        creatorUserId = id;
+      }
+      var person = new Person(id, name);
+      if (email.length > 0) {
+        person.email = email;
+      }
       // Check whether you're repeating a person
       const duplicate = this.checkPersonForDuplicate(person);
       if(duplicate) {
@@ -274,20 +282,25 @@ class DataStore {
       this._persons.set(id, person);
       
       if (!dontSync) {
-        this.firebasePushPerson(person, userId, id);
+        this.firebasePushPerson(person, creatorUserId, id);
       } else {
         this._personDiffs.set(id, person);
       }
      return Promise.resolve(id);
   }
 
-  addPerson(person){
+  addPerson(person, creatorUserId, dontSync=false){
     /**
      * Adds a person object to the Datastore
      * @param person {Person} with populated fields
      * @return {Promise} promise resolves when person successfully added
      */
-    return Promise.resolve(this._persons.set(person.id, person));
+    if (!dontSync) {
+        this.firebasePushPerson(person, creatorUserId, person.id);
+      } else {
+        this._personDiffs.set(person.id, person);
+      }
+    return Promise.resolve(true);
   }
 
   getTagType(typeString) {
@@ -418,13 +431,45 @@ class DataStore {
 
   }
 
-  updatePerson(id, params) {
-    /** NOT IMPLEMENTED
+  updatePerson(id, params, currentPersonId) {
+    /**
      * Updates a Person in the datastore
      * @param id {string->id} id of person
      * @param params {dictionary} key-values to update 
+     * @param currentPersonId {string->id} the user id of the current logged in user 
      * @return {Promise} promise resolves when person successfully updated
      */
+     var person = this._persons.get(id);
+     if (person === undefined) {
+      person = new Person(id);
+     }  
+     for (let param in params) {
+        person[param] = params[param];
+     }
+     // Make sure each param exists. If it doesn't remove it for firebase.
+     for (var property in person) {
+      if (person.hasOwnProperty(property) && person[property] === undefined) {
+        delete(person[property]);
+      }
+    } 
+
+    var stagedfirestorePerson = person;
+    delete stagedfirestorePerson.id;
+    stagedfirestorePerson.knownByPersons[currentPersonId] = true;
+    console.log(id + " updated by " + currentPersonId);
+    var firestorePerson = this.firestore.collection("persons").doc(id);
+    firestorePerson.set(Object.assign({}, stagedfirestorePerson), {merge:true})
+    .then(function(){console.log("set person")})
+    .catch(function(error){console.log("caught error " + error)});
+
+    var firestoreUser = this.firestore.collection("persons").doc(currentPersonId);
+    var updatedData = {knownPersons:{}};
+    updatedData.knownPersons[id] = true;
+    console.log(updatedData);
+    firestoreUser.set(updatedData, {merge:true})
+      .then(function(){console.log("set user")})
+      .catch(function(error){console.log("caught error " + error)});
+    return id;
   }
 
   getPersonsByName(name){
@@ -434,7 +479,89 @@ class DataStore {
      * @return {Promise} promise for a {Person Array} of Persons
      *          with the given name
      */
-    return Promise.resolve(Array.from(this._persons).filter(obj => obj[1].name === name).map(obj=>obj[1]));
+    let p = new Promise(
+      (resolve, reject) => {
+      var foundPersons  = Array.from(this._persons).filter(obj => obj[1].name === name).map(obj=>obj[1])
+      if (foundPersons.length > 0) {
+        //NOTE: this will silently fail if there are multiple people with the same email.
+        resolve(foundPersons);
+      } else {
+        // Check DB for person
+        this.firestore.collection("persons")
+        .where('name','==', name)
+        .get()
+        .then((querySnapshot) => {
+          foundPersons = [];
+          querySnapshot.forEach((doc) => {
+            var person = new Person(doc.id, doc.data());
+            foundPersons.push(person);
+          });
+          resolve(foundPersons);
+        });
+    }
+    });
+    return p;
+  }
+
+  getPersonByEmail(email){
+    /**
+     * Gets the person with an email
+     * @param email {string} email to search by
+     * @return {Promise} promise for a {Person}
+     *          with the given email. 
+     */
+    let p = new Promise(
+      (resolve, reject) => {
+    var foundPersons  = Array.from(this._persons).filter(obj => obj[1].email === email).map(obj=>obj[1])
+    if (foundPersons.length > 0) {
+      //NOTE: this will silently fail if there are multiple people with the same email.
+      resolve(foundPersons[0]);
+    } else {
+      // Check DB for person
+      this.firestore.collection("persons")
+      .where('email','==', email)
+      .get()
+      .then((querySnapshot) => {
+        // NOTE: this will silently fail if there are multiple people with the same email.
+        querySnapshot.forEach((doc) => {
+          console.log("querysnapshot to person");
+          var person = new Person(doc.id, doc.data().name);
+          person.email = email;
+          resolve(person);
+        });
+        resolve(undefined);
+      });
+    }
+  });
+    return p;
+  }
+
+  getPersonByID(id) {
+    /**
+     * Gets the person with an id
+     * @param id {string} id to search by
+     * @return {Promise} promise for a {Person}
+     *          with the given id. Null if person doesn't exist locally or in DB
+     */
+    // Check local first
+    let p = new Promise(
+       (resolve, reject) => {
+          var foundPersons  = Array.from(this._persons).filter(obj => obj[1].id === id).map(obj=>obj[1])
+          if (foundPersons.length > 0) {
+            resolve(foundPersons[0]);
+          } else {
+            // Check DB for person
+            this.firestore.collection("persons").doc(id).get()
+            .then((doc)=>{
+              if(doc.exists) {
+                resolve(new Person(doc.id, doc.data().name));
+              } else {
+                resolve(undefined);
+              }
+            });
+          }
+      });
+    return p;
   }
 
   getAllPersons(){
