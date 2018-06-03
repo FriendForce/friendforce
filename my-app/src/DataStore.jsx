@@ -455,7 +455,6 @@ registerFirebaseListener(userId, callback) {
 
     var stagedfirestorePerson = person;
     delete stagedfirestorePerson.id;
-    stagedfirestorePerson.knownByPersons = {};
     stagedfirestorePerson.knownByPersons[currentPersonId] = true;
     console.log(id + " updated by " + currentPersonId);
     var firestorePerson = this.firestore.collection("persons").doc(id);

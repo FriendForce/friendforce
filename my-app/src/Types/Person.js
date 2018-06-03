@@ -14,13 +14,15 @@ export default class Person {
      * @return {Person}
      */
     if (typeof(name) === 'string') {
-      this.id = id
-      this.name = name
-      this.knownByPersons = [] 
+      this.id = id;
+      this.name = name;
+      this.knownByPersons = {};
     }
     if(typeof(name) === 'object') {
       // initialized from a databse object
       this.id = id;
+      this.name = '';
+      this.knownByPersons = {};
       for (var prop in name) {
         if (name.hasOwnProperty(prop)) {
           this[prop] = name[prop];
