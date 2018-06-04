@@ -12,6 +12,7 @@ import { Container, Row, Col } from 'reactstrap';
 import TestStuff from './TestStuff.jsx';
 import PersonList from './PersonList.js';
 import Person from './Types/Person.js';
+import FbOnboard from './FbOnboard.js';
 import {
   BrowserRouter as Router,
   Route,
@@ -315,6 +316,10 @@ class App extends Component {
                                    labels={this.state.labels}/>}/>
             <Row>
               <Route exact path="/" render={(props)=><Home
+                                   createPerson={this.createPerson}
+                                   addTag={this.addTag}
+                                   updateData={this.updateData}/>}/>
+              <Route exact path="/new/" render={(props)=><FbOnboard
                                    createPerson={this.createPerson}
                                    addTag={this.addTag}
                                    updateData={this.updateData}/>}/>
