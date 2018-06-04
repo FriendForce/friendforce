@@ -17,5 +17,6 @@ firebase.firestore().settings(settings);
 firebase.firestore().enablePersistence();
 
 export const provider = new firebase.auth.GoogleAuthProvider();
+export const fbProvider = new firebase.auth.FacebookAuthProvider();
 export const auth = firebase.auth(); 
 export default firebase;
