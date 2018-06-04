@@ -11,7 +11,6 @@ import LabelButton from './PersonBox/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
 import TestStuff from './TestStuff.jsx';
 import PersonList from './PersonList.js';
-import FbOnboard from './FbOnboard.js';
 import {
   BrowserRouter as Router,
   Route,
@@ -330,12 +329,9 @@ class App extends Component {
                                    addTagToPerson={this.addTagToPerson}
                                    labels={this.state.labels}/>}/>
             <Row>
-              <Route exact path="/new/" render={(props)=><FbOnboard
-                                   createPerson={this.createPerson}
-                                   addTag={this.addTag}
-                                   updateData={this.updateData}/>}/>
-            </Row>
+            
             <Home />
+            </Row>
             <button onClick={this.toggleLabels.bind(this)}>
               {labelToggleButtonName}
             </button>
