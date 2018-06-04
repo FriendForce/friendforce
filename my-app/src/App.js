@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import firebase, { auth, provider } from './firebase.js';
+import { auth, provider } from './firebase.js';
 import './App.css';
 import Omnibox from './Omnibox/Omnibox.jsx';
 import PersonBox from './PersonBox/PersonBox.jsx';
@@ -47,6 +47,7 @@ class App extends Component {
       persons:[],
       labels:[],
       userId:null,
+      userName:null,
       showTestStuff:false,
       showAllLabels:false
     };
@@ -130,6 +131,13 @@ class App extends Component {
         });
       } 
     });
+  }
+
+  componentWillUpdate = (nextProps, nextState) => {
+    if (nextState.userId !== this.state.userId) {
+      DataStore.getPersonByID(nextState.userId)
+      .then((user)=>this.setState({userName:user.name}))
+    }
   }
 
 
@@ -255,6 +263,13 @@ class App extends Component {
     this.setState({showAllLabels:!this.state.showAllLabels});
   }
 
+  getUserName = () => {
+    DataStore.getPersonByID(this.state.userId)
+    .then((user) => {
+      return user.name;
+    })
+  }
+
   render () {
     var labelButtons = [];
     this.state.labels.forEach((label)=> {
@@ -285,13 +300,14 @@ class App extends Component {
         <Container>
          {this.state.userId ? 
             <div>
-              <h3>Welcome! {this.state.userId}</h3>
-              <button onClick={this.logout}>Log Out</button>
+              <h3>Welcome {this.state.userName} </h3>
+              <button className="btn btn-info" onClick={this.logout}>Log Out</button>
             </div>
             :
-            <button onClick={this.login}>Log In</button>
+            <button className="btn btn-primary" onClick={this.login}>Log In</button>
          }
         </Container> 
+
         <Container>
           <Row>
             <Col>
@@ -315,7 +331,7 @@ class App extends Component {
                                    addTagToPerson={this.addTagToPerson}
                                    labels={this.state.labels}/>}/>
             <Row>
-              <Route exact path="/" render={(props)=><Home
+              <Route exact path="/new/" render={(props)=><FbOnboard
                                    createPerson={this.createPerson}
                                    addTag={this.addTag}
                                    updateData={this.updateData}/>}/>
@@ -324,6 +340,7 @@ class App extends Component {
                                    addTag={this.addTag}
                                    updateData={this.updateData}/>}/>
             </Row>
+            <Home />
             <button onClick={this.toggleLabels.bind(this)}>
               {labelToggleButtonName}
             </button>
@@ -332,6 +349,13 @@ class App extends Component {
           </Col>
         
           <Col>
+
+            <Route path="/all_people/"
+                   render={(props)=><PersonList {...props.match.params}
+                                  persons={this.state.persons}
+                                  addTagToPerson={this.addTagToPerson}
+                                  />}/>
+
             <Route path="/all_people/"
                    render={(props)=><PersonList {...props.match.params}
                                   persons={this.state.persons}

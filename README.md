@@ -8,7 +8,14 @@ To run server: `npm start`
 ## Firebase Setup    
 You may need to: `npm install -g firebase-tools` for Google's Firebase cloud functions.  
 
-You may need to: `firebase login`  
+You may need to: `firebase login` 
+
+### Set up Functions
+run `firebase init`  
+
+Select `❯◉ Functions: Configure and deploy Cloud Functions`  
+Select `Javascript`  
+
 
 ### Set up deployment    
 run `firebase init`
