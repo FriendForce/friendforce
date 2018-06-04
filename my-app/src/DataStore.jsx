@@ -6,7 +6,6 @@ import Tag from './Types/Tag';
 
 import firebaseStyleTags from './ConstData/firebaseStyleTags.js';
 import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
-import firebaseConfig from './ConstData/firebase_config.js';
 
 import firebase from './firebase';
 
