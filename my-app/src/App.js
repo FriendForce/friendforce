@@ -287,24 +287,28 @@ class App extends Component {
     return (
       <div>
         <div id="firebaseui-auth-container"></div>
+        <div>
+        <nav className="navbar navbar-expand-lg navbar-light bg-light">
+          <button className="btn btn-sm btn-outline-secondary type="button onClick={this.toggleTestStuff.bind(this)}>
+              Toggle Test Instrumentation
+          </button>
+
+          {this.state.userId ?
+            <div>
+            <span className="navbar-text"> Welcome {this.state.userName}</span>
+            <button className="btn btn-outline-success" onClick={this.logout} type="button">Log Out</button>
+            </div>
+            :
+            <button className="btn btn-outline-success" onClick={this.login} type="button">Log In</button>
+          }
+        </nav>
+        </div>
         <Container>
           <div>
-            <button onClick={this.toggleTestStuff.bind(this)}>
-              Toggle Test Instrumentation
-            </button>
+            
             {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
           </div>
         </Container>
-        <Container>
-         {this.state.userId ? 
-            <div>
-              <h3>Welcome {this.state.userName} </h3>
-              <button className="btn btn-info" onClick={this.logout}>Log Out</button>
-            </div>
-            :
-            <button className="btn btn-primary" onClick={this.login}>Log In</button>
-         }
-        </Container> 
 
         <Container>
           <Row>
@@ -332,7 +336,7 @@ class App extends Component {
             
             <Home />
             </Row>
-            <button onClick={this.toggleLabels.bind(this)}>
+            <button class="btn btn-primary btn-sm active" role="button" aria-pressed="true" onClick={this.toggleLabels.bind(this)}>
               {labelToggleButtonName}
             </button>
             {this.state.showAllLabels && labelButtons}
