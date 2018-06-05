@@ -39,7 +39,6 @@ const labelsToString = (labels) => {
 class App extends Component {
   constructor(props) {
     super(props);
-
     this.state = { 
       tags:[],
       persons:[],
@@ -49,7 +48,7 @@ class App extends Component {
       showTestStuff:false,
       showAllLabels:false
     };
-    
+
     this.setPerson = this.setPerson.bind(this);
     this.setTag = this.setTag.bind(this);
     this.setLabel = this.setLabel.bind(this);
@@ -114,6 +113,14 @@ class App extends Component {
       this.setState({
         userId: null
       });
+    });
+  }
+
+  componentWillMount = () => {
+    DataStore.getEnv()
+    .then((doc) => {
+      console.log("setting is_dev to " + doc.data().is_dev);
+      window.is_dev = doc.data().is_dev;
     });
   }
 
@@ -288,12 +295,17 @@ class App extends Component {
       <div>
         <div id="firebaseui-auth-container"></div>
         <Container>
-          <div>
+         
+        {window.is_dev ?
+            <div>
             <button onClick={this.toggleTestStuff.bind(this)}>
               Toggle Test Instrumentation
             </button>
             {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
-          </div>
+            </div>
+            :<div></div>
+          }
+          
         </Container>
         <Container>
          {this.state.userId ? 
