@@ -344,13 +344,18 @@ class App extends Component {
                                    addTagToPerson={this.addTagToPerson}
                                    labels={this.state.labels}/>}/>
             <Row>
+<<<<<<< HEAD
               <Route exact path="/new/" render={(props)=><FbOnboard
                                    createPerson={this.createPerson}
                                    addTag={this.addTag}
                                    updateData={this.updateData}/>}/>
             
             </Row>
+=======
+            
+>>>>>>> origin/master
             <Home />
+            </Row>
             <button onClick={this.toggleLabels.bind(this)}>
               {labelToggleButtonName}
             </button>
