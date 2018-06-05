@@ -1,6 +1,7 @@
 import FB from 'fb';
 import React, { Component } from 'react';
 import firebase, { auth, fbProvider } from './firebase.js';
+import Person from './Types/Person.js';
 
 const facebookDateToDate = (facebookDate) => {
   if (facebookDate === "Today") {
@@ -49,6 +50,18 @@ export default class Home extends Component {
       this.props.saveState();
       this.props.updateData();
     } 
+    fr.readAsText(files[0]); 
+  }
+
+  uploadFbJsonData = files => {
+    console.log("uploading fb data from " + files);
+    var fr = new FileReader();
+    fr.onload = e => {
+      var json = JSON.parse(e.target.result);
+      json.forEach(person => {
+        console.log("adding "+person.name);
+      });   
+    }
     fr.readAsText(files[0]); 
   }
 
@@ -138,10 +151,12 @@ export default class Home extends Component {
   render() {
     return(
       <div>
-      <button onClick={this.loginWithFacebook.bind(this)}> Upload Facebook Info </button>
+      <button onClick={this.loginWithFacebook.bind(this)}> Login With Facebook </button>
 
-        <input type="file" id="files" name="files[]" 
-        multiple onChange={(e) => this.uploadFBData(e.target.files)} />  
+      <input type="file" id="files" name="files[]" 
+        multiple onChange={(e) => this.uploadFBData(e.target.files)} />
+      <input type="file" id="files" name="files[]" 
+        multiple onChange={(e) => this.uploadFbJsonData(e.target.files)} />   
       </div>);
   }
 }

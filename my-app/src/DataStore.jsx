@@ -234,23 +234,74 @@ registerFirebaseListener(userId, callback) {
     })
   }
 
-  checkPersonForDuplicate(person) {
-    var possibleMatchingIds = Array.from(this._persons)
-    .filter((obj)=>{
-      return obj[1].name === person.name || (person.email !== undefined && person.email.length > 0 && obj[1].email === person.email);
+  checkPersonForDuplicate(person, useDb=false) {
+    if (!useDb) {
+      var possibleMatchingIds = Array.from(this._persons)
+      .filter((obj)=>{
+        return obj[1].name === person.name || (person.email !== undefined && person.email.length > 0 && obj[1].email === person.email);
+      })
+      .map((obj)=>{
+        return obj[0];
+      });
 
-    })
-    .map((obj)=>{
-      return obj[0];
-    });
-
-    if(possibleMatchingIds.length > 0) {
-     console.log(person.name + "matches to ");
-     console.log(possibleMatchingIds);
-     return possibleMatchingIds[0]; 
+      if(possibleMatchingIds.length > 0) {
+       console.log(person.name + "matches to ");
+       console.log(possibleMatchingIds);
+       return possibleMatchingIds[0]; 
+      } else {
+        return null;
+      }
     } else {
-      return null;
+      // Check unique identifiers first - email, fbId
+      var potentialMatches = {};
+      var uniqueIdentifiers = ['email', 'fbId'];
+      var tests = [];
+      uniqueIdentifiers.forEach((identifier) => {
+        if (person[identifier] !== null && person[identifier] !== undefined) {
+          tests.push(
+            this.firestore.collection("persons")
+            .where(identifier, '==', person[identifier]).get()
+          );
+        } else {
+          tests.push(Promise.resolve([]));
+        }
+      })
+      Promise.all(tests).then((results)=>{
+        results.forEach((result)=> {
+          // results are either a querysnapshot or an empty array
+          result.forEach((doc) => {
+            potentialMatches[doc.id] = new Person(doc.id, doc.data());
+          })
+        })
+      });
+      var numMatches = potentialMatches.key().length;
+      if (numMatches === 1) {
+        // Woo! Found a match 
+      } else if (numMatches > 1) {
+        // Need a way of resolving multiple matches
+      } else if (numMatches === 0) {
+         // Then fuzzy match against name THIS IS DANGEROUS ONCE WE START HAVING PEOPLE WITH THE SAME NAME
+         this.getPersonsByName(person.name)
+         .then((nameMatches) => {
+            nameMatches.forEach( (nameMatch) => {
+              potentialMatches[nameMatch].id = nameMatch
+            });
+            // Need way of resulving multiple matches
+         })
+      }
     }
+  }
+
+  fuzzyAddPerson(params, creatorUserId='', dontSync=false) {
+    /** Creates a person by a set of params and tries to match them with an existing person.
+    If it finds a match, it will update them. Otherwise it will adds them to the Datastore. 
+     * @param params {object} attributes of the person
+     * @param creatorUserId {string} id of the current signed in user
+     * @param dontSync {bool} if true, doesn't update or add person to database
+     * @return {Promise for a string} promise resolves when person successfully added with id of person
+     */
+     var person = new Person(params);
+
   }
 
   addPersonByName(name, creatorUserId='', dontSync=false, email = '') {

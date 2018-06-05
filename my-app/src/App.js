@@ -158,20 +158,28 @@ class App extends Component {
 
   createPerson = (name, dontSync=false) => {
     var p = new Promise((resolve, reject) => {
-      DataStore.addPersonByName(name, this.state.userId, dontSync)
-      .then((id)=>{
-        resolve(id);
-
-      });
+      if (typeof(name) === 'string') {
+      /// Todo finish this
+        DataStore.addPersonByName(name, this.state.userId, dontSync)
+        .then((id)=>{
+          resolve(id);
+        });
+      } else if (typeof(name) === 'object') {
+        DataStore.addPerson(name, this.state.userId, dontSync)
+        .then((id)=>{
+          resolve(id);
+        });
+      }
     });
     return p;
   }
 
+
   addPerson = name => {
     // Todo: need to check if you actually want to add a person 
     // When you're in search mode because people accidentally add new thing
-
-    DataStore.addPersonByName(name, this.state.userId)
+    if (typeof(name) === 'string') {
+        DataStore.addPersonByName(name, this.state.userId)
       .then((id)=>{
         this.props.history.push('/person/'+id);
         DataStore.getAllPersons()
@@ -179,6 +187,11 @@ class App extends Component {
           this.setState({persons:persons});
         });
       });
+    }
+    if (typeof(name) === 'Person') {
+      DataStore.addPerson(name, this.state.userId);
+    }
+  
   }
 
   componentDidMount () {
@@ -335,10 +348,7 @@ class App extends Component {
                                    createPerson={this.createPerson}
                                    addTag={this.addTag}
                                    updateData={this.updateData}/>}/>
-              <Route exact path="/new/" render={(props)=><FbOnboard
-                                   createPerson={this.createPerson}
-                                   addTag={this.addTag}
-                                   updateData={this.updateData}/>}/>
+            
             </Row>
             <Home />
             <button onClick={this.toggleLabels.bind(this)}>
