@@ -296,9 +296,16 @@ class App extends Component {
         <div id="firebaseui-auth-container"></div>
         <div>
         <nav className="navbar navbar-expand-lg navbar-light bg-light">
+          {window.is_dev ?
+            <div>
           <button className="btn btn-sm btn-outline-secondary type="button onClick={this.toggleTestStuff.bind(this)}>
               Toggle Test Instrumentation
           </button>
+          </div>
+          :
+          <div>
+          </div>
+        }
 
           {this.state.userId ?
             <div>
@@ -313,9 +320,6 @@ class App extends Component {
         <Container>         
         {window.is_dev ?
             <div>
-            <button onClick={this.toggleTestStuff.bind(this)}>
-              Toggle Test Instrumentation
-            </button>
             {this.state.showTestStuff && <TestStuff updateData={this.updateData}  setUser={this.setUser} userId={this.state.userId}/>}
             </div>
             :<div></div>
