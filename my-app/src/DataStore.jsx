@@ -44,6 +44,24 @@ class DataStore {
     return label.replace(/[^A-Z0-9]/ig, "_");
   }
 
+  getEnv = () => {
+    var env = null;
+    var parts = window.location.hostname.split('.');
+    if (parts[0] === 'www') {
+      parts = parts.slice(1);
+    }
+    if (parts[0] === 'app') {
+      env = 'prod';
+    } else if (parts[0] === 'localhost') {
+      env = 'dev';
+    } else if (parts[0] === 'friendforce-dev') {
+      env = 'dev';
+    } else if (parts[0] === 'friendforce-friendforce-25851') {
+      env = 'prod';
+    }
+    return this.firestore.collection("_admin").doc("env/envs/"+env).get();
+  }
+
   firebaseSync(userId) {
      /**
      * Synchronizes data between the local Datastore and firebase
