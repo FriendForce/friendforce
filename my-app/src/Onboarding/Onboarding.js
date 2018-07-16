@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import Person from './Types/Person.js';
+
 import stepOne from './static/step-1-click-settings.gif';
 import stepTwo from './static/step-2-click-info.gif';
 import stepThree from './static/step-3-settings.gif';
@@ -9,6 +11,55 @@ import stepSeven from './static/step-7-download.gif';
 import stepEight from './static/step-8-unzip.gif';
 
 export default class Onboarding extends Component {
+  uploadFbHtmlData = files => {
+    console.log('uploading fb data from ' + files);
+    const defaultLabel = 'from facebook';
+    const dontSync = true;
+    var fr = new FileReader();
+    fr.onload = e => {
+      var parser = new DOMParser();
+      var htmlDoc = parser.parseFromString(e.target.result, 'text/html');
+      var friend_html = htmlDoc.body.children[1].children[2].children;
+      for (var i = 0; i < friend_html.length; i++) {
+        // TODO: need to handle corner case where person has >2 names
+
+        var name = friend_html[i].innerText.split(' (')[0];
+        const addedDate = facebookDateToDate(
+          friend_html[i].innerText.split(' (')[1].split(')')[0]
+        );
+
+        // Create a person for each person
+        this.props.createPerson(name, dontSync).then(id => {
+          this.props.addTag(defaultLabel, id, 'private', dontSync);
+          this.props.addTag('datemetfb:' + addedDate, id, 'private', dontSync);
+        });
+      }
+    };
+    fr.readAsText(files[0]);
+  };
+
+  uploadFbJsonData = files => {
+    console.log('uploading fb data from ' + files);
+    var fr = new FileReader();
+    fr.onload = e => {
+      var json = JSON.parse(e.target.result);
+      json.forEach(person => {
+        console.log('adding ' + person.name);
+      });
+    };
+    fr.readAsText(files[0]);
+  };
+
+  uploadFbData = files => {
+    // probably a smarter way to know the type of a file here
+    const type = files[0].split('.')[-1];
+    if (type === 'json') {
+      this.uploadFbJsonData(files);
+    } else if (type === 'html') {
+      this.uploadFbHtmlData(files);
+    }
+  };
+
   render() {
     return (
       <div>
