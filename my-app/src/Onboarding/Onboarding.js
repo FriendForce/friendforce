@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Person from './Types/Person.js';
 
 import stepOne from './static/step-1-click-settings.gif';
 import stepTwo from './static/step-2-click-info.gif';
@@ -9,6 +8,17 @@ import stepFive from './static/step-5-email-time.png';
 import stepSix from './static/step-6-go-to-tab.gif';
 import stepSeven from './static/step-7-download.gif';
 import stepEight from './static/step-8-unzip.gif';
+
+const facebookDateToDate = facebookDate => {
+  if (facebookDate === 'Today') {
+    return new Date(Date.now());
+  }
+  if (facebookDate.split(' ').length === 2) {
+    return new Date(facebookDate + ' ' + new Date(Date.now()).getFullYear());
+  } else {
+    return new Date(facebookDate);
+  }
+};
 
 export default class Onboarding extends Component {
   uploadFbHtmlData = files => {
