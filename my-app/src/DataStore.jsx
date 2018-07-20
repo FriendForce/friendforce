@@ -463,8 +463,6 @@ registerFirebaseListener(userId, callback) {
        this._tagDiffs.set(tag.id, tag);
      }
      return Promise.resolve(id);
-     console.log('updating tag with params:');
-     console.log(params)
   }
 
   updatePerson(id, params, currentPersonId) {
