@@ -131,6 +131,11 @@ class DataStore {
     return id;
   }
 
+  firebaseDeleteTag(id) {
+    this.firestore.collection("tags").doc(id).delete()
+    .then(()=>{console.log("tag " + id + "successfully deleted");});
+  }
+
   firebasePushLabels() {
     var stagedLabels = {};
     this._labels.forEach(label=>stagedLabels[label]=true);
@@ -417,11 +422,16 @@ registerFirebaseListener(userId, callback) {
 
 
   deleteTag(id) {
-    /** NOT IMPLEMENTED
+    /** 
      * Deletes a Tag from the Datastore
      * @param id {string->id} id 
      * @return {Promise} promise resolves when tag successfully deleted
      */
+    // TODO - pop up confirmation
+     // remove locally
+     this._tags.delete(id);
+     // remove from DB
+     this.firebaseDeleteTag(id);
      
   }
 
@@ -433,19 +443,28 @@ registerFirebaseListener(userId, callback) {
      */
   }
 
-  updateTag(id, params) {
-    /** NOT IMPLEMENTED
+  updateTag(id, params, dontSync=false) {
+    /** 
      * Updates a Tag in the datastore
      * @param id {string->id} id of tag
      * @param params {dictionary} key-values to update 
      * @return {Promise} promise resolves when tag successfully updated
      */
-     var newTag = this._tags.get(id);
+     var tag = this._tags.get(id);
      for (var param in params) {
-       newTag[param] = params[param];
+       tag[param] = params[param];
      }
-     //TODO finish writing this function 
-
+     if (!dontSync) {
+      this.firebasePushTag(tag, tag.id);
+      this.firestore.collection("labels")
+      .doc(this._labelToId(tag.label))
+      .set({label:tag.label}, {merge:true});
+     } else {
+       this._tagDiffs.set(tag.id, tag);
+     }
+     return Promise.resolve(id);
+     console.log('updating tag with params:');
+     console.log(params)
   }
 
   updatePerson(id, params, currentPersonId) {

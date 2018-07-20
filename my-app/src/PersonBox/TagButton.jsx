@@ -15,11 +15,20 @@ export default class TagButton extends Component {
 
   handleClick = (e, data) => {
     console.log(data.action);
+    if (data.action === 'makeprivate') {
+      this.props.updateTag(this.props.tag.id, {'publicity':'private'});
+    }
+    if (data.action === 'makepublic') {
+      this.props.updateTag(this.props.tag.id, {'publicity':'public'});
+    }
+    if (data.action === 'delete') {
+      this.props.deleteTag(this.props.tag.id);
+    }
   }
 
   render() {
     var className = "tagbutton-public";
-    if (this.state.tag.publicity === 'private') {
+    if (this.props.tag.publicity === 'private') {
       className = 'tagbutton-private'
     }
     return(
@@ -30,9 +39,15 @@ export default class TagButton extends Component {
       </ContextMenuTrigger>
 
        <ContextMenu id={this.props.tag.label}>
+          {this.props.tag.publicity === 'public'? 
           <MenuItem data={{action: 'makeprivate'}} onClick={this.handleClick}>
-          Make Private
-        </MenuItem>
+            Make Private
+          </MenuItem>
+          : 
+          <MenuItem data={{action: 'makepublic'}} onClick={this.handleClick}>
+            Make Public
+          </MenuItem>
+        }
         <MenuItem data={{action: 'delete'}} onClick={this.handleClick}>
           Delete
         </MenuItem>
