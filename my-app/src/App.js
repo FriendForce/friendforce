@@ -11,6 +11,7 @@ import LabelButton from './PersonBox/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
 import TestStuff from './TestStuff.jsx';
 import PersonList from './PersonList.js';
+import Onboarding from './Onboarding/Onboarding.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 
 const getSearchLabels = searchString => {
@@ -365,20 +366,30 @@ class App extends Component {
         </Container>
 
         <Container>
+          <Route
+            path="/new"
+            render={props => <Onboarding {...props.match.params} />}
+          />
           <Row>
             <Col>
-              <Omnibox
-                mode={this.props.match.params.mode}
-                searchLabels={searchLabels}
-                searchString={this.props.match.params}
-                persons={this.state.persons}
-                tags={this.state.tags}
-                labels={this.state.labels}
-                addPerson={this.addPerson}
-                setPerson={this.setPerson}
-                setTag={this.setTag}
-                unsetLabel={this.unsetLabel}
-                setLabel={this.setLabel}
+              <Route
+                path={/^(?!.*new).*$/}
+                render={props => (
+                  <Omnibox
+                    {...props.match.params}
+                    //mode = {this.props.match.params.mode}
+                    searchLabels={searchLabels}
+                    //searchString={this.props.match.params}
+                    persons={this.state.persons}
+                    tags={this.state.tags}
+                    labels={this.state.labels}
+                    addPerson={this.addPerson}
+                    setPerson={this.setPerson}
+                    setTag={this.setTag}
+                    unsetLabel={this.unsetLabel}
+                    setLabel={this.setLabel}
+                  />
+                )}
               />
               <Route
                 path="/person/:personId"
@@ -407,17 +418,6 @@ class App extends Component {
             </Col>
 
             <Col>
-              <Route
-                path="/all_people/"
-                render={props => (
-                  <PersonList
-                    {...props.match.params}
-                    persons={this.state.persons}
-                    addTagToPerson={this.addTagToPerson}
-                  />
-                )}
-              />
-
               <Route
                 path="/all_people/"
                 render={props => (
