@@ -13,7 +13,8 @@ export default class PersonBox extends Component {
       uniqueTags: props.tags.filter(tag=>this.specialTypes.indexOf(tag.type)>-1)
     }
     this.setTag = this.props.setTag.bind(this);
-    
+    this.updateTag = this.props.updateTag.bind(this);
+    this.deleteTag = this.props.deleteTag.bind(this);
   }
 
   componentWillReceiveProps = new_props => {
@@ -57,7 +58,12 @@ export default class PersonBox extends Component {
     });
     var tagButtons = [];
     this.state.tags.forEach(tag=>{
-      tagButtons.push( <TagButton key={tag.label} tag={tag} setTag={this.setTag}/>);
+      tagButtons.push( 
+            <TagButton key={tag.label} 
+                      tag={tag} 
+                      setTag={this.setTag}
+                      updateTag={this.updateTag}
+                      deleteTag={this.deleteTag}/>);
     });
     return(
       <div>

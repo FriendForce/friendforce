@@ -52,6 +52,8 @@ class App extends Component {
     this.setUser = this.setUser.bind(this);
     this.login = this.login.bind(this);
     this.logout = this.logout.bind(this);
+    this.updateTag = this.updateTag.bind(this);
+    this.deleteTag = this.deleteTag.bind(this);
   }
 
   login() {
@@ -165,6 +167,15 @@ class App extends Component {
     DataStore.getAllLabels().then(labels => {
       this.setState({ labels: labels });
     });
+  };
+
+  updateTag = (id, params) => {
+    DataStore.updateTag(id, params);
+    // Will this change propigate automatically?
+  };
+
+  deleteTag = id => {
+    DataStore.deleteTag(id);
   };
 
   createPerson = (name, dontSync = false) => {
@@ -441,6 +452,8 @@ class App extends Component {
                       person => person.id === props.match.params.personId
                     )}
                     setTag={this.setTag}
+                    updateTag={this.updateTag}
+                    deleteTag={this.deleteTag}
                   />
                 )}
               />
