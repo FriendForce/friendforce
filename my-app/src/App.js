@@ -15,19 +15,16 @@ import Onboarding from './Onboarding/Onboarding.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 
 const getSearchLabels = searchString => {
-  var labels = searchString.split('+');
-  const formattedLabels = labels.map(label => label.replace('%', ' '));
-  return formattedLabels;
+  return decodeURI(searchString).split('+');
 };
 
 const labelsToString = labels => {
-  const formattedLabels = labels.map(label => label.replace(' ', '%'));
   var labelString = '';
-  formattedLabels.forEach((label, i) => {
+  labels.forEach((label, i) => {
     if (i > 0) {
       labelString += '+';
     }
-    labelString += label;
+    labelString += encodeURI(label);
   });
   return labelString;
 };
@@ -251,26 +248,15 @@ class App extends Component {
       this.props.match.params.data
     ) {
       this.props.history.push(
-        this.props.location.pathname + '+' + label.replace(/[^A-Z0-9]/gi, '_')
+        encodeURI(this.props.location.pathname + '+' + label)
       );
     } else {
-      this.props.history.push('/search/' + label);
+      this.props.history.push('/search/' + encodeURI(label));
     }
   };
 
   setTag = tag => {
-    if (
-      this.props.match.params.mode === 'search' &&
-      this.props.match.params.data
-    ) {
-      this.props.history.push(
-        this.props.location.pathname +
-          '+' +
-          tag.label.replace(/[^A-Z0-9]/gi, '_')
-      );
-    } else {
-      this.props.history.push('/search/' + tag.label);
-    }
+    this.setLabel(tag.label);
   };
 
   unsetLabel = targetLabel => {
@@ -327,8 +313,8 @@ class App extends Component {
             {window.is_dev ? (
               <div>
                 <button
-                  className="btn btn-sm btn-outline-secondary type="
-                  button
+                  className="btn btn-sm btn-outline-secondary"
+                  type="button"
                   onClick={this.toggleTestStuff.bind(this)}
                 >
                   Toggle Test Instrumentation
@@ -421,7 +407,7 @@ class App extends Component {
                 <Home />
               </Row>
               <button
-                class="btn btn-primary btn-sm active"
+                className="btn btn-primary btn-sm active"
                 role="button"
                 aria-pressed="true"
                 onClick={this.toggleLabels.bind(this)}
