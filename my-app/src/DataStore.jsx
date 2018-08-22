@@ -8,11 +8,12 @@ import firebaseStyleTags from './ConstData/firebaseStyleTags.js';
 import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
 
 import firebase from './firebase';
+import axios from 'axios';
 
 
 class DataStore {
   constructor(){
-     // TODO: Change what gets loaded 
+     // TODO: Change what gets loaded
      this._data = [];
      this.MAX_TAG_DIFFS = 15;
      this.MAX_PERSON_DIFFS = 10;
@@ -34,7 +35,7 @@ class DataStore {
 
   _nameToId(name) {
     return name.replace(/[^A-Z0-9]/ig, "_") + Math.floor(Math.random() * 20);
-  } 
+  }
 
   _tagToId(tag) {
     return tag.label.replace(/[^A-Z0-9]/ig, "_") + Math.floor(Math.random() * 20);
@@ -71,12 +72,12 @@ class DataStore {
     // Not Implemented Yet
     // Right now you're just stuck with whatever data you pulled at the beginning of the session
     //this.firebasePull(userId);
-    if(this._tagDiffs.size > this.MAX_TAG_DIFFS || 
+    if(this._tagDiffs.size > this.MAX_TAG_DIFFS ||
        this._personDiffs.size > this.MAX_PERSON_DIFFS) {
       console.log("Syncing!");
       this.firebasePush(userId);
-    } 
-    
+    }
+
   }
 
   // TODO: ben, remove the id
@@ -87,7 +88,7 @@ class DataStore {
      * @Param userId {string -> id} id of the current user
      * @Param id {string -> id} id of the person
      */
-    // create storage 
+    // create storage
     if (typeof id === "undefined") {
       return id;
     }
@@ -237,20 +238,20 @@ registerFirebaseListener(userId, callback) {
   loadExternalPersons(persons){
     /**
     * Loads a list of external Persons into the DataStore
-    * @param persons {Person Array} 
+    * @param persons {Person Array}
     */
-    
+
     Object.keys(firebaseStylePersons).forEach(key=>{
       this._persons.set(key, firebaseStylePersons[key]);
       //delete this._persons[key].knownByPersons;
     })
-    
+
   }
 
   loadExternalTags(tags){
     /**
      * Loads a list of external Tags into the DataStore
-     * @param persons {Tag Array} 
+     * @param persons {Tag Array}
      */
     Object.keys(firebaseStyleTags).forEach(key=>{
       this._tags.set(key, firebaseStyleTags[key]);
@@ -270,14 +271,14 @@ registerFirebaseListener(userId, callback) {
     if(possibleMatchingIds.length > 0) {
      console.log(person.name + "matches to ");
      console.log(possibleMatchingIds);
-     return possibleMatchingIds[0]; 
+     return possibleMatchingIds[0];
     } else {
       return null;
     }
   }
 
   addPersonByName(name, creatorUserId='', dontSync=false, email = '') {
-    /** Creates a person by name & email and adds them to the Datastore. This 
+    /** Creates a person by name & email and adds them to the Datastore. This
      * will always create a new person with a new id - caller needs to check if person
      * already exists.
      * @param name {string Name} of the person being added
@@ -285,7 +286,7 @@ registerFirebaseListener(userId, callback) {
      * @param email {string Email} of the person being added
      * @return {Promise} promise resolves when person successfully added
      */
-     // TODO: make addPerson, addTag use _persons 
+     // TODO: make addPerson, addTag use _persons
       var id = this._nameToId(name);
       if (creatorUserId.length === 0) {
         creatorUserId = id;
@@ -298,11 +299,11 @@ registerFirebaseListener(userId, callback) {
       const duplicate = this.checkPersonForDuplicate(person);
       if(duplicate) {
         // update data
-        // If the new person has a tag 
+        // If the new person has a tag
         return Promise.resolve(duplicate);
       }
       this._persons.set(id, person);
-      
+
       if (!dontSync) {
         this.firebasePushPerson(person, creatorUserId, id);
       } else {
@@ -368,7 +369,7 @@ registerFirebaseListener(userId, callback) {
      * Adds a Tag object to the Datastore
      * @param subject {string->id} subject of the tag
      * @param label {string} label describing the subject
-     * @param publicity {string->public,private,tag} 
+     * @param publicity {string->public,private,tag}
           publicity level of the tag. Default='public'
      * @param originator {string->id} originator of the tag
           defaults to the active user
@@ -380,7 +381,7 @@ registerFirebaseListener(userId, callback) {
      // tag = this.additionalTagLogic(tag);
      tag.id = this._tagToId(tag);
      this._tags.set(tag.id, tag);
-     
+
      if (!dontSync) {
       this.firebasePushTag(tag, tag.id);
       this.firestore.collection("labels")
@@ -422,9 +423,9 @@ registerFirebaseListener(userId, callback) {
 
 
   deleteTag(id) {
-    /** 
+    /**
      * Deletes a Tag from the Datastore
-     * @param id {string->id} id 
+     * @param id {string->id} id
      * @return {Promise} promise resolves when tag successfully deleted
      */
     // TODO - pop up confirmation
@@ -432,22 +433,22 @@ registerFirebaseListener(userId, callback) {
      this._tags.delete(id);
      // remove from DB
      this.firebaseDeleteTag(id);
-     
+
   }
 
   deletePerson(id) {
     /** NOT IMPLEMENTED
      * Deletes a Person from the Datastore
-     * @param id {string->id} id 
+     * @param id {string->id} id
      * @return {Promise} promise resolves when person successfully deleted
      */
   }
 
   updateTag(id, params, dontSync=false) {
-    /** 
+    /**
      * Updates a Tag in the datastore
      * @param id {string->id} id of tag
-     * @param params {dictionary} key-values to update 
+     * @param params {dictionary} key-values to update
      * @return {Promise} promise resolves when tag successfully updated
      */
      var tag = this._tags.get(id);
@@ -469,14 +470,14 @@ registerFirebaseListener(userId, callback) {
     /**
      * Updates a Person in the datastore
      * @param id {string->id} id of person
-     * @param params {dictionary} key-values to update 
-     * @param currentPersonId {string->id} the user id of the current logged in user 
+     * @param params {dictionary} key-values to update
+     * @param currentPersonId {string->id} the user id of the current logged in user
      * @return {Promise} promise resolves when person successfully updated
      */
      var person = this._persons.get(id);
      if (person === undefined) {
       person = new Person(id);
-     }  
+     }
      for (let param in params) {
         person[param] = params[param];
      }
@@ -485,7 +486,7 @@ registerFirebaseListener(userId, callback) {
       if (person.hasOwnProperty(property) && person[property] === undefined) {
         delete(person[property]);
       }
-    } 
+    }
 
     var stagedfirestorePerson = person;
     delete stagedfirestorePerson.id;
@@ -542,7 +543,7 @@ registerFirebaseListener(userId, callback) {
      * Gets the person with an email
      * @param email {string} email to search by
      * @return {Promise} promise for a {Person}
-     *          with the given email. 
+     *          with the given email.
      */
     let p = new Promise(
       (resolve, reject) => {
@@ -664,7 +665,7 @@ registerFirebaseListener(userId, callback) {
     this._tagCollection = collection;
   }
 
- 
+
   persons() {
     return this._persons;
   }

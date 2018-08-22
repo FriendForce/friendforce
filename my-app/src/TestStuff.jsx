@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import { Container, Row } from 'reactstrap';
-import DataStore from './DataStore.jsx';
+import DataStore from './FlaskDataStore.jsx';
 
 export default class TestStuff extends Component {
   render () {
@@ -30,6 +30,8 @@ export default class TestStuff extends Component {
                                   .then(()=>{this.props.updateData();});
                                 }}>
                                   RESET LOCAL DATA</button>
+                                <button onClick={()=>{DataStore.pullLabels(this.props.userId, ()=>{console.log("callback!");})}}>
+                                                        FLASK PULL</button>
           </Container>
           <Container>
             NumPersonDiffs = {DataStore.numPersonDiffs()}
@@ -42,7 +44,7 @@ export default class TestStuff extends Component {
           <button onClick={()=>{DataStore.firebasePushLabels()}}>PUSH LABELS </button>
           </Container>
           </Row>
-        </div> 
+        </div>
     );
   }
 }

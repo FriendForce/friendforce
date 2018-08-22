@@ -29,7 +29,11 @@ export default class Onboarding extends Component {
 
         <div>
           <figure className="figure">
-            <img src={stepOne} className="figure-img img-fluid rounded" />
+            <img
+              src={stepOne}
+              className="figure-img img-fluid rounded"
+              alt="Step One"
+            />
 
             <figcaption className="figure-caption">
               First, go to{' '}
@@ -47,7 +51,11 @@ export default class Onboarding extends Component {
 
         <div>
           <figure className="figure">
-            <img src={stepTwo} className="figure-img img-fluid rounded" />
+            <img
+              src={stepTwo}
+              className="figure-img img-fluid rounded"
+              alt="Step Two"
+            />
 
             <figcaption className="figure-caption">
               Second, click <b>Your Facebook Information</b> and then on the
@@ -58,7 +66,11 @@ export default class Onboarding extends Component {
 
         <div>
           <figure className="figure">
-            <img src={stepThree} className="figure-img img-fluid rounded" />
+            <img
+              src={stepThree}
+              className="figure-img img-fluid rounded"
+              alt="Step Three"
+            />
 
             <figcaption className="figure-caption">
               Third, select <b>Format: JSON</b>, <b>Media Qualty: Low</b> and
@@ -69,7 +81,11 @@ export default class Onboarding extends Component {
 
         <div>
           <figure className="figure">
-            <img src={stepFour} className="figure-img img-fluid rounded" />
+            <img
+              src={stepFour}
+              className="figure-img img-fluid rounded"
+              alt="Step Four"
+            />
 
             <figcaption className="figure-caption">
               Fourth, click <b>Create</b>
@@ -79,7 +95,11 @@ export default class Onboarding extends Component {
 
         <div>
           <figure className="figure">
-            <img src={stepFive} className="figure-img img-fluid rounded" />
+            <img
+              src={stepFive}
+              className="figure-img img-fluid rounded"
+              alt="Step Five"
+            />
 
             <figcaption className="figure-caption">
               You will have to wait for an email confirming your information is
@@ -91,7 +111,11 @@ export default class Onboarding extends Component {
 
         <div>
           <figure className="figure">
-            <img src={stepSix} className="figure-img img-fluid rounded" />
+            <img
+              src={stepSix}
+              className="figure-img img-fluid rounded"
+              alt="Step Six"
+            />
 
             <figcaption className="figure-caption">
               Once you receive the confirmation email, click the{' '}
@@ -102,7 +126,11 @@ export default class Onboarding extends Component {
 
         <div>
           <figure className="figure">
-            <img src={stepSeven} className="figure-img img-fluid rounded" />
+            <img
+              src={stepSeven}
+              className="figure-img img-fluid rounded"
+              alt="Step Seven"
+            />
 
             <figcaption className="figure-caption">
               On the <b>Download Your Information</b> page, click the{' '}
@@ -113,7 +141,11 @@ export default class Onboarding extends Component {
 
         <div>
           <figure className="figure">
-            <img src={stepEight} className="figure-img img-fluid rounded" />
+            <img
+              src={stepEight}
+              className="figure-img img-fluid rounded"
+              alt="Step Eight"
+            />
             <figcaption className="figure-caption">Unzip the file</figcaption>
           </figure>
         </div>
