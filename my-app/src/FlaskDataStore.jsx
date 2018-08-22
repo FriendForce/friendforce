@@ -118,6 +118,23 @@ class DataStore {
     return id;
   }
 
+  flaskPushTag(tag, id) {
+    /**
+    * Pushes a single tag to Flask
+    * @Param tag {Tag} tag to push
+    * @Param id {string -> id} id of the tag
+    */
+    var stagedTag = tag;
+    axios.post(this.API_SERVER + "/tag", stagedTag)
+    .then((response)=>{
+      console.log("tag response")
+      console.log(response);
+    })
+    .catch((error)=>{
+      console.log("ERROR" + error);
+    })
+  }
+
   firebasePushTag(tag, id) {
      /**
      * Pushes a single tag to firebase
@@ -135,6 +152,10 @@ class DataStore {
     .then(function(){})
     .catch(function(error){console.log("caught error pushing tag" + error)});
     return id;
+  }
+
+  pushTag(tag, id) {
+    return this.flaskPushTag(tag, id);
   }
 
   firebaseDeleteTag(id) {
@@ -446,7 +467,7 @@ registerFirebaseListener(userId, callback) {
   }
 
   addTag(subject, label, originator, userId, publicity='public', dontSync=false){
-    /** NOT IMPLEMENTED
+    /**
      * Adds a Tag object to the Datastore
      * @param subject {string->id} subject of the tag
      * @param label {string} label describing the subject
@@ -464,10 +485,7 @@ registerFirebaseListener(userId, callback) {
      this._tags.set(tag.id, tag);
 
      if (!dontSync) {
-      this.firebasePushTag(tag, tag.id);
-      this.firestore.collection("labels")
-      .doc(this._labelToId(tag.label))
-      .set({label:tag.label}, {merge:true});
+      this.pushTag(tag, tag.id);
      } else {
        this._tagDiffs.set(tag.id, tag);
      }
@@ -537,10 +555,7 @@ registerFirebaseListener(userId, callback) {
        tag[param] = params[param];
      }
      if (!dontSync) {
-      this.firebasePushTag(tag, tag.id);
-      this.firestore.collection("labels")
-      .doc(this._labelToId(tag.label))
-      .set({label:tag.label}, {merge:true});
+      this.pushTag(tag, tag.id);
      } else {
        this._tagDiffs.set(tag.id, tag);
      }
