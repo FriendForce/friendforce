@@ -1,5 +1,5 @@
 export default class Person {
-  constructor(id, name, knownByPersons) {
+  constructor(id, name) {
     /*
      * Creates a Person. Two different Constructors:
      * Person(id, name, knownByPersons)
@@ -15,15 +15,5 @@ export default class Person {
      */
     this.id = id;
     this.name = name || '';
-    this.knownByPersons = {};
-    if (typeof name === 'object') {
-      // initialized from a databse object
-      this.knownByPersons = {};
-      for (var prop in name) {
-        if (name.hasOwnProperty(prop)) {
-          this[prop] = name[prop];
-        }
-      }
-    }
   }
 }

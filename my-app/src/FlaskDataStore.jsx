@@ -10,6 +10,8 @@ import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
 import axios from 'axios';
 
 
+//TODO: make it so the client isn't assigning ids or the ids are overwritten
+// by server assigned slugs
 
 
 class DataStore {
@@ -379,6 +381,25 @@ registerFirebaseListener(userId, callback) {
     }
   }
 
+  flaskPushPerson(person, creatorUserId) {
+    var stagedPerson = person;
+    stagedPerson.creator = creatorUserId;
+    let p = new Promise(
+      (resolve, reject) => {
+        // Check DB for person
+        axios.post(this.API_SERVER + "/person", stagedPerson)
+        .then((response)=>{
+          console.log("tag response")
+          console.log(response);
+          resolve(response.data);
+        })
+        .catch((error)=>{
+          console.log("ERROR" + error);
+        })
+      });
+    return p;
+  }
+
   addPersonByName(name, creatorUserId='', dontSync=false, email = '') {
     /** Creates a person by name & email and adds them to the Datastore. This
      * will always create a new person with a new id - caller needs to check if person
@@ -389,29 +410,19 @@ registerFirebaseListener(userId, callback) {
      * @return {Promise} promise resolves when person successfully added
      */
      // TODO: make addPerson, addTag use _persons
-      var id = this._nameToId(name);
-      if (creatorUserId.length === 0) {
-        creatorUserId = id;
-      }
-      var person = new Person(id, name);
-      if (email.length > 0) {
-        person.email = email;
-      }
-      // Check whether you're repeating a person
-      const duplicate = this.checkPersonForDuplicate(person);
-      if(duplicate) {
-        // update data
-        // If the new person has a tag
-        return Promise.resolve(duplicate);
-      }
-      this._persons.set(id, person);
-
-      if (!dontSync) {
-        this.firebasePushPerson(person, creatorUserId, id);
-      } else {
-        this._personDiffs.set(id, person);
-      }
-     return Promise.resolve(id);
+     let p = new Promise(
+       (resolve, reject) => {
+         var person = new Person('none', name);
+         this.flaskPushPerson(person, creatorUserId)
+         .then((response) => {
+           var name = response.first_name + " " + response.last_name;
+           var person = new Person(response.slug, name)
+           this._persons.set(response.slug, person)
+           resolve(response.slug)
+         });
+       }
+     )
+     return p;
   }
 
   addPerson(person, creatorUserId, dontSync=false){
@@ -420,12 +431,18 @@ registerFirebaseListener(userId, callback) {
      * @param person {Person} with populated fields
      * @return {Promise} promise resolves when person successfully added
      */
-    if (!dontSync) {
-        this.firebasePushPerson(person, creatorUserId, person.id);
-      } else {
-        this._personDiffs.set(person.id, person);
-      }
-    return Promise.resolve(true);
+     let p = new Promise(
+       (resolve, reject) => {
+         this.flaskPushPerson(person, creatorUserId)
+         .then((response) => {
+           var name = response.first_name + " " + response.last_name;
+           var person = new Person(response.slug, name)
+           this._persons.set(response.slug, person)
+           resolve(response.slug)
+         });
+       }
+     )
+     return p;
   }
 
   getTagType(typeString) {
