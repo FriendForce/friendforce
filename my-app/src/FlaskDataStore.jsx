@@ -87,38 +87,6 @@ class DataStore {
 
   }
 
-  // TODO: ben, remove the id
-  firebasePushPerson(person, userId, id) {
-     /**
-     * Pushes a single person to firebase
-     * @Param person {Person} person to push
-     * @Param userId {string -> id} id of the current user
-     * @Param id {string -> id} id of the person
-     */
-    // create storage
-    if (typeof id === "undefined") {
-      return id;
-    }
-    var stagedfirestorePerson = person;
-    stagedfirestorePerson.timestamp = new Date(Date.now());
-    delete stagedfirestorePerson.id;
-    stagedfirestorePerson.knownByPersons = {};
-    stagedfirestorePerson.knownByPersons[userId] = true;
-    console.log(id + " " + userId);
-    var firestorePerson = this.firestore.collection("persons").doc(id);
-    firestorePerson.set(Object.assign({}, stagedfirestorePerson), {merge:true})
-    .then(function(){console.log("set person")})
-    .catch(function(error){console.log("caught error " + error)});
-
-    var firestoreUser = this.firestore.collection("persons").doc(userId);
-    var updatedData = {knownPersons:{}};
-    updatedData.knownPersons[id] = true;
-    console.log(updatedData);
-    firestoreUser.set(updatedData, {merge:true})
-      .then(function(){console.log("set user")})
-      .catch(function(error){console.log("caught error " + error)});
-    return id;
-  }
 
   flaskPushTag(tag, id) {
     /**
@@ -137,24 +105,6 @@ class DataStore {
     })
   }
 
-  firebasePushTag(tag, id) {
-     /**
-     * Pushes a single tag to firebase
-     * @Param tag {Tag} tag to push
-     * @Param id {string -> id} id of the tag
-     */
-    var stagedfirestoreTag = tag;
-    stagedfirestoreTag.timestamp = new Date(Date.now());
-    delete stagedfirestoreTag.id;
-    if (typeof stagedfirestoreTag.type === 'undefined') {
-      delete stagedfirestoreTag.type;
-    }
-    var firestoreTag = this.firestore.collection("tags").doc(id);
-    firestoreTag.set(Object.assign({}, stagedfirestoreTag), {merge:true})
-    .then(function(){})
-    .catch(function(error){console.log("caught error pushing tag" + error)});
-    return id;
-  }
 
   pushTag(tag, id) {
     return this.flaskPushTag(tag, id);
@@ -165,13 +115,16 @@ class DataStore {
     .then(()=>{console.log("tag " + id + "successfully deleted");});
   }
 
-  firebasePushLabels() {
-    var stagedLabels = {};
-    this._labels.forEach(label=>stagedLabels[label]=true);
-    var firestoreLabels = this.firestore.collection("labels").doc("labels");
-    firestoreLabels.set(stagedLabels, {merge:true})
-    .then(function(){})
-    .catch(function(error){console.log("caught error adding lables" + error)});
+  flaskDeleteTag(id) {
+    console.log("trying to delete tag " + id);
+    let p = new Promise((resolve, reject) => {
+      axios.post(this.API_SERVER + "/tag/delete", {'id':id})
+      .then((response)=> {
+        console.log(response.data);
+        resolve(id);
+        });
+    })
+    return p;
   }
 
 pullLabels(userId, callback) {
@@ -249,81 +202,6 @@ pullEverything(userId, callback) {
   this.pullTags(userId, callback);
   this.pullLabels(userId, callback);
 }
-
-registerFirebaseListener(userId, callback) {
-    /**
-     * Sets up a listener to firebase
-     * @Param userId {string -> id} id of the user pushing the data
-     * @Param callback - function to call when resolved
-     */
-     // TODO: Modify to react differently to snapshot.docChanges()
-     console.log("calling registerFirebaseListener");
-     this.firestore.collection("persons")
-     .where("knownByPersons."+ userId, "==", true)
-     .onSnapshot({/*config object*/}, (querySnapshot)=> {
-        this._persons = new Map();
-        querySnapshot.forEach((doc) => {
-          // Do things with doc.id and doc.data()
-          var newPerson = doc.data();
-          newPerson.id = doc.id;
-          this._persons.set(doc.id, newPerson);
-        });
-        console.log("persons pull :", querySnapshot.size);
-        callback();
-     })
-
-     this.firestore.collection("tags")
-     .where("originator", "==", userId)
-     .where("publicity", "==", "private")
-     .onSnapshot({/*config object*/}, (querySnapshot)=> {
-        querySnapshot.forEach((doc)=>{
-          var newTag = doc.data();
-          newTag.id = doc.id;
-          this._tags.set(doc.id, newTag);
-        });
-        console.log("ptag pull1 :", querySnapshot.size);
-        callback();
-      })
-
-      this.firestore.collection("tags")
-      .where("publicity", "==", "public")
-      .onSnapshot({/*config object*/}, (querySnapshot)=> {
-        querySnapshot.forEach((doc)=>{
-          var newTag = doc.data();
-          newTag.id = doc.id;
-          this._tags.set(doc.id, newTag);
-        });
-        console.log("ptag pull2 :", querySnapshot.size);
-        callback();
-      })
-
-      this.firestore.collection("labels")
-      .onSnapshot({/*config object*/}, (querySnapshot)=> {
-        querySnapshot.forEach((doc)=>{
-          if (doc.data().label !== null) {
-            this._labels.add(doc.data().label);
-          }
-        });
-        console.log("label pull :", querySnapshot.size);
-        callback();
-      })
-  }
-
-  firebasePush(userId) {
-    /**
-     * Pushes Tags and Persons to firestore and clears diffs
-     * @Param userId {string -> id} id of the user pushing the data
-     */
-    this._personDiffs.forEach((person, id)=>{this.firebasePushPerson(person, userId, id);});
-    this._tagDiffs.forEach((tag, id)=>{this.firebasePushTag(tag, id)});
-    this._personDiffs = new Map();
-    this._tagDiffs = new Map();
-    if (window && 'localStorage' in window) {
-      localStorage.dataStorePersonDiffs = JSON.stringify(Array.from(this._personDiffs.entries()));
-      localStorage.dataStoreTagDiffs = JSON.stringify(Array.from(this._tagDiffs.entries()));
-    }
-  }
-
 
   resetData(){
     /**
@@ -546,10 +424,15 @@ registerFirebaseListener(userId, callback) {
      */
     // TODO - pop up confirmation
      // remove locally
-     this._tags.delete(id);
-     // remove from DB
-     this.firebaseDeleteTag(id);
-
+     let p = new Promise(
+       (resolve, reject) => {
+         this._tags.delete(id);
+         // remove from DB
+         this.flaskDeleteTag(id)
+         .then(resolve(id));
+       }
+     )
+     return p;
   }
 
   deletePerson(id) {

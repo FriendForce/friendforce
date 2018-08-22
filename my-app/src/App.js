@@ -117,7 +117,11 @@ class App extends Component {
   };
 
   deleteTag = id => {
-    DataStore.deleteTag(id);
+    DataStore.deleteTag(id).then(() => {
+      DataStore.getAllTags().then(tags => {
+        this.setState({ tags });
+      });
+    });
   };
 
   createPerson = (name, dontSync = false) => {
