@@ -11,7 +11,7 @@ import LabelButton from './PersonBox/LabelButton.jsx';
 import { Container, Row, Col } from 'reactstrap';
 import TestStuff from './TestStuff.jsx';
 import PersonList from './PersonList.js';
-import Onboarding from './Onboarding/Onboarding.js';
+import HowTo from './Onboarding/HowTo.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 
 const getSearchLabels = searchString => {
@@ -61,7 +61,10 @@ class App extends Component {
   login() {
     auth.setPersistence(persistence).then(() => {
       auth.signInWithPopup(provider).then(result => {
+        console.log('logging in');
+        console.log(result);
         var userId = result.user.email;
+        console.log('userid = ' + userId);
         this.setState({ userId: userId });
       });
     });
@@ -90,6 +93,7 @@ class App extends Component {
   componentDidMount = () => {
     auth.onAuthStateChanged(user => {
       if (user) {
+        console.log('user');
         console.log(user);
         var userId = user.email;
         this.setState({ userId: userId });
@@ -107,7 +111,7 @@ class App extends Component {
             console.log(response);
             if (response.new_account == true) {
               console.log('new account! Hello!');
-              //TODO: new user flow
+              this.props.history.push('/new');
             }
             this.setState({ userPerson: response.person.slug });
           });
@@ -117,6 +121,8 @@ class App extends Component {
           });
           DataStore.pullEverything(nextState.userId, this.updateData, idToken);
         });
+      } else {
+        console.log('no current user');
       }
     }
   };
@@ -148,7 +154,7 @@ class App extends Component {
 
   createPerson = (name, dontSync = false) => {
     var p = new Promise((resolve, reject) => {
-      DataStore.addPersonByName(name, this.state.userId, dontSync).then(id => {
+      DataStore.addPersonByName(name, this.state.token, dontSync).then(id => {
         resolve(id);
       });
     });
@@ -159,7 +165,7 @@ class App extends Component {
     // Todo: need to check if you actually want to add a person
     // When you're in search mode because people accidentally add new thing
 
-    DataStore.addPersonByName(name, this.state.userId).then(id => {
+    DataStore.addPersonByName(name, this.state.token).then(id => {
       this.props.history.push('/person/' + id);
       DataStore.getAllPersons().then(persons => {
         this.setState({ persons: persons });
@@ -359,7 +365,7 @@ class App extends Component {
         <Container>
           <Route
             path="/new"
-            render={props => <Onboarding {...props.match.params} />}
+            render={props => <HowTo {...props.match.params} />}
           />
           <Row>
             <Col>
