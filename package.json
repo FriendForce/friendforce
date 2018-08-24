@@ -39,5 +39,6 @@
     "yarn.lock": [
       "git rm --cached"
     ]
-  }
+  },
+  "dependencies": {}
 }

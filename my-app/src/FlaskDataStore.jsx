@@ -1,9 +1,8 @@
 
 //Remove these when we're done with constant data
-
+import auth from './firebase.js';
 import Person from './Types/Person';
 import Tag from './Types/Tag';
-
 import firebaseStyleTags from './ConstData/firebaseStyleTags.js';
 import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
 
@@ -13,6 +12,16 @@ import axios from 'axios';
 //TODO: make it so the client isn't assigning ids or the ids are overwritten
 // by server assigned slugs
 
+function slugify(text)
+{
+  //This is just to mirror python slugify
+  return text.toString().toLowerCase()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start of text
+    .replace(/-+$/, '');            // Trim - from end of text
+}
 
 class DataStore {
   constructor(){
@@ -23,8 +32,6 @@ class DataStore {
      // Collection names changable so you can do some test dicking around
      this._personCollection = "persons";
      this._tagCollection = "tags";
-
-
      this._tagDiffs = new Map();
      this._personDiffs = new Map();
      this._labelList = [];
@@ -41,7 +48,9 @@ class DataStore {
   }
 
   _tagToId(tag) {
-    return tag.label.replace(/[^A-Z0-9]/ig, "_") + Math.floor(Math.random() * 20);
+    //This should be changed, but for now, just mirroring the slug generation
+    // on the server
+    return (slugify(tag.originator + " " + tag.subject + " " + tag.label ))
   }
 
   _labelToId(label) {
@@ -88,26 +97,36 @@ class DataStore {
   }
 
 
-  flaskPushTag(tag, id) {
+  flaskPushTag(tag, id, token) {
     /**
     * Pushes a single tag to Flask
     * @Param tag {Tag} tag to push
     * @Param id {string -> id} id of the tag
     */
     var stagedTag = tag;
+    stagedTag.token = token;
     axios.post(this.API_SERVER + "/tag", stagedTag)
     .then((response)=>{
       console.log("tag response")
       console.log(response);
+      if (response.data.slug != tag.id) {
+        //TODO: make a new tag from the response data
+        //remove old tag
+        this._tags.delete(tag.id);
+        //create new tag with the synced slug
+        tag.id = response.data.slug
+        this._tags.set(tag.id, tag);
+      }
     })
     .catch((error)=>{
       console.log("ERROR" + error);
-    })
+    });
+
   }
 
 
-  pushTag(tag, id) {
-    return this.flaskPushTag(tag, id);
+  pushTag(tag, id, token) {
+    return this.flaskPushTag(tag, id, token);
   }
 
   firebaseDeleteTag(id) {
@@ -115,10 +134,10 @@ class DataStore {
     .then(()=>{console.log("tag " + id + "successfully deleted");});
   }
 
-  flaskDeleteTag(id) {
+  flaskDeleteTag(id, idToken) {
     console.log("trying to delete tag " + id);
     let p = new Promise((resolve, reject) => {
-      axios.post(this.API_SERVER + "/tag/delete", {'id':id})
+      axios.post(this.API_SERVER + "/tag/delete", {'id':id, 'token':idToken})
       .then((response)=> {
         console.log(response.data);
         resolve(id);
@@ -127,9 +146,10 @@ class DataStore {
     return p;
   }
 
-pullLabels(userId, callback) {
+pullLabels(userId, callback, idToken='') {
   axios.post(this.API_SERVER + "/labels", {
-    'userId':userId
+    'userId':userId,
+    'token':idToken
   })
   .then((response)=>{
     console.log("got labels!")
@@ -146,10 +166,11 @@ pullLabels(userId, callback) {
   })
 }
 
-pullPersons(userId, callback) {
+pullPersons(userId, callback, idToken='') {
   console.log("pulling persons with id " + userId);
   axios.post(this.API_SERVER + "/known_persons", {
-    'user':userId
+    'user':userId,
+    'token':idToken
   })
   .then((response)=>{
     console.log("got persons!");
@@ -157,9 +178,8 @@ pullPersons(userId, callback) {
     response.data.forEach((person)=> {
       console.log("adding ");
       console.log(person);
-      var newPerson = {};
-      newPerson.id = person.slug;
-      newPerson.name = person.first_name + " " + person.last_name;
+      var newPerson = new Person(person.slug, person.first_name + " " + person.last_name)
+      newPerson.photo_url = person.photo_url;
       this._persons.set(newPerson.id, newPerson);
     })
   })
@@ -172,9 +192,10 @@ pullPersons(userId, callback) {
   })
 }
 
-pullTags(userId, callback) {
+pullTags(userId, callback, idToken='') {
   axios.post(this.API_SERVER + "/known_tags", {
-    'user':userId
+    'user':userId,
+    'token':idToken
   })
   .then((response)=>{
     console.log("got Tags!");
@@ -197,10 +218,21 @@ pullTags(userId, callback) {
   })
 }
 
-pullEverything(userId, callback) {
-  this.pullPersons(userId, callback);
-  this.pullTags(userId, callback);
-  this.pullLabels(userId, callback);
+getUserPerson(idToken) {
+  var p = new Promise((resolve, reject)=> {
+    axios.post(this.API_SERVER + "/login", {
+      'token':idToken
+    }).then((response)=> {
+      resolve(response.data);
+    })
+  });
+  return p;
+}
+
+pullEverything(userId, callback, idToken) {
+    this.pullPersons(userId, callback, idToken);
+    this.pullTags(userId, callback, idToken);
+    this.pullLabels(userId, callback, idToken);
 }
 
   resetData(){
@@ -259,15 +291,15 @@ pullEverything(userId, callback) {
     }
   }
 
-  flaskPushPerson(person, creatorUserId) {
+  flaskPushPerson(person, idToken) {
     var stagedPerson = person;
-    stagedPerson.creator = creatorUserId;
+    stagedPerson.token = idToken;
     let p = new Promise(
       (resolve, reject) => {
         // Check DB for person
         axios.post(this.API_SERVER + "/person", stagedPerson)
         .then((response)=>{
-          console.log("tag response")
+          console.log("person response")
           console.log(response);
           resolve(response.data);
         })
@@ -278,7 +310,7 @@ pullEverything(userId, callback) {
     return p;
   }
 
-  addPersonByName(name, creatorUserId='', dontSync=false, email = '') {
+  addPersonByName(name, idToken, dontSync=false, email = '') {
     /** Creates a person by name & email and adds them to the Datastore. This
      * will always create a new person with a new id - caller needs to check if person
      * already exists.
@@ -291,7 +323,7 @@ pullEverything(userId, callback) {
      let p = new Promise(
        (resolve, reject) => {
          var person = new Person('none', name);
-         this.flaskPushPerson(person, creatorUserId)
+         this.flaskPushPerson(person, idToken)
          .then((response) => {
            var name = response.first_name + " " + response.last_name;
            var person = new Person(response.slug, name)
@@ -303,7 +335,7 @@ pullEverything(userId, callback) {
      return p;
   }
 
-  addPerson(person, creatorUserId, dontSync=false){
+  addPerson(person, idToken, dontSync=false){
     /**
      * Adds a person object to the Datastore
      * @param person {Person} with populated fields
@@ -311,7 +343,7 @@ pullEverything(userId, callback) {
      */
      let p = new Promise(
        (resolve, reject) => {
-         this.flaskPushPerson(person, creatorUserId)
+         this.flaskPushPerson(person, idToken)
          .then((response) => {
            var name = response.first_name + " " + response.last_name;
            var person = new Person(response.slug, name)
@@ -339,29 +371,8 @@ pullEverything(userId, callback) {
     }
   }
 
-  additionalTagLogic(tag) {
-
-    if (tag.label.split(":").length > 1) {
-      tag.type = this.getTagType(tag.label.split(":")[0]);
-      console.log("special tag");
-    }
-    if (tag.type === "date") {
-      //console.log("date detected");
-      this._labels.delete(tag.label);
-      tag[tag.label.split(":")[0]] = new Date(tag.label.split(":")[0]);
-    }
-    if (tag.type === "email") {
-      this._labels.delete(tag.label);
-      tag.publicity = "private";
-    }
-    if (tag.type === "send") {
-      this._labels.delete(tag.label);
-      tag.publicity = "private";
-    }
-    return tag;
-  }
-
-  addTag(subject, label, originator, userId, publicity='public', dontSync=false){
+  //Todo: need to move to having originator be automatically found
+  addTag(subject, label, originator, userId, token, publicity='public', dontSync=false){
     /**
      * Adds a Tag object to the Datastore
      * @param subject {string->id} subject of the tag
@@ -375,12 +386,11 @@ pullEverything(userId, callback) {
      var tag = new Tag(null, subject, originator, label, null, publicity);
      this._labels.add(tag.label);
 
-     // tag = this.additionalTagLogic(tag);
      tag.id = this._tagToId(tag);
      this._tags.set(tag.id, tag);
 
      if (!dontSync) {
-      this.pushTag(tag, tag.id);
+      this.pushTag(tag, tag.id, token);
      } else {
        this._tagDiffs.set(tag.id, tag);
      }
@@ -400,23 +410,12 @@ pullEverything(userId, callback) {
       });
   }
 
-  processTags = () => {
-    this._labels = new Set([]);
-    this._tags.forEach(
-      (tag, id) =>{
-        this._labels = this._labels.add(tag.label);
-        this._tags.set(id, this.additionalTagLogic(tag));
-      } );
-    this.saveState();
-    console.log(this._labels);
-  }
-
   dedupDB = () => {
     return null;
   }
 
 
-  deleteTag(id) {
+  deleteTag(id, idToken) {
     /**
      * Deletes a Tag from the Datastore
      * @param id {string->id} id
@@ -428,7 +427,7 @@ pullEverything(userId, callback) {
        (resolve, reject) => {
          this._tags.delete(id);
          // remove from DB
-         this.flaskDeleteTag(id)
+         this.flaskDeleteTag(id, idToken)
          .then(resolve(id));
        }
      )
@@ -443,7 +442,7 @@ pullEverything(userId, callback) {
      */
   }
 
-  updateTag(id, params, dontSync=false) {
+  updateTag(id, params, token, dontSync=false) {
     /**
      * Updates a Tag in the datastore
      * @param id {string->id} id of tag
@@ -455,7 +454,7 @@ pullEverything(userId, callback) {
        tag[param] = params[param];
      }
      if (!dontSync) {
-      this.pushTag(tag, tag.id);
+      this.pushTag(tag, tag.id, token);
      } else {
        this._tagDiffs.set(tag.id, tag);
      }

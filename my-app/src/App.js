@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { auth, provider, persistence } from './firebase.js';
 import './App.css';
 import Omnibox from './Omnibox/Omnibox.jsx';
 import PersonBox from './PersonBox/PersonBox.jsx';
@@ -37,8 +38,10 @@ class App extends Component {
       labels: [],
       userId: null,
       userName: null,
+      userPerson: null,
       showTestStuff: false,
       showAllLabels: false,
+      token: '',
     };
 
     this.setPerson = this.setPerson.bind(this);
@@ -56,13 +59,22 @@ class App extends Component {
   }
 
   login() {
-    var userId = 'benjamin-reinhardt-9834090';
-    this.setState({ userId: userId });
+    auth.setPersistence(persistence).then(() => {
+      auth.signInWithPopup(provider).then(result => {
+        var userId = result.user.email;
+        this.setState({ userId: userId });
+      });
+    });
   }
 
   logout() {
-    this.setState({
-      userId: null,
+    auth.signOut().then(() => {
+      DataStore.resetData();
+      this.updateData();
+      this.setState({
+        userId: null,
+        token: null,
+      });
     });
   }
 
@@ -76,26 +88,36 @@ class App extends Component {
   };
 
   componentDidMount = () => {
-    /*
     auth.onAuthStateChanged(user => {
       if (user) {
-        DataStore.getPersonByEmail(user.email).then(person => {
-          if (person !== undefined && person.id !== this.state.userId) {
-            this.setState({ userId: person.id });
-            // PAY ATTENTION TO THIS
-            //DataStore.registerFirebaseListener(person.id, this.updateData);
-          }
-        });
+        console.log(user);
+        var userId = user.email;
+        this.setState({ userId: userId });
       }
     });
-    */
   };
 
   componentWillUpdate = (nextProps, nextState) => {
     if (nextState.userId !== this.state.userId) {
-      //HACK
-      this.setState({ userName: 'Benjamin Reinhardt' });
-      DataStore.pullEverything(nextState.userId, this.updateData);
+      if (auth.currentUser) {
+        auth.currentUser.getIdToken(true).then(idToken => {
+          //TODO: check if new user and do login flow
+          DataStore.getUserPerson(idToken).then(response => {
+            console.log('got response to login');
+            console.log(response);
+            if (response.new_account == true) {
+              console.log('new account! Hello!');
+              //TODO: new user flow
+            }
+            this.setState({ userPerson: response.person.slug });
+          });
+          this.setState({
+            userName: auth.currentUser.displayName,
+            token: idToken,
+          });
+          DataStore.pullEverything(nextState.userId, this.updateData, idToken);
+        });
+      }
     }
   };
 
@@ -117,7 +139,7 @@ class App extends Component {
   };
 
   deleteTag = id => {
-    DataStore.deleteTag(id).then(() => {
+    DataStore.deleteTag(id, this.state.token).then(() => {
       DataStore.getAllTags().then(tags => {
         this.setState({ tags });
       });
@@ -153,14 +175,20 @@ class App extends Component {
     document.body.appendChild(script);
   }
 
-  createTag = (label, subject, publicity = 'public', dontSync = false) => {
-    const originator = this.state.userId;
+  createTag = (
+    label,
+    subject,
+    originator,
+    publicity = 'public',
+    dontSync = false
+  ) => {
     var p = new Promise((resolve, reject) => {
       DataStore.addTag(
         subject,
         label,
         originator,
         this.state.userId,
+        this.state.token,
         publicity,
         dontSync
       ).then(id => {
@@ -170,13 +198,19 @@ class App extends Component {
     return p;
   };
 
-  addTag = (label, subject, publicity = 'public', dontSync = false) => {
-    const originator = this.state.userId;
+  addTag = (
+    label,
+    subject,
+    originator,
+    publicity = 'public',
+    dontSync = false
+  ) => {
     DataStore.addTag(
       subject,
       label,
       originator,
       this.state.userId,
+      this.state.token,
       publicity,
       dontSync
     ).then(id => {

@@ -8,6 +8,7 @@ import firebaseStyleTags from './ConstData/firebaseStyleTags.js';
 import firebaseStylePersons from './ConstData/firebaseStylePersons.js';
 
 import firebase from './firebase';
+import auth from './firebase.js';
 import axios from 'axios';
 
 

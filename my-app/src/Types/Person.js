@@ -15,5 +15,6 @@ export default class Person {
      */
     this.id = id;
     this.name = name || '';
+    this.photo_url = '';
   }
 }

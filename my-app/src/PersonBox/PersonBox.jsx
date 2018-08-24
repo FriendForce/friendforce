@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import TagButton from './TagButton.jsx';
-import { Row} from 'reactstrap';
+import { Row, Col} from 'reactstrap';
 
 
 export default class PersonBox extends Component {
-  // TODO - look at the tags for this person and display the info tags 
+  // TODO - look at the tags for this person and display the info tags
   constructor(props) {
     super(props);
     this.specialTypes = ["email", "date"];
@@ -40,34 +40,40 @@ export default class PersonBox extends Component {
     return(infoElement);
   }
 
-  //TODO: Add showing special things 
+  //TODO: Add showing special things
 
   render() {
     var person = this.props.person;
     var name = "";
+    var image = "";
     if (person.length > 0) {
       name = person[0].name;
-    } 
+      image = person[0].photo_url;
+    }
     var uniqueTagButtons = [];
     this.state.uniqueTags.forEach(tag=>{
       uniqueTagButtons.push(
-      <Row key={tag.label}> 
+      <Row key={tag.label}>
       {this.createUniqueTagElement(tag)}
       </Row>
       );
     });
     var tagButtons = [];
     this.state.tags.forEach(tag=>{
-      tagButtons.push( 
-            <TagButton key={tag.label} 
-                      tag={tag} 
+      tagButtons.push(
+            <TagButton key={tag.label}
+                      tag={tag}
                       setTag={this.setTag}
                       updateTag={this.updateTag}
                       deleteTag={this.deleteTag}/>);
     });
     return(
-      <div>
+      <div className ="person">
+        <Row>
+          <img className="miniperson-picture" src={image}/>
         <h2>{name}</h2>
+        </Row>
+
         {tagButtons}
         {uniqueTagButtons}
       </div>
