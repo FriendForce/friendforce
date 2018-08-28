@@ -61,10 +61,7 @@ class App extends Component {
   login() {
     auth.setPersistence(persistence).then(() => {
       auth.signInWithPopup(provider).then(result => {
-        console.log('logging in');
-        console.log(result);
         var userId = result.user.email;
-        console.log('userid = ' + userId);
         this.setState({ userId: userId });
       });
     });
@@ -93,8 +90,6 @@ class App extends Component {
   componentDidMount = () => {
     auth.onAuthStateChanged(user => {
       if (user) {
-        console.log('user');
-        console.log(user);
         var userId = user.email;
         this.setState({ userId: userId });
       }
@@ -107,10 +102,7 @@ class App extends Component {
         auth.currentUser.getIdToken(true).then(idToken => {
           //TODO: check if new user and do login flow
           DataStore.getUserPerson(idToken).then(response => {
-            console.log('got response to login');
-            console.log(response);
             if (response.new_account == true) {
-              console.log('new account! Hello!');
               this.props.history.push('/new');
             }
             this.setState({ userPerson: response.person.slug });
@@ -140,8 +132,11 @@ class App extends Component {
   };
 
   updateTag = (id, params) => {
-    DataStore.updateTag(id, params);
+    DataStore.updateTag(id, params, this.state.token);
     // Will this change propigate automatically?
+    DataStore.getAllTags().then(tags => {
+      this.setState({ tags });
+    });
   };
 
   deleteTag = id => {
@@ -181,40 +176,31 @@ class App extends Component {
     document.body.appendChild(script);
   }
 
-  createTag = (
-    label,
-    subject,
-    originator,
-    publicity = 'public',
-    dontSync = false
-  ) => {
+  createTag = (label, subject, publicity = 'public', dontSync = false) => {
     var p = new Promise((resolve, reject) => {
       DataStore.addTag(
         subject,
         label,
-        originator,
+        this.state.userPerson,
         this.state.userId,
         this.state.token,
         publicity,
         dontSync
       ).then(id => {
+        DataStore.getAllTags().then(tags => {
+          this.setState({ tags: tags });
+        });
         resolve(id);
       });
     });
     return p;
   };
 
-  addTag = (
-    label,
-    subject,
-    originator,
-    publicity = 'public',
-    dontSync = false
-  ) => {
+  addTag = (label, subject, publicity = 'public', dontSync = false) => {
     DataStore.addTag(
       subject,
       label,
-      originator,
+      this.state.userPerson,
       this.state.userId,
       this.state.token,
       publicity,
@@ -235,7 +221,6 @@ class App extends Component {
   };
 
   setPerson = person => {
-    console.log('set person: ' + person.name);
     this.props.history.push('/person/' + person.id);
   };
 

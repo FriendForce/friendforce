@@ -28,9 +28,10 @@ export default class TagButton extends Component {
   }
 
   render() {
+
     var className = "tagbutton-public";
     if (this.props.tag.publicity === 'private') {
-      className = 'tagbutton-private'
+      className = 'tagbutton-private';
     }
     return(
            <div>

@@ -110,8 +110,6 @@ class DataStore {
     stagedTag.token = token;
     axios.post(this.API_SERVER + "/tag", stagedTag)
     .then((response)=>{
-      console.log("tag response")
-      console.log(response);
       if (response.data.slug != tag.id) {
         //TODO: make a new tag from the response data
         //remove old tag
@@ -138,11 +136,9 @@ class DataStore {
   }
 
   flaskDeleteTag(id, idToken) {
-    console.log("trying to delete tag " + id);
     let p = new Promise((resolve, reject) => {
       axios.post(this.API_SERVER + "/tag/delete", {'id':id, 'token':idToken})
       .then((response)=> {
-        console.log(response.data);
         resolve(id);
         });
     })
@@ -155,8 +151,6 @@ pullLabels(userId, callback, idToken='') {
     'token':idToken
   })
   .then((response)=>{
-    console.log("got labels!")
-    console.log(response);
     response.data.forEach((label)=>{
       this._labels.add(label);
     })
@@ -170,17 +164,12 @@ pullLabels(userId, callback, idToken='') {
 }
 
 pullPersons(userId, callback, idToken='') {
-  console.log("pulling persons with id " + userId);
   axios.post(this.API_SERVER + "/known_persons", {
     'user':userId,
     'token':idToken
   })
   .then((response)=>{
-    console.log("got persons!");
-    console.log(response);
     response.data.forEach((person)=> {
-      console.log("adding ");
-      console.log(person);
       var newPerson = new Person(person.slug, person.first_name + " " + person.last_name)
       newPerson.photo_url = person.photo_url;
       this._persons.set(newPerson.id, newPerson);
@@ -190,7 +179,6 @@ pullPersons(userId, callback, idToken='') {
     console.log("ERROR" + error);
   })
   .then(() => {
-    console.log(this._persons);
     callback();
   })
 }
@@ -201,14 +189,12 @@ pullTags(userId, callback, idToken='') {
     'token':idToken
   })
   .then((response)=>{
-    console.log("got Tags!");
-    console.log(response);
     response.data.forEach((tag) => {
       var newTag = {};
       newTag.id = tag.slug;
       newTag.subject = tag.subject;
       newTag.originator = tag.originator;
-      newTag.publicty = tag.publicty;
+      newTag.publicity = tag.publicity;
       newTag.label = tag.text;
       this._tags.set(newTag.id, newTag);
     })
@@ -286,8 +272,6 @@ pullEverything(userId, callback, idToken) {
     });
 
     if(possibleMatchingIds.length > 0) {
-     console.log(person.name + "matches to ");
-     console.log(possibleMatchingIds);
      return possibleMatchingIds[0];
     } else {
       return null;
@@ -302,8 +286,6 @@ pullEverything(userId, callback, idToken) {
         // Check DB for person
         axios.post(this.API_SERVER + "/person", stagedPerson)
         .then((response)=>{
-          console.log("person response")
-          console.log(response);
           resolve(response.data);
         })
         .catch((error)=>{
