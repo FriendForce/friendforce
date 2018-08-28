@@ -40,7 +40,7 @@ class DataStore {
      this._labels = new Set([]);
      //this.loadExternalPersons(persons);
      //this.loadExternalTags(tags);
-     this.API_SERVER = "http://localhost:5000/api";
+     this.API_SERVER = "https://friendforce-server.herokuapp.com/api";
   }
 
   _nameToId(name) {
@@ -69,12 +69,15 @@ class DataStore {
       env = 'dev';
     } else if (parts[0] === 'friendforce-dev') {
       env = 'dev';
-    } else if (parts[0] === 'friendforce-friendforce-25851') {
+    } else if (parts[0] === 'friendforce-server') {
       env = 'prod';
+
     }
     if (env === 'prod') {
       // Add actual prod server locaton
       this.API_SERVER = 'https://friendforce-server.herokuapp.com/api';
+    } else if (env === 'dev') {
+      this.API_SERVER = 'http://localhost:5000/api';
     }
     return env;
   }
