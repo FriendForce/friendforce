@@ -130,8 +130,6 @@ class DataStore {
     let p = new Promise((resolve, reject) => {
       axios.post(this.API_SERVER + "/account", request)
       .then((response)=>{
-        console.log("got response");
-        console.log(response)
         resolve(response.data);
       })
       .catch((error)=>{
