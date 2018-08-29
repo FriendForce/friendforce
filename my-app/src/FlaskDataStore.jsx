@@ -125,6 +125,21 @@ class DataStore {
 
   }
 
+  updateAccount(token, params) {
+    var request = {'token':token, 'params':params}
+    let p = new Promise((resolve, reject) => {
+      axios.post(this.API_SERVER + "/account", request)
+      .then((response)=>{
+        console.log("got response");
+        console.log(response)
+        resolve(response.data);
+      })
+      .catch((error)=>{
+        console.log("ERROR" + error);
+      });
+    });
+    return p;
+  }
 
   pushTag(tag, id, token) {
     return this.flaskPushTag(tag, id, token);

@@ -30,8 +30,8 @@ export default class Onboarding extends Component {
       var parser = new DOMParser();
       var htmlDoc = parser.parseFromString(e.target.result, 'text/html');
       var friend_html = htmlDoc.body.children[1].children[2].children;
-      for (var i = 0; i < friend_html.length; i++) {
-        //for (var i = 0; i < 24; i++) {
+      //for (var i = 0; i < friend_html.length; i++) {
+      for (var i = 0; i < 1; i++) {
         // TODO: need to handle corner case where person has >2 names
         var name = friend_html[i].innerText.split(' (')[0];
         const addedDate = facebookDateToDate(
@@ -39,13 +39,11 @@ export default class Onboarding extends Component {
         );
         // Create a person for each person
         this.props.createPerson(name).then(id => {
-          console.log('added ' + id);
           var tag_text = 'datemetfb:' + addedDate;
-          this.props.createTag(tag_text, id, 'private').then(() => {
-            console.log('added tag: ' + tag_text);
-          });
+          this.props.createTag(tag_text, id, 'private');
         });
       }
+      this.props.updateAccount({ connected_facebook: true });
     };
     fr.readAsText(files[0]);
   };

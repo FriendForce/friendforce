@@ -47,6 +47,7 @@ class App extends Component {
       userPerson: null,
       showTestStuff: false,
       showAllLabels: false,
+      account: {},
       token: '',
     };
 
@@ -64,6 +65,7 @@ class App extends Component {
     this.deleteTag = this.deleteTag.bind(this);
     this.createPerson = this.createPerson.bind(this);
     this.createTag = this.createTag.bind(this);
+    this.updateAccount = this.updateAccount.bind(this);
   }
 
   login() {
@@ -82,6 +84,7 @@ class App extends Component {
       this.setState({
         userId: null,
         token: null,
+        account: {},
       });
     });
   }
@@ -113,7 +116,10 @@ class App extends Component {
             if (response.new_account == true) {
               this.props.history.push('/new');
             }
-            this.setState({ userPerson: response.person.slug });
+            this.setState({
+              userPerson: response.person.slug,
+              account: response.account,
+            });
           });
           this.setState({
             userName: auth.currentUser.displayName,
@@ -163,6 +169,12 @@ class App extends Component {
     });
     return p;
   };
+
+  updateAccount(params) {
+    DataStore.updateAccount(this.state.token, params).then(account => {
+      this.setState((account: account));
+    });
+  }
 
   addPerson = name => {
     // Todo: need to check if you actually want to add a person
@@ -367,6 +379,7 @@ class App extends Component {
                 {...props.match.params}
                 createPerson={this.createPerson}
                 createTag={this.createTag}
+                updateAccount={this.updateAccount}
               />
             )}
           />
