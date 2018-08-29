@@ -326,6 +326,22 @@ class App extends Component {
               <div />
             )}
 
+            {this.state.account.connected_facebook ? (
+              <div />
+            ) : (
+              <div>
+                <button
+                  className="btn btn-sm btn-outline-secondary"
+                  type="button"
+                  onClick={() => {
+                    this.props.history.push('/onboarding');
+                  }}
+                >
+                  Load Your Facebook Friends
+                </button>
+              </div>
+            )}
+
             {this.state.userId ? (
               <div>
                 <span className="navbar-text">
