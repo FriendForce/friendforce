@@ -12,7 +12,13 @@ import { Container, Row, Col } from 'reactstrap';
 import TestStuff from './TestStuff.jsx';
 import PersonList from './PersonList.js';
 import HowTo from './Onboarding/HowTo.js';
+import Onboarding from './Onboarding/Onboarding.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
+import { HotKeys } from 'react-hotkeys';
+
+const keyMap = {
+  togglePublicity: 'command+up',
+};
 
 const getSearchLabels = searchString => {
   return decodeURI(searchString).split('+');
@@ -56,6 +62,8 @@ class App extends Component {
     this.logout = this.logout.bind(this);
     this.updateTag = this.updateTag.bind(this);
     this.deleteTag = this.deleteTag.bind(this);
+    this.createPerson = this.createPerson.bind(this);
+    this.createTag = this.createTag.bind(this);
   }
 
   login() {
@@ -352,6 +360,16 @@ class App extends Component {
             path="/new"
             render={props => <HowTo {...props.match.params} />}
           />
+          <Route
+            path="/onboarding"
+            render={props => (
+              <Onboarding
+                {...props.match.params}
+                createPerson={this.createPerson}
+                createTag={this.createTag}
+              />
+            )}
+          />
           <Row>
             <Col>
               <Route
@@ -450,9 +468,11 @@ const AppBox = withRouter(App);
 
 const FullApp = () => (
   <Router>
-    <div>
-      <Route path="/:mode?/:data?" component={AppBox} />
-    </div>
+    <HotKeys keyMap={keyMap}>
+      <div>
+        <Route path="/:mode?/:data?" component={AppBox} />
+      </div>
+    </HotKeys>
   </Router>
 );
 export default FullApp;
