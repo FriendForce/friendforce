@@ -47,6 +47,7 @@ class App extends Component {
       userPerson: null,
       showTestStuff: false,
       showAllLabels: false,
+      //TODO: push tag updates to children
       account: {},
       token: '',
     };
@@ -66,6 +67,9 @@ class App extends Component {
     this.createPerson = this.createPerson.bind(this);
     this.createTag = this.createTag.bind(this);
     this.updateAccount = this.updateAccount.bind(this);
+    this.refreshTags = this.refreshTags.bind(this);
+    this.refreshPersons = this.refreshPersons.bind(this);
+    this.refreshLabels = this.refreshLabels.bind(this);
   }
 
   login() {
@@ -96,6 +100,9 @@ class App extends Component {
     } else {
       window.is_dev = true;
     }
+    DataStore.tagCallback = this.refreshTags;
+    DataStore.labelCallback = this.refreshLabels;
+    DataStore.personCallback = this.refreshPersons;
   };
 
   componentDidMount = () => {
@@ -135,11 +142,30 @@ class App extends Component {
 
   updateData = () => {
     DataStore.getAllTags().then(tags => {
-      this.setState({ tags });
+      this.setState({ tags: tags });
     });
     DataStore.getAllPersons().then(persons => {
       this.setState({ persons: persons });
     });
+    DataStore.getAllLabels().then(labels => {
+      this.setState({ labels: labels });
+    });
+  };
+
+  refreshTags = () => {
+    DataStore.getAllTags().then(tags => {
+      console.log('tag callback called!');
+      this.setState({ tags: tags });
+    });
+  };
+
+  refreshPersons = () => {
+    DataStore.getAllPersons().then(persons => {
+      this.setState({ persons: persons });
+    });
+  };
+
+  refreshLabels = () => {
     DataStore.getAllLabels().then(labels => {
       this.setState({ labels: labels });
     });

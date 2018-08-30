@@ -38,6 +38,9 @@ class DataStore {
      this._persons = new Map();
      this._tags = new Map();
      this._labels = new Set([]);
+     this.tagCallback = null;
+     this.labelCallback = null;
+     this.personCallback = null;
      //this.loadExternalPersons(persons);
      //this.loadExternalTags(tags);
      this.API_SERVER = "https://friendforce-server.herokuapp.com/api";
@@ -110,14 +113,18 @@ class DataStore {
     stagedTag.token = token;
     axios.post(this.API_SERVER + "/tag", stagedTag)
     .then((response)=>{
+      console.log("got response for tag " + tag.id + ": ")
+      console.log(response);
       if (response.data.slug != tag.id) {
         //TODO: make a new tag from the response data
         //remove old tag
         this._tags.delete(tag.id);
+      }
         //create new tag with the synced slug
         tag.id = response.data.slug
         this._tags.set(tag.id, tag);
-      }
+        this.tagCallback();
+        // What's the best way to let the app know refreshed thing?
     })
     .catch((error)=>{
       console.log("ERROR" + error);
