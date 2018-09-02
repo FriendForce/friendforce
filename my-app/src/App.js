@@ -172,44 +172,53 @@ class App extends Component {
   };
 
   updateTag = (id, params) => {
-    DataStore.updateTag(id, params, this.state.token);
-    // Will this change propigate automatically?
-    DataStore.getAllTags().then(tags => {
-      this.setState({ tags });
-    });
-  };
-
-  deleteTag = id => {
-    DataStore.deleteTag(id, this.state.token).then(() => {
+    auth.currentUser.getIdToken(true).then(idToken => {
+      DataStore.updateTag(id, params, idToken);
+      // Will this change propigate automatically?
       DataStore.getAllTags().then(tags => {
         this.setState({ tags });
       });
     });
   };
 
+  deleteTag = id => {
+    auth.currentUser.getIdToken(true).then(idToken => {
+      DataStore.deleteTag(id, idToken).then(() => {
+        DataStore.getAllTags().then(tags => {
+          this.setState({ tags });
+        });
+      });
+    });
+  };
+
   createPerson = (name, dontSync = false) => {
     var p = new Promise((resolve, reject) => {
-      DataStore.addPersonByName(name, this.state.token, dontSync).then(id => {
-        resolve(id);
+      auth.currentUser.getIdToken(true).then(idToken => {
+        DataStore.addPersonByName(name, idToken, dontSync).then(id => {
+          resolve(id);
+        });
       });
     });
     return p;
   };
 
   updateAccount(params) {
-    DataStore.updateAccount(this.state.token, params).then(account => {
-      this.setState((account: account));
+    auth.currentUser.getIdToken(true).then(idToken => {
+      DataStore.updateAccount(idToken, params).then(account => {
+        this.setState((account: account));
+      });
     });
   }
 
   addPerson = name => {
     // Todo: need to check if you actually want to add a person
     // When you're in search mode because people accidentally add new thing
-
-    DataStore.addPersonByName(name, this.state.token).then(id => {
-      this.props.history.push('/person/' + id);
-      DataStore.getAllPersons().then(persons => {
-        this.setState({ persons: persons });
+    auth.currentUser.getIdToken(true).then(idToken => {
+      DataStore.addPersonByName(name, idToken).then(id => {
+        this.props.history.push('/person/' + id);
+        DataStore.getAllPersons().then(persons => {
+          this.setState({ persons: persons });
+        });
       });
     });
   };
@@ -224,39 +233,43 @@ class App extends Component {
 
   createTag = (label, subject, publicity = 'public', dontSync = false) => {
     var p = new Promise((resolve, reject) => {
-      DataStore.addTag(
-        subject,
-        label,
-        this.state.userPerson,
-        this.state.userId,
-        this.state.token,
-        publicity,
-        dontSync
-      ).then(id => {
-        DataStore.getAllTags().then(tags => {
-          this.setState({ tags: tags });
+      auth.currentUser.getIdToken(true).then(idToken => {
+        DataStore.addTag(
+          subject,
+          label,
+          this.state.userPerson,
+          this.state.userId,
+          idToken,
+          publicity,
+          dontSync
+        ).then(id => {
+          DataStore.getAllTags().then(tags => {
+            this.setState({ tags: tags });
+          });
+          resolve(id);
         });
-        resolve(id);
       });
     });
     return p;
   };
 
   addTag = (label, subject, publicity = 'public', dontSync = false) => {
-    DataStore.addTag(
-      subject,
-      label,
-      this.state.userPerson,
-      this.state.userId,
-      this.state.token,
-      publicity,
-      dontSync
-    ).then(id => {
-      DataStore.getAllTags().then(tags => {
-        this.setState({ tags: tags });
-      });
-      DataStore.getAllLabels().then(labels => {
-        this.setState({ labels: labels });
+    auth.currentUser.getIdToken(true).then(idToken => {
+      DataStore.addTag(
+        subject,
+        label,
+        this.state.userPerson,
+        this.state.userId,
+        idToken,
+        publicity,
+        dontSync
+      ).then(id => {
+        DataStore.getAllTags().then(tags => {
+          this.setState({ tags: tags });
+        });
+        DataStore.getAllLabels().then(labels => {
+          this.setState({ labels: labels });
+        });
       });
     });
   };

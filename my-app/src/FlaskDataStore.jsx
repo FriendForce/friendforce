@@ -124,6 +124,7 @@ class DataStore {
         tag.id = response.data.slug
         this._tags.set(tag.id, tag);
         this.tagCallback();
+        //TODO: also need to create the label on the callback
         // What's the best way to let the app know refreshed thing?
     })
     .catch((error)=>{
@@ -389,7 +390,6 @@ pullEverything(userId, callback, idToken) {
      * @return {Promise} promise resolves when tag successfully added
      */
      var tag = new Tag(null, subject, originator, label, null, publicity);
-     this._labels.add(tag.label);
 
      tag.id = this._tagToId(tag);
      this._tags.set(tag.id, tag);
