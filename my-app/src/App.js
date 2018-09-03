@@ -50,6 +50,7 @@ class App extends Component {
       //TODO: push tag updates to children
       account: {},
       token: '',
+      tokenTimestamp: 0,
     };
 
     this.setPerson = this.setPerson.bind(this);
@@ -131,6 +132,7 @@ class App extends Component {
           this.setState({
             userName: auth.currentUser.displayName,
             token: idToken,
+            tokenTimestamp: new Date(),
           });
           DataStore.pullEverything(nextState.userId, this.updateData, idToken);
         });
@@ -171,8 +173,25 @@ class App extends Component {
     });
   };
 
+  checkToken = () => {
+    var p = new Promise((resolve, reject) => {
+      if (new Date() - this.state.tokenTimestamp > 45000) {
+        auth.currentUser.getIdToken(true).then(idToken => {
+          this.setState({
+            token: idToken,
+            tokenTimestamp: new Date(),
+          });
+          resolve(idToken);
+        });
+      } else {
+        resolve(this.state.token);
+      }
+    });
+    return p;
+  };
+
   updateTag = (id, params) => {
-    auth.currentUser.getIdToken(true).then(idToken => {
+    this.checkToken().then(idToken => {
       DataStore.updateTag(id, params, idToken);
       // Will this change propigate automatically?
       DataStore.getAllTags().then(tags => {
@@ -182,7 +201,7 @@ class App extends Component {
   };
 
   deleteTag = id => {
-    auth.currentUser.getIdToken(true).then(idToken => {
+    this.checkToken().then(idToken => {
       DataStore.deleteTag(id, idToken).then(() => {
         DataStore.getAllTags().then(tags => {
           this.setState({ tags });
@@ -193,7 +212,7 @@ class App extends Component {
 
   createPerson = (name, dontSync = false) => {
     var p = new Promise((resolve, reject) => {
-      auth.currentUser.getIdToken(true).then(idToken => {
+      this.checkToken().then(idToken => {
         DataStore.addPersonByName(name, idToken, dontSync).then(id => {
           resolve(id);
         });
@@ -203,7 +222,7 @@ class App extends Component {
   };
 
   updateAccount(params) {
-    auth.currentUser.getIdToken(true).then(idToken => {
+    this.checkToken().then(idToken => {
       DataStore.updateAccount(idToken, params).then(account => {
         this.setState((account: account));
       });
@@ -213,7 +232,7 @@ class App extends Component {
   addPerson = name => {
     // Todo: need to check if you actually want to add a person
     // When you're in search mode because people accidentally add new thing
-    auth.currentUser.getIdToken(true).then(idToken => {
+    this.checkToken().then(idToken => {
       DataStore.addPersonByName(name, idToken).then(id => {
         this.props.history.push('/person/' + id);
         DataStore.getAllPersons().then(persons => {
@@ -233,7 +252,7 @@ class App extends Component {
 
   createTag = (label, subject, publicity = 'public', dontSync = false) => {
     var p = new Promise((resolve, reject) => {
-      auth.currentUser.getIdToken(true).then(idToken => {
+      this.checkToken().then(idToken => {
         DataStore.addTag(
           subject,
           label,
@@ -254,7 +273,7 @@ class App extends Component {
   };
 
   addTag = (label, subject, publicity = 'public', dontSync = false) => {
-    auth.currentUser.getIdToken(true).then(idToken => {
+    this.checkToken().then(idToken => {
       DataStore.addTag(
         subject,
         label,
