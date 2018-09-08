@@ -109,6 +109,7 @@ class DataStore {
     * @Param tag {Tag} tag to push
     * @Param id {string -> id} id of the tag
     */
+    // Ideally - add tag very quickly and then modify when the push returns
     var stagedTag = tag;
     stagedTag.token = token;
     axios.post(this.API_SERVER + "/tag", stagedTag)
@@ -393,7 +394,9 @@ pullEverything(userId, callback, idToken) {
 
      tag.id = this._tagToId(tag);
      this._tags.set(tag.id, tag);
-
+     this._labels.add(tag.label);
+     this.labelCallback();
+     this.tagCallback();
      if (!dontSync) {
       this.pushTag(tag, tag.id, token);
      } else {

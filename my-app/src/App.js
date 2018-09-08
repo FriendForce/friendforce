@@ -108,6 +108,8 @@ class App extends Component {
 
   componentDidMount = () => {
     auth.onAuthStateChanged(user => {
+      console.log('setting user:');
+      console.log(user);
       if (user) {
         var userId = user.email;
         this.setState({ userId: userId });
