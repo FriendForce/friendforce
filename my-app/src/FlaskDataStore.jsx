@@ -327,19 +327,8 @@ pullEverything(userId, callback, idToken) {
      * @return {Promise} promise resolves when person successfully added
      */
      // TODO: make addPerson, addTag use _persons
-     let p = new Promise(
-       (resolve, reject) => {
-         var person = new Person('none', name);
-         this.flaskPushPerson(person, idToken)
-         .then((response) => {
-           var name = response.first_name + " " + response.last_name;
-           var person = new Person(response.slug, name)
-           this._persons.set(response.slug, person)
-           resolve(response.slug)
-         });
-       }
-     )
-     return p;
+     var person = new Person('none', name);
+     return this.addPerson(person, idToken, dontSync);
   }
 
   addPerson(person, idToken, dontSync=false){
@@ -348,6 +337,7 @@ pullEverything(userId, callback, idToken) {
      * @param person {Person} with populated fields
      * @return {Promise} promise resolves when person successfully added
      */
+
      let p = new Promise(
        (resolve, reject) => {
          this.flaskPushPerson(person, idToken)
@@ -355,6 +345,7 @@ pullEverything(userId, callback, idToken) {
            var name = response.first_name + " " + response.last_name;
            var person = new Person(response.slug, name)
            this._persons.set(response.slug, person)
+           this.personCallback();
            resolve(response.slug)
          });
        }

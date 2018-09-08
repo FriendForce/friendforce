@@ -235,11 +235,9 @@ class App extends Component {
     // Todo: need to check if you actually want to add a person
     // When you're in search mode because people accidentally add new thing
     this.checkToken().then(idToken => {
+      //Todo - for speed dont wait for server
       DataStore.addPersonByName(name, idToken).then(id => {
         this.props.history.push('/person/' + id);
-        DataStore.getAllPersons().then(persons => {
-          this.setState({ persons: persons });
-        });
       });
     });
   };
