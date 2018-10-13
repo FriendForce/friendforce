@@ -106,10 +106,12 @@ class App extends Component {
 
   _plusOne = () => {
     console.log('plusOne');
+    this.addTagToPerson('+1', 'private');
   };
 
   _minusOne = () => {
     console.log('minusOne');
+    this.addTagToPerson('-1', 'private');
   };
 
   _hadConvo = () => {
