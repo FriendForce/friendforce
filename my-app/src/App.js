@@ -14,11 +14,7 @@ import PersonList from './PersonList.js';
 import HowTo from './Onboarding/HowTo.js';
 import Onboarding from './Onboarding/Onboarding.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
-import { HotKeys } from 'react-hotkeys';
-
-const keyMap = {
-  togglePublicity: 'command+up',
-};
+import MouseTrap from 'mousetrap';
 
 const getSearchLabels = searchString => {
   return decodeURI(searchString).split('+');
@@ -51,6 +47,7 @@ class App extends Component {
       account: {},
       token: '',
       tokenTimestamp: 0,
+      publicity: 'public',
     };
 
     this.setPerson = this.setPerson.bind(this);
@@ -71,6 +68,7 @@ class App extends Component {
     this.refreshTags = this.refreshTags.bind(this);
     this.refreshPersons = this.refreshPersons.bind(this);
     this.refreshLabels = this.refreshLabels.bind(this);
+    this.onPublicityChanged = this.onPublicityChanged.bind(this);
   }
 
   login() {
@@ -106,7 +104,38 @@ class App extends Component {
     DataStore.personCallback = this.refreshPersons;
   };
 
+  _plusOne = () => {
+    console.log('plusOne');
+  };
+
+  _minusOne = () => {
+    console.log('minusOne');
+  };
+
+  _hadConvo = () => {
+    console.log('hadConvo');
+  };
+
+  onPublicityChanged = () => {
+    console.log('toggling publicity from ' + this.state.publicity);
+    if (this.state.publicity === 'private') {
+      this.setState({ publicity: 'public' });
+    } else if (this.state.publicity === 'public') {
+      this.setState({ publicity: 'private' });
+    }
+  };
+
+  _togglePrivate = () => {
+    this.onPublicityChanged();
+    console.log('togglePrivate');
+  };
+
   componentDidMount = () => {
+    MouseTrap.bind('right', this._goToNext);
+    MouseTrap.bind('p', this._togglePrivate);
+    MouseTrap.bind('[', this._plusOne);
+    MouseTrap.bind(']', this._minusOne);
+    MouseTrap.bind('\\', this._hadConvo);
     auth.onAuthStateChanged(user => {
       console.log('setting user:');
       console.log(user);
@@ -115,6 +144,14 @@ class App extends Component {
         this.setState({ userId: userId });
       }
     });
+  };
+
+  componentWillUnmount = () => {
+    MouseTrap.unbind('right', this._goToNext);
+    MouseTrap.unbind('p', this._togglePrivate);
+    MouseTrap.unbind('[', this._plusOne);
+    MouseTrap.unbind(']', this._minusOne);
+    MouseTrap.unbind('\\', this._hadConvo);
   };
 
   componentWillUpdate = (nextProps, nextState) => {
@@ -483,6 +520,8 @@ class App extends Component {
                 render={props => (
                   <AddBox
                     {...props.match.params}
+                    onPublicityChanged={this.onPublicityChanged}
+                    publicity={this.state.publicity}
                     tags={this.state.tags}
                     persons={this.state.persons}
                     addTagToPerson={this.addTagToPerson}
@@ -555,11 +594,9 @@ const AppBox = withRouter(App);
 
 const FullApp = () => (
   <Router>
-    <HotKeys keyMap={keyMap}>
-      <div>
-        <Route path="/:mode?/:data?" component={AppBox} />
-      </div>
-    </HotKeys>
+    <div>
+      <Route path="/:mode?/:data?" component={AppBox} />
+    </div>
   </Router>
 );
 export default FullApp;

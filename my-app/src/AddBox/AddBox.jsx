@@ -13,7 +13,7 @@ const getSuggestionValue = (object) => {
    * Get the string to show as a suggestion value for an object
    * Currently the options or persons or tags - this might change
    * @param {personOrTag} - a Tag or a Person Object
-   * @return {string} - suggestionvalue 
+   * @return {string} - suggestionvalue
    */
   if (object.hasOwnProperty('label')) {
     return object.label;
@@ -53,19 +53,19 @@ const renderSuggestion = (suggestion, {query}) => {
 export default class AddBox extends Component {
   constructor(props) {
     super();
+
     var options = props.labels;
     this.state = {
       value: '',
       suggestions: [],
-      publicity:"public",
       options: options
     }
-    this.onPublicityChanged = this.onPublicityChanged.bind(this);
   }
 
   componentWillReceiveProps = new_props => {
     // Update lists of things when props change
     var options = new_props.labels;
+    var publicity = new_props.publicity;
     this.setState({
       options: options
     });
@@ -90,11 +90,11 @@ export default class AddBox extends Component {
   };
 
   handleTagSelection = (tag) => {
-    this.props.addTagToPerson(tag.label, this.state.publicity);
+    this.props.addTagToPerson(tag.label, this.props.publicity);
   }
 
    handleLabelSelection = (label) => {
-    this.props.addTagToPerson(label, this.state.publicity);
+    this.props.addTagToPerson(label, this.props.publicity);
   }
 
 
@@ -105,28 +105,21 @@ export default class AddBox extends Component {
     // determine whether suggestion is a person or a tag
       // handle selected tag
     this.handleLabelSelection(suggestion);
-    this.setState({value:''});   
+    this.setState({value:''});
   };
-  
+
    _handleKeyPress = e => {
     if (this.state.suggestions.length === 0 && this.state.value !== '') {
           // Handles comlete entries
       if (e.key === 'Enter') {
-        console.log("publicity = " + this.state.publicity);
-        this.props.addTagToPerson(this.state.value, this.state.publicity);
+        console.log("publicity = " + this.props.publicity);
+        this.props.addTagToPerson(this.state.value, this.props.publicity);
         this.setState({value:''});
       }
     }
   };
-  
-  onPublicityChanged = e => {   
-    if (this.state.publicity === "private") {
-      this.setState({publicity:"public"});
-    } else if (this.state.publicity === "public") {
-      this.setState({publicity:"private"});
-    }
-    
-  }
+
+
 
   render() {
     const { value, suggestions } = this.state;
@@ -137,7 +130,7 @@ export default class AddBox extends Component {
     };
 
     const renderInputComponent = inputProps => {
-      return(                            
+      return(
         <div>
           <div className="embed-submit-field">
           <input {...inputProps} onKeyPress={this._handleKeyPress} />
@@ -151,7 +144,7 @@ export default class AddBox extends Component {
       //Finding Tags
       <div id="addBox">
         <div>
-          
+
           <Autosuggest
             highlightFirstSuggestion={true}
             suggestions={suggestions}
@@ -166,9 +159,9 @@ export default class AddBox extends Component {
             id="addBox"
           />
         </div>
-        
+
         <div className="form-check">
-          <input checked={this.state.publicity==="private"} onChange={this.onPublicityChanged}  type="checkbox" className="form-check-input" id="exampleCheck1"/>
+          <input checked={this.props.publicity==="private"} onChange={this.props.onPublicityChanged}  type="checkbox" className="form-check-input" id="exampleCheck1"/>
           <label className="form-check-label" htmlFor="exampleCheck1">Make Tag Private</label>
         </div>
         <div id="results" />
