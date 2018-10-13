@@ -114,6 +114,7 @@ class App extends Component {
 
   _hadConvo = () => {
     console.log('hadConvo');
+    this.addTagToPerson('had convo', 'private');
   };
 
   onPublicityChanged = () => {
