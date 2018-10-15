@@ -15,6 +15,7 @@ import HowTo from './Onboarding/HowTo.js';
 import Onboarding from './Onboarding/Onboarding.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 import MouseTrap from 'mousetrap';
+import Overlay from './Overlay/Overlay.jsx';
 
 const getSearchLabels = searchString => {
   return decodeURI(searchString).split('+');
@@ -69,6 +70,33 @@ class App extends Component {
     this.refreshPersons = this.refreshPersons.bind(this);
     this.refreshLabels = this.refreshLabels.bind(this);
     this.onPublicityChanged = this.onPublicityChanged.bind(this);
+
+    this.hotkeys = {
+      right: {
+        function: this._goToNext,
+        description: 'test',
+      },
+      p: {
+        function: this._togglePrivate,
+        description: 'Toggle whether next tag is private',
+      },
+      '[': {
+        function: this._plusOne,
+        description: 'Add trust to someone',
+      },
+      ']': {
+        function: this._minusOne,
+        description: 'Remove Trust to someone',
+      },
+      '\\': {
+        function: this._hadConvo,
+        description: 'Mark this person as someone',
+      },
+      'command+k': {
+        function: this._displayCommands,
+        description: 'Display Commands',
+      },
+    };
   }
 
   login() {
@@ -119,6 +147,14 @@ class App extends Component {
     this.addTagToPerson('had convo', 'private');
   };
 
+  _displayCommands = () => {
+    if (document.getElementById('myNav').style.display === 'none') {
+      document.getElementById('myNav').style.display = 'block';
+    } else {
+      document.getElementById('myNav').style.display = 'none';
+    }
+  };
+
   onPublicityChanged = () => {
     console.log('toggling publicity from ' + this.state.publicity);
     if (this.state.publicity === 'private') {
@@ -134,11 +170,9 @@ class App extends Component {
   };
 
   componentDidMount = () => {
-    MouseTrap.bind('right', this._goToNext);
-    MouseTrap.bind('p', this._togglePrivate);
-    MouseTrap.bind('[', this._plusOne);
-    MouseTrap.bind(']', this._minusOne);
-    MouseTrap.bind('\\', this._hadConvo);
+    Object.keys(this.hotkeys).forEach(key => {
+      MouseTrap.bind(key, this.hotkeys[key].function);
+    });
     auth.onAuthStateChanged(user => {
       console.log('setting user:');
       console.log(user);
@@ -150,11 +184,9 @@ class App extends Component {
   };
 
   componentWillUnmount = () => {
-    MouseTrap.unbind('right', this._goToNext);
-    MouseTrap.unbind('p', this._togglePrivate);
-    MouseTrap.unbind('[', this._plusOne);
-    MouseTrap.unbind(']', this._minusOne);
-    MouseTrap.unbind('\\', this._hadConvo);
+    Object.keys(this.hotkeys).forEach(key => {
+      MouseTrap.unbind(key, this.hotkeys[key].function);
+    });
   };
 
   componentWillUpdate = (nextProps, nextState) => {
@@ -542,6 +574,7 @@ class App extends Component {
               >
                 {labelToggleButtonName}
               </button>
+              <Overlay hotkeys={this.hotkeys} />
               {this.state.showAllLabels && labelButtons}
             </Col>
 
