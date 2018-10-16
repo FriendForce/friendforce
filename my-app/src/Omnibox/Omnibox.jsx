@@ -82,7 +82,7 @@ export default class OmniBox extends Component {
 
   _onEsc = (event) => {
 
-    if (document.activeElement.id !== "searchBox") {
+    if (document.activeElement.id !== "searchBoxInput") {
       return 0;
     }
     if (event.keyCode !== 27) {
@@ -168,10 +168,10 @@ export default class OmniBox extends Component {
         tagButtons.push( <SearchButton key={label} unsetLabel={this.props.unsetLabel} label={label}/>);
       });
       return(
-        <div>
+        <div >
           <div className="embed-submit-field">
           {tagButtons}
-          <input {...inputProps} onKeyPress={this._handleKeyPress} />
+          <input {...inputProps} id="searchBoxInput"  onKeyPress={this._handleKeyPress} />
           <div id='results' />
           </div>
         </div>
@@ -180,8 +180,8 @@ export default class OmniBox extends Component {
 
     return (
       //Finding Tags
-      <div id="searchBox">
-        <div>
+      <div id="searchBoxElem">
+        <div id="searchBox">
 
           <Autosuggest
             highlightFirstSuggestion={true}
@@ -194,7 +194,7 @@ export default class OmniBox extends Component {
             renderInputComponent={renderInputComponent}
             inputProps={inputProps}
             //focusInputOnSuggestionClick={focusInputOnSuggestionClick}
-            id="searchBox"
+
           />
         </div>
         <div id="results" />

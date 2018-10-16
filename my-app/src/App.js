@@ -72,6 +72,14 @@ class App extends Component {
     this.onPublicityChanged = this.onPublicityChanged.bind(this);
 
     this.hotkeys = {
+      a: {
+        function: this._onA,
+        description: 'Go to Adding Tag Mode',
+      },
+      s: {
+        function: this._onS,
+        description: 'Go to Search Mode',
+      },
       right: {
         function: this._goToNext,
         description: 'test',
@@ -132,6 +140,18 @@ class App extends Component {
     DataStore.personCallback = this.refreshPersons;
   };
 
+  _onA = e => {
+    console.log('a called');
+    e.preventDefault();
+    document.getElementById('addBoxInput').focus();
+  };
+
+  _onS = e => {
+    e.preventDefault();
+    console.log('s called');
+    document.getElementById('searchBoxInput').focus();
+  };
+
   _onEsc = () => {
     console.log('esc');
     document.activeElement.blur();
@@ -153,7 +173,10 @@ class App extends Component {
   };
 
   _displayCommands = () => {
-    if (document.getElementById('myNav').style.display === 'none') {
+    if (
+      document.getElementById('myNav').style.display === 'none' ||
+      document.getElementById('myNav').style.display === ''
+    ) {
       document.getElementById('myNav').style.display = 'block';
     } else {
       document.getElementById('myNav').style.display = 'none';
@@ -635,7 +658,7 @@ const AppBox = withRouter(App);
 
 const FullApp = () => (
   <Router>
-    <div>
+    <div id="app">
       <Route path="/:mode?/:data?" component={AppBox} />
     </div>
   </Router>

@@ -90,7 +90,7 @@ export default class AddBox extends Component {
   };
 
   _onEsc = (event) => {
-    if (document.activeElement.id !== "addBox") {
+    if (document.activeElement.id !== "addBoxInput") {
       return 0;
     }
     if (event.keyCode !== 27) {
@@ -161,7 +161,7 @@ export default class AddBox extends Component {
       return(
         <div>
           <div className="embed-submit-field">
-          <input {...inputProps}  onKeyPress={this._handleKeyPress} />
+          <input {...inputProps} onfocus="this.value=''" id="addBoxInput"  onKeyPress={this._handleKeyPress} />
           <div id='results' />
           </div>
         </div>
@@ -170,8 +170,8 @@ export default class AddBox extends Component {
 
     return (
       //Finding Tags
-      <div id="addBox" >
-        <div >
+      <div id="addBoxElem" >
+        <div id="addBox">
 
           <Autosuggest
             highlightFirstSuggestion={true}
@@ -184,7 +184,7 @@ export default class AddBox extends Component {
             renderInputComponent={renderInputComponent}
             inputProps={inputProps}
             //focusInputOnSuggestionClick={focusInputOnSuggestionClick}
-            id="addBox"
+
           />
         </div>
 
