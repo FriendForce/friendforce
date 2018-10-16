@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Autosuggest from 'react-autosuggest';
+import MouseTrap from 'mousetrap';
 
 
 //import isMobile from 'ismobilejs';
@@ -58,8 +59,11 @@ export default class AddBox extends Component {
     this.state = {
       value: '',
       suggestions: [],
-      options: options
+      options: options,
+      numEscPressed: 0,
     }
+
+    this.onEsc = this._onEsc.bind(this);
   }
 
   componentWillReceiveProps = new_props => {
@@ -71,13 +75,36 @@ export default class AddBox extends Component {
     });
   };
 
+  componentDidMount = () => {
+      document.addEventListener("keyup", this.onEsc, false);
+  }
+
+  componentWillUnmount = () => {
+    document.removeEventListener("keyup", this.onEsc, false);
+  }
+
   onChange = (event, { newValue, method }) => {
     this.setState({
       value: newValue
     });
   };
 
-  onSuggestionsFetchRequested = ({ value }) => {
+  _onEsc = (event) => {
+    if (document.activeElement.id !== "addBox") {
+      return 0;
+    }
+    if (event.keyCode !== 27) {
+      this.setState({numEscPressed:0});
+    }
+    if (event.keyCode === 27 && this.state.value === '' ) {
+      this.setState({numEscPressed:this.state.numEscPressed += 1});
+    }
+    if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed===2) {
+      document.activeElement.blur();
+    }
+  }
+
+  onSuggestionsFetchRequested = ({ value, reason }) => {
     this.setState({
       suggestions: getSuggestions(value, this.state.options)
     });
@@ -112,12 +139,13 @@ export default class AddBox extends Component {
     if (this.state.suggestions.length === 0 && this.state.value !== '') {
           // Handles comlete entries
       if (e.key === 'Enter') {
-        console.log("publicity = " + this.props.publicity);
         this.props.addTagToPerson(this.state.value, this.props.publicity);
         this.setState({value:''});
       }
     }
   };
+
+
 
 
 
@@ -133,7 +161,7 @@ export default class AddBox extends Component {
       return(
         <div>
           <div className="embed-submit-field">
-          <input {...inputProps} onKeyPress={this._handleKeyPress} />
+          <input {...inputProps}  onKeyPress={this._handleKeyPress} />
           <div id='results' />
           </div>
         </div>
@@ -142,8 +170,8 @@ export default class AddBox extends Component {
 
     return (
       //Finding Tags
-      <div id="addBox">
-        <div>
+      <div id="addBox" >
+        <div >
 
           <Autosuggest
             highlightFirstSuggestion={true}

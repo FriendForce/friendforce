@@ -13,7 +13,7 @@ const getSuggestionValue = (object) => {
    * Get the string to show as a suggestion value for an object
    * Currently the options or persons or tags - this might change
    * @param {personOrTag} - a Tag or a Person Object
-   * @return {string} - suggestionvalue 
+   * @return {string} - suggestionvalue
    */
   if (object.hasOwnProperty('label')) {
     return object.label;
@@ -57,8 +57,10 @@ export default class OmniBox extends Component {
     this.state = {
       value: '',
       suggestions: [],
-      options: options
+      options: options,
+      numEscPressed: 0,
     }
+    this.onEsc = this._onEsc.bind(this);
   }
 
 
@@ -69,6 +71,30 @@ export default class OmniBox extends Component {
       options: options
     });
   };
+
+  componentDidMount = () => {
+      document.addEventListener("keyup", this.onEsc, false);
+  }
+
+  componentWillUnmount = () => {
+    document.removeEventListener("keyup", this.onEsc, false);
+  }
+
+  _onEsc = (event) => {
+
+    if (document.activeElement.id !== "searchBox") {
+      return 0;
+    }
+    if (event.keyCode !== 27) {
+      this.setState({numEscPressed:0});
+    }
+    if (event.keyCode === 27 && this.state.value === '' ) {
+      this.setState({numEscPressed:this.state.numEscPressed += 1});
+    }
+    if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed===2) {
+      document.activeElement.blur();
+    }
+  }
 
   onChange = (event, { newValue, method }) => {
     this.setState({
@@ -115,9 +141,9 @@ export default class OmniBox extends Component {
     } else if (typeof(suggestion) === "string") {
       this.handleLabelSelection(suggestion);
     }
-    this.setState({value:''});   
+    this.setState({value:''});
   };
-  
+
    _handleKeyPress = e => {
     if (this.state.suggestions.length === 0 && this.state.value !== '') {
           // Handles comlete entries
@@ -127,7 +153,7 @@ export default class OmniBox extends Component {
       }
     }
   };
-  
+
   render() {
     const { value, suggestions } = this.state;
     const inputProps = {
@@ -137,11 +163,11 @@ export default class OmniBox extends Component {
     };
 
     const renderInputComponent = inputProps => {
-      var tagButtons = [];                                        
+      var tagButtons = [];
       this.props.searchLabels.forEach(label => {
         tagButtons.push( <SearchButton key={label} unsetLabel={this.props.unsetLabel} label={label}/>);
       });
-      return(                            
+      return(
         <div>
           <div className="embed-submit-field">
           {tagButtons}
@@ -156,7 +182,7 @@ export default class OmniBox extends Component {
       //Finding Tags
       <div id="searchBox">
         <div>
-          
+
           <Autosuggest
             highlightFirstSuggestion={true}
             suggestions={suggestions}

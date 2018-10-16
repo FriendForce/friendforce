@@ -132,6 +132,11 @@ class App extends Component {
     DataStore.personCallback = this.refreshPersons;
   };
 
+  _onEsc = () => {
+    console.log('esc');
+    document.activeElement.blur();
+  };
+
   _plusOne = () => {
     console.log('plusOne');
     this.addTagToPerson('+1', 'private');
