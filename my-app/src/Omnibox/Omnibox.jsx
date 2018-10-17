@@ -73,11 +73,11 @@ export default class OmniBox extends Component {
   };
 
   componentDidMount = () => {
-      document.addEventListener("keyup", this.onEsc, false);
+      document.addEventListener("keydown", this.onEsc, false);
   }
 
   componentWillUnmount = () => {
-    document.removeEventListener("keyup", this.onEsc, false);
+    document.removeEventListener("keydown", this.onEsc, false);
   }
 
   _onEsc = (event) => {

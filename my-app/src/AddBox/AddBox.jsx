@@ -76,11 +76,11 @@ export default class AddBox extends Component {
   };
 
   componentDidMount = () => {
-      document.addEventListener("keyup", this.onEsc, false);
+      document.addEventListener("keydown", this.onEsc, false);
   }
 
   componentWillUnmount = () => {
-    document.removeEventListener("keyup", this.onEsc, false);
+    document.removeEventListener("keydown", this.onEsc, false);
   }
 
   onChange = (event, { newValue, method }) => {
@@ -136,6 +136,7 @@ export default class AddBox extends Component {
   };
 
    _handleKeyPress = e => {
+     console.log("keypress = " + e.key);
     if (this.state.suggestions.length === 0 && this.state.value !== '') {
           // Handles comlete entries
       if (e.key === 'Enter') {
