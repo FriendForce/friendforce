@@ -16,7 +16,6 @@ import Onboarding from './Onboarding/Onboarding.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 import MouseTrap from 'mousetrap';
 import Overlay from './Overlay/Overlay.jsx';
-import Stack from './Stack/Stack.jsx';
 
 const getSearchLabels = searchString => {
   return decodeURI(searchString).split('+');
@@ -50,7 +49,6 @@ class App extends Component {
       token: '',
       tokenTimestamp: 0,
       publicity: 'public',
-      previousStates: new Stack(),
     };
 
     // Bound Functions
@@ -73,6 +71,8 @@ class App extends Component {
     this.refreshPersons = this.refreshPersons.bind(this);
     this.refreshLabels = this.refreshLabels.bind(this);
     this.onPublicityChanged = this.onPublicityChanged.bind(this);
+    this.setSpecial = this.setSpecial.bind(this, 'test');
+    this.unsetSpecial = this.unsetSpecial.bind(this);
 
     this.hotkeys = {
       a: {
@@ -110,6 +110,10 @@ class App extends Component {
       esc: {
         function: this._onEsc,
         description: 'Go Back',
+      },
+      f: {
+        function: this.setSpecial,
+        description: 'foo',
       },
     };
   }
@@ -159,6 +163,9 @@ class App extends Component {
     e.preventDefault();
     console.log('s called');
     this.props.history.push('/search');
+    if (document.getElementById('searchBoxInput')) {
+      document.getElementById('searchBoxInput').focus();
+    }
   };
 
   _onEsc = () => {
@@ -427,6 +434,17 @@ class App extends Component {
     }
   };
 
+  setSpecial = special => {
+    console.log('setting special');
+    if (this.props.match.params.mode === 'person') {
+      var person = this.props.match.params.data;
+      console.log(person);
+      this.props.history.push('/person/' + person + '/' + encodeURI(special));
+    } else {
+      console.log('not in person mode');
+    }
+  };
+
   setTag = tag => {
     this.setLabel(tag.label);
   };
@@ -435,6 +453,16 @@ class App extends Component {
     const searchLabels = getSearchLabels(this.props.match.params.data);
     const newLabels = searchLabels.filter(label => label !== targetLabel);
     this.props.history.push('/search/' + labelsToString(newLabels));
+  };
+
+  unsetSpecial = () => {
+    if (this.props.match.params.mode === 'person') {
+      var person = this.props.match.params.data;
+      console.log(person);
+      this.props.history.push('/person/' + person);
+    } else {
+      console.log('not in person mode');
+    }
   };
 
   /* Test Instrumentation Code */
@@ -463,6 +491,13 @@ class App extends Component {
         <LabelButton key={label} label={label} setTag={this.setTag} />
       );
     });
+    var specialLabel = null;
+    if (
+      this.props.match.params.mode === 'person' &&
+      this.props.match.params.special
+    ) {
+      specialLabel = decodeURI(this.props.match.params.special);
+    }
 
     var searchLabels = [];
     if (
@@ -572,7 +607,7 @@ class App extends Component {
           <Row>
             <Col>
               <Route
-                path="(/search|)"
+                path="(/search| )"
                 render={props => (
                   <Omnibox
                     {...props.match.params}
@@ -601,6 +636,9 @@ class App extends Component {
                     persons={this.state.persons}
                     addTagToPerson={this.addTagToPerson}
                     labels={this.state.labels}
+                    setSpecial={this.setSpecial}
+                    unsetSpecial={this.unsetSpecial}
+                    specialLabel={specialLabel}
                   />
                 )}
               />
@@ -671,7 +709,7 @@ const AppBox = withRouter(App);
 const FullApp = () => (
   <Router>
     <div id="app">
-      <Route path="/:mode?/:data?" component={AppBox} />
+      <Route path="/:mode?/:data?/:special?" component={AppBox} />
     </div>
   </Router>
 );

@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Autosuggest from 'react-autosuggest';
 import MouseTrap from 'mousetrap';
+import SpecialButton from './SpecialButton';
 
 
 //import isMobile from 'ismobilejs';
@@ -140,8 +141,18 @@ export default class AddBox extends Component {
     if (this.state.suggestions.length === 0 && this.state.value !== '') {
           // Handles comlete entries
       if (e.key === 'Enter') {
-        this.props.addTagToPerson(this.state.value, this.props.publicity);
-        this.setState({value:''});
+        if(this.state.value[this.state.value.length - 1] === ":") {
+          var split = this.state.value.split(":")
+          var value = '';
+          if (split.length > 1) {
+            value = split[1];
+          }
+          this.props.setSpecial(split[0]);
+          this.setState({value:value});
+        } else {
+          this.props.addTagToPerson(this.state.value, this.props.publicity);
+          this.setState({value:''});
+        }
       }
     }
   };
@@ -159,9 +170,17 @@ export default class AddBox extends Component {
     };
 
     const renderInputComponent = inputProps => {
+      var specialButtons = [];
+      if(this.props.specialLabel) {
+        specialButtons.push(<SpecialButton key={this.props.specialLabel}
+                                           unsetSpecial={this.props.unsetSpecial}
+                                          special={this.props.specialLabel + ":"}/>);
+      }
+
       return(
         <div>
           <div className="embed-submit-field">
+          {specialButtons}
           <input {...inputProps} onfocus="this.value=''" id="addBoxInput"  onKeyPress={this._handleKeyPress} />
           <div id='results' />
           </div>

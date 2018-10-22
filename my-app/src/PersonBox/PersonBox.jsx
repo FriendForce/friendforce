@@ -61,7 +61,7 @@ export default class PersonBox extends Component {
     var tagButtons = [];
     this.state.tags.forEach(tag=>{
       tagButtons.push(
-            <TagButton key={tag.label}
+            <TagButton key={tag.id}
                       tag={tag}
                       setTag={this.setTag}
                       updateTag={this.updateTag}
