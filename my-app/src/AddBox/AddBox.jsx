@@ -99,7 +99,7 @@ export default class AddBox extends Component {
     if (event.keyCode === 27 && this.state.value === '' ) {
       this.setState({numEscPressed:this.state.numEscPressed += 1});
     }
-    if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed===2) {
+    if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed>=2) {
       document.activeElement.blur();
     }
   }

@@ -16,6 +16,7 @@ import Onboarding from './Onboarding/Onboarding.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 import MouseTrap from 'mousetrap';
 import Overlay from './Overlay/Overlay.jsx';
+import Stack from './Stack/Stack.jsx';
 
 const getSearchLabels = searchString => {
   return decodeURI(searchString).split('+');
@@ -49,8 +50,10 @@ class App extends Component {
       token: '',
       tokenTimestamp: 0,
       publicity: 'public',
+      previousStates: new Stack(),
     };
 
+    // Bound Functions
     this.setPerson = this.setPerson.bind(this);
     this.setTag = this.setTag.bind(this);
     this.setLabel = this.setLabel.bind(this);
@@ -104,6 +107,10 @@ class App extends Component {
         function: this._displayCommands,
         description: 'Display Commands',
       },
+      esc: {
+        function: this._onEsc,
+        description: 'Go Back',
+      },
     };
   }
 
@@ -143,18 +150,23 @@ class App extends Component {
   _onA = e => {
     console.log('a called');
     e.preventDefault();
-    document.getElementById('addBoxInput').focus();
+    if (document.getElementById('addBoxInput')) {
+      document.getElementById('addBoxInput').focus();
+    }
   };
 
   _onS = e => {
     e.preventDefault();
     console.log('s called');
-    document.getElementById('searchBoxInput').focus();
+    this.props.history.push('/search');
   };
 
   _onEsc = () => {
-    console.log('esc');
-    document.activeElement.blur();
+    if (document.getElementById('myNav').style.display === 'block') {
+      document.getElementById('myNav').style.display = 'none';
+    } else {
+      this.props.history.goBack();
+    }
   };
 
   _plusOne = () => {
@@ -560,7 +572,7 @@ class App extends Component {
           <Row>
             <Col>
               <Route
-                path={/^(?!.*new).*$/}
+                path="(/search|)"
                 render={props => (
                   <Omnibox
                     {...props.match.params}

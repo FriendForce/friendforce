@@ -6,12 +6,6 @@ export default class Overlay extends Component {
   constructor(props) {
     super(props);
   }
-  componentDidMount = () => {
-    MouseTrap.bind('esc', this.closeNav);
-  }
-  componentWillUnmount = () => {
-    MouseTrap.unbind('esc', this.closeNav);
-  }
 
 
       /* Open */

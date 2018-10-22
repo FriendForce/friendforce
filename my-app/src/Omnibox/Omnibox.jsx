@@ -74,6 +74,7 @@ export default class OmniBox extends Component {
 
   componentDidMount = () => {
       document.addEventListener("keydown", this.onEsc, false);
+      document.getElementById('searchBoxInput').focus();
   }
 
   componentWillUnmount = () => {
@@ -91,7 +92,7 @@ export default class OmniBox extends Component {
     if (event.keyCode === 27 && this.state.value === '' ) {
       this.setState({numEscPressed:this.state.numEscPressed += 1});
     }
-    if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed===2) {
+    if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed>=2) {
       document.activeElement.blur();
     }
   }
@@ -157,7 +158,7 @@ export default class OmniBox extends Component {
   render() {
     const { value, suggestions } = this.state;
     const inputProps = {
-      placeholder: "Type a name or a tag!",
+      placeholder: "Search for a name or attribute!",
       value,
       onChange: this.onChange
     };
