@@ -71,7 +71,7 @@ class App extends Component {
     this.refreshPersons = this.refreshPersons.bind(this);
     this.refreshLabels = this.refreshLabels.bind(this);
     this.onPublicityChanged = this.onPublicityChanged.bind(this);
-    this.setSpecial = this.setSpecial.bind(this, 'test');
+    this.setSpecial = this.setSpecial.bind(this);
     this.unsetSpecial = this.unsetSpecial.bind(this);
 
     this.hotkeys = {

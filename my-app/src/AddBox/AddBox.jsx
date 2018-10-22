@@ -32,7 +32,8 @@ const getSuggestions = (value, options) => {
     return [];
   }
   const regex = new RegExp(escapedValue, 'i');
-  return options.filter(tag_or_person => regex.test(getSuggestionValue(tag_or_person)));
+  var suggestions = options.filter(tag_or_person => regex.test(getSuggestionValue(tag_or_person))).sort();
+  return suggestions
 };
 
 
@@ -65,6 +66,7 @@ export default class AddBox extends Component {
     }
 
     this.onEsc = this._onEsc.bind(this);
+    this.reset = this.reset.bind(this);
   }
 
   componentWillReceiveProps = new_props => {
@@ -99,6 +101,7 @@ export default class AddBox extends Component {
     }
     if (event.keyCode === 27 && this.state.value === '' ) {
       this.setState({numEscPressed:this.state.numEscPressed += 1});
+      this.props.unsetSpecial();
     }
     if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed>=2) {
       document.activeElement.blur();
@@ -117,12 +120,23 @@ export default class AddBox extends Component {
     });
   };
 
+  reset = () => {
+    this.props.unsetSpecial();
+    this.setState({value:''});
+  }
+
   handleTagSelection = (tag) => {
-    this.props.addTagToPerson(tag.label, this.props.publicity);
+    this.props.addTagToPerson(this.props.specialLabel+":"+tag.label, this.props.publicity);
+    this.props.unsetSpecial();
   }
 
    handleLabelSelection = (label) => {
-    this.props.addTagToPerson(label, this.props.publicity);
+    if (label.split(":").length > 1) {
+      this.props.setSpecial(label.split(":")[0]);
+    } else {
+      this.props.addTagToPerson(this.props.specialLabel+":"+label, this.props.publicity);
+      this.props.unsetSpecial();
+    }
   }
 
 
@@ -137,7 +151,6 @@ export default class AddBox extends Component {
   };
 
    _handleKeyPress = e => {
-     console.log("keypress = " + e.key);
     if (this.state.suggestions.length === 0 && this.state.value !== '') {
           // Handles comlete entries
       if (e.key === 'Enter') {
@@ -150,8 +163,9 @@ export default class AddBox extends Component {
           this.props.setSpecial(split[0]);
           this.setState({value:value});
         } else {
-          this.props.addTagToPerson(this.state.value, this.props.publicity);
+          this.props.addTagToPerson(this.props.specialLabel+":"+this.state.value, this.props.publicity);
           this.setState({value:''});
+          this.props.unsetSpecial();
         }
       }
     }
@@ -176,12 +190,13 @@ export default class AddBox extends Component {
                                            unsetSpecial={this.props.unsetSpecial}
                                           special={this.props.specialLabel + ":"}/>);
       }
-
       return(
-        <div>
+        <div className="autosuggest__box">
           <div className="embed-submit-field">
-          {specialButtons}
-          <input {...inputProps} onfocus="this.value=''" id="addBoxInput"  onKeyPress={this._handleKeyPress} />
+          <div className="autosuggest__buttons">{specialButtons}</div>
+          <div className="autosuggest__input-box">
+          <input {...inputProps} id="addBoxInput"  onKeyPress={this._handleKeyPress} />
+          </div>
           <div id='results' />
           </div>
         </div>
@@ -191,7 +206,7 @@ export default class AddBox extends Component {
     return (
       //Finding Tags
       <div id="addBoxElem" >
-        <div id="addBox">
+        <div id="addBox" class="add-box">
 
           <Autosuggest
             highlightFirstSuggestion={true}
