@@ -482,6 +482,7 @@ class App extends Component {
   };
 
   unsetLabel = targetLabel => {
+    console.log('unsetting: ' + targetLabel);
     if (targetLabel.slice(-1) === ':') {
       DataStore.getAllLabels().then(labels => {
         this.setState({ labels: labels });

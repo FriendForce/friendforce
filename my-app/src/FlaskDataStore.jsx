@@ -23,6 +23,11 @@ function slugify(text)
     .replace(/-+$/, '');            // Trim - from end of text
 }
 
+function decodeTagTypes(tagTypeString) {
+  var sepChar = ",";
+  return tagTypeString.split(",");
+}
+
 class DataStore {
   constructor(){
      // TODO: Change what gets loaded
@@ -129,6 +134,7 @@ class DataStore {
         tag.fromServerTag(response.data);
         this._tags.set(tag.id, tag);
         this.tagCallback();
+        // Todo - have way of server updating special tags - maybe have compound type
         //TODO: also need to create the label on the callback
         // What's the best way to let the app know refreshed thing?
     })
@@ -177,8 +183,12 @@ pullLabels(userId, callback, idToken='') {
     'token':idToken
   })
   .then((response)=>{
+    this._labels = new Set(response.data.normal);
+    this._specialLabels = new Map(Object.entries(response.data.special));
+    /*
     response.data.forEach((label)=>{
       var splitText = label.split(":");
+      // If it is a compound label
       if (splitText.length > 1 && splitText[1].length > 0) {
         if(this._specialLabels.has(splitText[0])) {
           this._specialLabels.get(splitText[0]).add(splitText[1]);
@@ -190,6 +200,7 @@ pullLabels(userId, callback, idToken='') {
         this._labels.add(label);
       }
     })
+    */
   })
   .catch((error)=>{
     console.log("ERROR" + error);
@@ -255,9 +266,6 @@ getUserPerson(idToken) {
 }
 
 getSpecialLabels = specialType => {
-  console.log(this._specialLabels);
-  console.log("getting special labels for:" + specialType);
-  console.log(this._specialLabels.get(specialType));
   return this._specialLabels.get(specialType);
 }
 
@@ -515,7 +523,6 @@ pullEverything(userId, callback, idToken) {
     var firestoreUser = this.firestore.collection("persons").doc(currentPersonId);
     var updatedData = {knownPersons:{}};
     updatedData.knownPersons[id] = true;
-    console.log(updatedData);
     firestoreUser.set(updatedData, {merge:true})
       .then(function(){console.log("set user")})
       .catch(function(error){console.log("caught error " + error)});
@@ -655,6 +662,8 @@ pullEverything(userId, callback, idToken) {
     let p = new Promise(
       (resolve, reject) => {
         var arr = [];
+        console.log("special labels:");
+        console.log(this._specialLabels);
         if (type !== "generic" && type !== null && this._specialLabels.has(type)) {
             arr = Array.from(this._specialLabels.get(type));
         } else {
