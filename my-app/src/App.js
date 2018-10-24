@@ -365,6 +365,13 @@ class App extends Component {
     script.src = 'https://www.gstatic.com/firebasejs/4.13.0/firebase.js';
     script.async = true;
     document.body.appendChild(script);
+
+    var searchLabels = getSearchLabels(this.props.match.params.data);
+    if (this.props.match.params.data.slice(-1) == ':') {
+      DataStore.getAllLabels(searchLabels.slice(-1)[0]).then(labels => {
+        this.setState({ labels: labels });
+      });
+    }
   }
 
   createTag = (label, subject, publicity = 'public', dontSync = false) => {
@@ -420,15 +427,40 @@ class App extends Component {
   };
 
   setLabel = label => {
+    var settingSpecial = false;
+    if (
+      this.props.match.params.data &&
+      this.props.match.params.data.slice(-1) === ':'
+    ) {
+      settingSpecial = true;
+    }
     if (
       this.props.match.params.mode === 'search' &&
       this.props.match.params.data
     ) {
-      this.props.history.push(
-        encodeURI(this.props.location.pathname + '+' + label)
-      );
+      if (settingSpecial) {
+        this.props.history.push(
+          encodeURI(this.props.location.pathname + label)
+        );
+      } else {
+        this.props.history.push(
+          encodeURI(this.props.location.pathname + '+' + label)
+        );
+      }
     } else {
       this.props.history.push('/search/' + encodeURI(label));
+    }
+    if (settingSpecial) {
+      // Return to normal labels
+      DataStore.getAllLabels().then(labels => {
+        this.setState({ labels: labels });
+      });
+    }
+    if (label.slice(-1) === ':') {
+      // Populate special labels
+      DataStore.getAllLabels(label.split(':')[0]).then(labels => {
+        this.setState({ labels: labels });
+      });
     }
   };
 
@@ -450,8 +482,18 @@ class App extends Component {
   };
 
   unsetLabel = targetLabel => {
+    if (targetLabel.slice(-1) === ':') {
+      DataStore.getAllLabels().then(labels => {
+        this.setState({ labels: labels });
+      });
+    }
     const searchLabels = getSearchLabels(this.props.match.params.data);
     const newLabels = searchLabels.filter(label => label !== targetLabel);
+    if (labelsToString(newLabels).slice(-1) === ':') {
+      DataStore.getAllLabels(newLabels.slice(-1)[0]).then(labels => {
+        this.setState({ labels: labels });
+      });
+    }
     this.props.history.push('/search/' + labelsToString(newLabels));
   };
 
@@ -507,6 +549,7 @@ class App extends Component {
       this.props.match.params.data
     ) {
       searchLabels = getSearchLabels(this.props.match.params.data);
+      //set the appropriate labels for a special label
     }
 
     var labelToggleButtonName = 'Show All Labels';

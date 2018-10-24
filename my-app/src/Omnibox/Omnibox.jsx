@@ -30,7 +30,7 @@ const getSuggestions = (value, options) => {
     return [];
   }
   const regex = new RegExp(escapedValue, 'i');
-  return options.filter(tag_or_person => regex.test(getSuggestionValue(tag_or_person)));
+  return options.filter(tag_or_person => regex.test(getSuggestionValue(tag_or_person))).sort();
 };
 
 
@@ -66,7 +66,12 @@ export default class OmniBox extends Component {
 
   componentWillReceiveProps = new_props => {
     // Update lists of things when props change
-    var options = new_props.persons.concat(new_props.labels);
+    if (new_props.searchLabels.length > 0) {
+      var options = new_props.labels;
+    } else {
+      var options = new_props.persons.concat(new_props.labels);
+    }
+
     this.setState({
       options: options
     });
@@ -162,16 +167,17 @@ export default class OmniBox extends Component {
       value,
       onChange: this.onChange
     };
+    var tagButtons = [];
+    this.props.searchLabels.forEach(label => {
+      tagButtons.push( <SearchButton key={label} unsetLabel={this.props.unsetLabel} label={label}/>);
+    });
 
     const renderInputComponent = inputProps => {
-      var tagButtons = [];
-      this.props.searchLabels.forEach(label => {
-        tagButtons.push( <SearchButton key={label} unsetLabel={this.props.unsetLabel} label={label}/>);
-      });
+
       return(
         <div >
           <div className="embed-submit-field">
-          {tagButtons}
+
           <input {...inputProps} id="searchBoxInput"  onKeyPress={this._handleKeyPress} />
           <div id='results' />
           </div>
@@ -181,7 +187,10 @@ export default class OmniBox extends Component {
 
     return (
       //Finding Tags
+
+
       <div id="searchBoxElem">
+        {tagButtons}
         <div id="searchBox">
 
           <Autosuggest
