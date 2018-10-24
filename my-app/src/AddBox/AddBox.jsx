@@ -126,7 +126,11 @@ export default class AddBox extends Component {
   }
 
   handleTagSelection = (tag) => {
-    this.props.addTagToPerson(this.props.specialLabel+":"+tag.label, this.props.publicity);
+    var label = tag.label;
+    if (this.props.specialLabel) {
+      label = this.props.specialLabel+":"+this.state.value;
+    }
+    this.props.addTagToPerson(label, this.props.publicity);
     this.props.unsetSpecial();
   }
 
@@ -134,7 +138,10 @@ export default class AddBox extends Component {
     if (label.split(":").length > 1) {
       this.props.setSpecial(label.split(":")[0]);
     } else {
-      this.props.addTagToPerson(this.props.specialLabel+":"+label, this.props.publicity);
+      if (this.props.specialLabel) {
+        label = this.props.specialLabel+":"+this.state.value;
+      }
+      this.props.addTagToPerson(label, this.props.publicity);
       this.props.unsetSpecial();
     }
   }
@@ -163,7 +170,11 @@ export default class AddBox extends Component {
           this.props.setSpecial(split[0]);
           this.setState({value:value});
         } else {
-          this.props.addTagToPerson(this.props.specialLabel+":"+this.state.value, this.props.publicity);
+          var label = this.state.value;
+          if (this.props.specialLabel) {
+            label = this.props.specialLabel+":"+this.state.value;
+          }
+          this.props.addTagToPerson(label, this.props.publicity);
           this.setState({value:''});
           this.props.unsetSpecial();
         }
