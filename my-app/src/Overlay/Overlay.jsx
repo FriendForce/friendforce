@@ -1,11 +1,7 @@
 import React, { Component } from 'react';
-import MouseTrap from 'mousetrap';
 
 
 export default class Overlay extends Component {
-  constructor(props) {
-    super(props);
-  }
 
 
       /* Open */
@@ -30,7 +26,6 @@ export default class Overlay extends Component {
     return(
       <div>
       <div id="myNav" className="overlay">
-
       <a href="javascript:void(0)" className="closebtn" onClick={() => this.closeNav()}>&times;</a>
 
         <div className="overlay-content">

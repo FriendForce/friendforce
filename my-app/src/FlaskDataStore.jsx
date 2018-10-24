@@ -38,6 +38,7 @@ class DataStore {
      this._persons = new Map();
      this._tags = new Map();
      this._labels = new Set([]);
+     this._specialLabels = new Map();
      this.tagCallback = null;
      this.labelCallback = null;
      this.personCallback = null;
@@ -123,6 +124,9 @@ class DataStore {
       }
         //create new tag with the synced slug
         tag.id = response.data.slug
+        console.log("response from tag creation");
+        console.log(response.data);
+        tag.fromServerTag(response.data);
         this._tags.set(tag.id, tag);
         this.tagCallback();
         //TODO: also need to create the label on the callback
@@ -174,7 +178,17 @@ pullLabels(userId, callback, idToken='') {
   })
   .then((response)=>{
     response.data.forEach((label)=>{
-      this._labels.add(label);
+      var splitText = label.split(":");
+      if (splitText.length > 1 && splitText[1].length > 0) {
+        if(this._specialLabels.has(splitText[0])) {
+          this._specialLabels.get(splitText[0]).add(splitText[1]);
+        } else {
+          this._specialLabels.set(splitText[0], new Set([splitText[1]]));
+        }
+        this._labels.add(splitText[0]+":");
+      } else {
+        this._labels.add(label);
+      }
     })
   })
   .catch((error)=>{
@@ -238,6 +252,13 @@ getUserPerson(idToken) {
     })
   });
   return p;
+}
+
+getSpecialLabels = specialType => {
+  console.log(this._specialLabels);
+  console.log("getting special labels for:" + specialType);
+  console.log(this._specialLabels.get(specialType));
+  return this._specialLabels.get(specialType);
 }
 
 pullEverything(userId, callback, idToken) {
@@ -630,10 +651,15 @@ pullEverything(userId, callback, idToken) {
     return p;
   }
 
-  getAllLabels(){
+  getAllLabels(type="generic"){
     let p = new Promise(
       (resolve, reject) => {
-        var arr = Array.from(this._labels);
+        var arr = [];
+        if (type !== "generic" && type !== null && this._specialLabels.has(type)) {
+            arr = Array.from(this._specialLabels.get(type));
+        } else {
+          arr = Array.from(this._labels);
+        }
         resolve(arr);
     })
     return p;

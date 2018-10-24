@@ -221,8 +221,6 @@ class App extends Component {
       MouseTrap.bind(key, this.hotkeys[key].function);
     });
     auth.onAuthStateChanged(user => {
-      console.log('setting user:');
-      console.log(user);
       if (user) {
         var userId = user.email;
         this.setState({ userId: userId });
@@ -242,7 +240,7 @@ class App extends Component {
         auth.currentUser.getIdToken(true).then(idToken => {
           //TODO: check if new user and do login flow
           DataStore.getUserPerson(idToken).then(response => {
-            if (response.new_account == true) {
+            if (response.new_account === true) {
               this.props.history.push('/new');
             }
             this.setState({
@@ -270,7 +268,7 @@ class App extends Component {
     DataStore.getAllPersons().then(persons => {
       this.setState({ persons: persons });
     });
-    DataStore.getAllLabels().then(labels => {
+    DataStore.getAllLabels(this.props.match.params.special).then(labels => {
       this.setState({ labels: labels });
     });
   };
@@ -289,7 +287,7 @@ class App extends Component {
   };
 
   refreshLabels = () => {
-    DataStore.getAllLabels().then(labels => {
+    DataStore.getAllLabels(this.props.match.params.special).then(labels => {
       this.setState({ labels: labels });
     });
   };
@@ -405,7 +403,7 @@ class App extends Component {
         DataStore.getAllTags().then(tags => {
           this.setState({ tags: tags });
         });
-        DataStore.getAllLabels().then(labels => {
+        DataStore.getAllLabels(this.props.match.params.special).then(labels => {
           this.setState({ labels: labels });
         });
       });
@@ -438,8 +436,10 @@ class App extends Component {
     console.log('setting special');
     if (this.props.match.params.mode === 'person') {
       var person = this.props.match.params.data;
-      console.log(person);
       this.props.history.push('/person/' + person + '/' + encodeURI(special));
+      DataStore.getAllLabels(special).then(labels => {
+        this.setState({ labels: labels });
+      });
     } else {
       console.log('not in person mode');
     }
@@ -458,7 +458,9 @@ class App extends Component {
   unsetSpecial = () => {
     if (this.props.match.params.mode === 'person') {
       var person = this.props.match.params.data;
-      console.log(person);
+      DataStore.getAllLabels().then(labels => {
+        this.setState({ labels: labels });
+      });
       this.props.history.push('/person/' + person);
     } else {
       console.log('not in person mode');
