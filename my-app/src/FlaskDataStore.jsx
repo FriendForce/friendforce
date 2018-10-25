@@ -38,6 +38,7 @@ class DataStore {
      this._persons = new Map();
      this._tags = new Map();
      this._labels = new Set([]);
+     this._specialLabels = new Map();
      this.tagCallback = null;
      this.labelCallback = null;
      this.personCallback = null;
@@ -123,8 +124,23 @@ class DataStore {
       }
         //create new tag with the synced slug
         tag.id = response.data.slug
+        console.log("response from tag creation");
+        console.log(response.data);
+
+        tag.fromServerTag(response.data);
         this._tags.set(tag.id, tag);
+        if(tag.types.includes("special")) {
+          console.log("special label: " + tag.label);
+          console.log(this._specialLabels);
+          console.log(this._labels);
+          this._specialLabels.get(tag.label.split(":")[0]).add(tag.label.split(":")[1]);
+          this._labels.add(tag.label);
+        } else {
+          this._labels.set(tag.label);
+        }
         this.tagCallback();
+        this.labelCallback();
+        // Todo - have way of server updating special tags - maybe have compound type
         //TODO: also need to create the label on the callback
         // What's the best way to let the app know refreshed thing?
     })
@@ -173,9 +189,27 @@ pullLabels(userId, callback, idToken='') {
     'token':idToken
   })
   .then((response)=>{
+    this._labels = new Set(response.data.normal);
+    this._specialLabels = new Map();
+    Object.keys(response.data.special).forEach((key) => {
+      this._specialLabels.set(key, new Set(response.data.special[key]));
+    });
+    /*
     response.data.forEach((label)=>{
-      this._labels.add(label);
+      var splitText = label.split(":");
+      // If it is a compound label
+      if (splitText.length > 1 && splitText[1].length > 0) {
+        if(this._specialLabels.has(splitText[0])) {
+          this._specialLabels.get(splitText[0]).add(splitText[1]);
+        } else {
+          this._specialLabels.set(splitText[0], new Set([splitText[1]]));
+        }
+        this._labels.add(splitText[0]+":");
+      } else {
+        this._labels.add(label);
+      }
     })
+    */
   })
   .catch((error)=>{
     console.log("ERROR" + error);
@@ -238,6 +272,10 @@ getUserPerson(idToken) {
     })
   });
   return p;
+}
+
+getSpecialLabels = specialType => {
+  return this._specialLabels.get(specialType);
 }
 
 pullEverything(userId, callback, idToken) {
@@ -494,7 +532,6 @@ pullEverything(userId, callback, idToken) {
     var firestoreUser = this.firestore.collection("persons").doc(currentPersonId);
     var updatedData = {knownPersons:{}};
     updatedData.knownPersons[id] = true;
-    console.log(updatedData);
     firestoreUser.set(updatedData, {merge:true})
       .then(function(){console.log("set user")})
       .catch(function(error){console.log("caught error " + error)});
@@ -630,10 +667,15 @@ pullEverything(userId, callback, idToken) {
     return p;
   }
 
-  getAllLabels(){
+  getAllLabels(type="generic"){
     let p = new Promise(
       (resolve, reject) => {
-        var arr = Array.from(this._labels);
+        var arr = [];
+        if (type !== "generic" && type !== null && this._specialLabels.has(type.split(":")[0])) {
+            arr = Array.from(this._specialLabels.get(type.split(":")[0]));
+        } else {
+          arr = Array.from(this._labels);
+        }
         resolve(arr);
     })
     return p;

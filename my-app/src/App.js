@@ -58,6 +58,7 @@ class App extends Component {
     this.addPerson = this.addPerson.bind(this);
     this.addTagToPerson = this.addTagToPerson.bind(this);
     this.unsetLabel = this.unsetLabel.bind(this);
+    this.unsetMostRecentLabel = this.unsetMostRecentLabel.bind(this);
     this.updateData = this.updateData.bind(this);
     this.setUser = this.setUser.bind(this);
     this.login = this.login.bind(this);
@@ -152,7 +153,6 @@ class App extends Component {
   };
 
   _onA = e => {
-    console.log('a called');
     e.preventDefault();
     if (document.getElementById('addBoxInput')) {
       document.getElementById('addBoxInput').focus();
@@ -161,8 +161,8 @@ class App extends Component {
 
   _onS = e => {
     e.preventDefault();
-    console.log('s called');
     this.props.history.push('/search');
+    this.refreshLabels();
     if (document.getElementById('searchBoxInput')) {
       document.getElementById('searchBoxInput').focus();
     }
@@ -270,9 +270,7 @@ class App extends Component {
     DataStore.getAllPersons().then(persons => {
       this.setState({ persons: persons });
     });
-    DataStore.getAllLabels().then(labels => {
-      this.setState({ labels: labels });
-    });
+    this.refreshLabels();
   };
 
   refreshTags = () => {
@@ -289,7 +287,21 @@ class App extends Component {
   };
 
   refreshLabels = () => {
-    DataStore.getAllLabels().then(labels => {
+    var type = 'generic';
+    if (
+      this.props.match.params.mode &&
+      this.props.match.params.mode === 'person'
+    ) {
+      if (this.props.match.params.special) {
+        type = this.props.match.params.special;
+      }
+    } else if (
+      this.props.match.params.mode &&
+      this.props.match.mode === 'search'
+    ) {
+      type = getSearchLabels(this.props.match.params.data).slice(-1);
+    }
+    DataStore.getAllLabels(type).then(labels => {
       this.setState({ labels: labels });
     });
   };
@@ -422,24 +434,52 @@ class App extends Component {
   };
 
   setLabel = label => {
+    // Case where you're setting a special
+    var special = null;
+    if (
+      this.props.match.params.data &&
+      this.props.match.params.data.slice(-1) === ':'
+    ) {
+      label = getSearchLabels(this.props.match.params.data).slice(-1) + label;
+      special = getSearchLabels(this.props.match.params.data).slice(-1)[0];
+    }
     if (
       this.props.match.params.mode === 'search' &&
       this.props.match.params.data
     ) {
-      this.props.history.push(
-        encodeURI(this.props.location.pathname + '+' + label)
-      );
+      var newPath = this.props.location.pathname + '+' + label;
+      if (special) {
+        const searchLabels = getSearchLabels(newPath.split('/').slice(-1));
+        const newLabels = searchLabels.filter(label => label !== special);
+        newPath = '/search/' + labelsToString(newLabels);
+        DataStore.getAllLabels().then(labels => {
+          this.setState({ labels: labels });
+        });
+      }
+      this.props.history.push(encodeURI(newPath));
     } else {
       this.props.history.push('/search/' + encodeURI(label));
+    }
+    if (label.slice(-1) === ':') {
+      DataStore.getAllLabels(label.slice(0, -1)).then(labels => {
+        this.setState({ labels: labels });
+      });
     }
   };
 
   setSpecial = special => {
-    console.log('setting special');
+    if (special.slice(-2) === ':' && special.slice(-1) === ':') {
+      special = special.slice(0, -1);
+    }
+    if (special.slice(-1) !== ':') {
+      special = special + ':';
+    }
     if (this.props.match.params.mode === 'person') {
       var person = this.props.match.params.data;
-      console.log(person);
       this.props.history.push('/person/' + person + '/' + encodeURI(special));
+      DataStore.getAllLabels(special).then(labels => {
+        this.setState({ labels: labels });
+      });
     } else {
       console.log('not in person mode');
     }
@@ -453,13 +493,35 @@ class App extends Component {
     const searchLabels = getSearchLabels(this.props.match.params.data);
     const newLabels = searchLabels.filter(label => label !== targetLabel);
     this.props.history.push('/search/' + labelsToString(newLabels));
+    if (targetLabel.slice(-1) === ':') {
+      DataStore.getAllLabels().then(labels => {
+        this.setState({ labels: labels });
+      });
+    } else if (labelsToString(newLabels).slice(-1) == ':') {
+      DataStore.getAllLabels(newLabels.slice(-1)).then(labels => {
+        this.setState({ labels: labels });
+      });
+    }
+  };
+
+  unsetMostRecentLabel = () => {
+    const searchLabels = getSearchLabels(this.props.match.params.data);
+    if (this.props.match.params.data.slice(-1) === ':') {
+      DataStore.getAllLabels().then(labels => {
+        this.setState({ labels: labels });
+      });
+    }
+    const newLabels = searchLabels.slice(0, -1);
+    this.props.history.push('/search/' + labelsToString(newLabels));
   };
 
   unsetSpecial = () => {
     if (this.props.match.params.mode === 'person') {
       var person = this.props.match.params.data;
-      console.log(person);
       this.props.history.push('/person/' + person);
+      DataStore.getAllLabels().then(labels => {
+        this.setState({ labels: labels });
+      });
     } else {
       console.log('not in person mode');
     }
@@ -621,7 +683,9 @@ class App extends Component {
                     setPerson={this.setPerson}
                     setTag={this.setTag}
                     unsetLabel={this.unsetLabel}
+                    unsetMostRecentLabel={this.unsetMostRecentLabel}
                     setLabel={this.setLabel}
+                    refreshLabels={this.refreshLabels}
                   />
                 )}
               />

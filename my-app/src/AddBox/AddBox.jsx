@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import Autosuggest from 'react-autosuggest';
-import MouseTrap from 'mousetrap';
 import SpecialButton from './SpecialButton';
 
 
@@ -57,7 +56,7 @@ export default class AddBox extends Component {
   constructor(props) {
     super();
 
-    var options = props.labels;
+    var options = Array.from(props.labels);
     this.state = {
       value: '',
       suggestions: [],
@@ -71,8 +70,7 @@ export default class AddBox extends Component {
 
   componentWillReceiveProps = new_props => {
     // Update lists of things when props change
-    var options = new_props.labels;
-    var publicity = new_props.publicity;
+    var options = Array.from(new_props.labels);
     this.setState({
       options: options
     });
@@ -126,20 +124,16 @@ export default class AddBox extends Component {
   }
 
   handleTagSelection = (tag) => {
-    var label = tag.label;
-    if (this.props.specialLabel) {
-      label = this.props.specialLabel+":"+this.state.value;
-    }
-    this.props.addTagToPerson(label, this.props.publicity);
+    this.props.addTagToPerson(tag.label, this.props.publicity);
     this.props.unsetSpecial();
   }
 
    handleLabelSelection = (label) => {
     if (label.split(":").length > 1) {
-      this.props.setSpecial(label.split(":")[0]);
+      this.props.setSpecial(label.split(":")[0]+":");
     } else {
       if (this.props.specialLabel) {
-        label = this.props.specialLabel+":"+this.state.value;
+        label = this.props.specialLabel+label;
       }
       this.props.addTagToPerson(label, this.props.publicity);
       this.props.unsetSpecial();
@@ -167,12 +161,12 @@ export default class AddBox extends Component {
           if (split.length > 1) {
             value = split[1];
           }
-          this.props.setSpecial(split[0]);
+          this.props.setSpecial(split[0]+":");
           this.setState({value:value});
         } else {
           var label = this.state.value;
-          if (this.props.specialLabel) {
-            label = this.props.specialLabel+":"+this.state.value;
+          if(this.props.specialLabel) {
+            label = this.props.specialLabel+this.state.value;
           }
           this.props.addTagToPerson(label, this.props.publicity);
           this.setState({value:''});
@@ -195,16 +189,9 @@ export default class AddBox extends Component {
     };
 
     const renderInputComponent = inputProps => {
-      var specialButtons = [];
-      if(this.props.specialLabel) {
-        specialButtons.push(<SpecialButton key={this.props.specialLabel}
-                                           unsetSpecial={this.props.unsetSpecial}
-                                          special={this.props.specialLabel + ":"}/>);
-      }
       return(
         <div className="autosuggest__box">
           <div className="embed-submit-field">
-          <div className="autosuggest__buttons">{specialButtons}</div>
           <div className="autosuggest__input-box">
           <input {...inputProps} id="addBoxInput"  onKeyPress={this._handleKeyPress} />
           </div>
@@ -217,8 +204,14 @@ export default class AddBox extends Component {
     return (
       //Finding Tags
       <div id="addBoxElem" >
-        <div id="addBox" class="add-box">
+        <div id="addBox" className="add-box">
+          {this.props.specialLabel &&
+            <SpecialButton
+              unsetSpecial={this.props.unsetSpecial}
 
+              special={this.props.specialLabel}
+            />
+          }
           <Autosuggest
             highlightFirstSuggestion={true}
             suggestions={suggestions}
