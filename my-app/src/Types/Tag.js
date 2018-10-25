@@ -9,12 +9,17 @@ export default class Tag {
     this.types = 'generic';
   }
 
+  static decodeTagTypes = tagTypeString => {
+    var sepChar = ',';
+    return tagTypeString.split(',');
+  };
+
   fromServerTag = serverTagObject => {
     this.id = serverTagObject.slug;
     this.publicity = serverTagObject.publicity;
     this.originator = serverTagObject.originator;
     this.subject = serverTagObject.subject;
-    this.types = serverTagObject.type;
+    this.types = Tag.decodeTagTypes(serverTagObject.type);
     this.label = serverTagObject.text;
   };
 }

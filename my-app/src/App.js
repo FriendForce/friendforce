@@ -58,6 +58,7 @@ class App extends Component {
     this.addPerson = this.addPerson.bind(this);
     this.addTagToPerson = this.addTagToPerson.bind(this);
     this.unsetLabel = this.unsetLabel.bind(this);
+    this.unsetMostRecentLabel = this.unsetMostRecentLabel.bind(this);
     this.updateData = this.updateData.bind(this);
     this.setUser = this.setUser.bind(this);
     this.login = this.login.bind(this);
@@ -152,7 +153,6 @@ class App extends Component {
   };
 
   _onA = e => {
-    console.log('a called');
     e.preventDefault();
     if (document.getElementById('addBoxInput')) {
       document.getElementById('addBoxInput').focus();
@@ -161,8 +161,8 @@ class App extends Component {
 
   _onS = e => {
     e.preventDefault();
-    console.log('s called');
     this.props.history.push('/search');
+    this.refreshLabels();
     if (document.getElementById('searchBoxInput')) {
       document.getElementById('searchBoxInput').focus();
     }
@@ -221,6 +221,8 @@ class App extends Component {
       MouseTrap.bind(key, this.hotkeys[key].function);
     });
     auth.onAuthStateChanged(user => {
+      console.log('setting user:');
+      console.log(user);
       if (user) {
         var userId = user.email;
         this.setState({ userId: userId });
@@ -240,7 +242,7 @@ class App extends Component {
         auth.currentUser.getIdToken(true).then(idToken => {
           //TODO: check if new user and do login flow
           DataStore.getUserPerson(idToken).then(response => {
-            if (response.new_account === true) {
+            if (response.new_account == true) {
               this.props.history.push('/new');
             }
             this.setState({
@@ -268,9 +270,7 @@ class App extends Component {
     DataStore.getAllPersons().then(persons => {
       this.setState({ persons: persons });
     });
-    DataStore.getAllLabels(this.props.match.params.special).then(labels => {
-      this.setState({ labels: labels });
-    });
+    this.refreshLabels();
   };
 
   refreshTags = () => {
@@ -287,7 +287,21 @@ class App extends Component {
   };
 
   refreshLabels = () => {
-    DataStore.getAllLabels(this.props.match.params.special).then(labels => {
+    var type = 'generic';
+    if (
+      this.props.match.params.mode &&
+      this.props.match.params.mode === 'person'
+    ) {
+      if (this.props.match.params.special) {
+        type = this.props.match.params.special;
+      }
+    } else if (
+      this.props.match.params.mode &&
+      this.props.match.mode === 'search'
+    ) {
+      type = getSearchLabels(this.props.match.params.data).slice(-1);
+    }
+    DataStore.getAllLabels(type).then(labels => {
       this.setState({ labels: labels });
     });
   };
@@ -365,13 +379,6 @@ class App extends Component {
     script.src = 'https://www.gstatic.com/firebasejs/4.13.0/firebase.js';
     script.async = true;
     document.body.appendChild(script);
-
-    var searchLabels = getSearchLabels(this.props.match.params.data);
-    if (this.props.match.params.data.slice(-1) == ':') {
-      DataStore.getAllLabels(searchLabels.slice(-1)[0]).then(labels => {
-        this.setState({ labels: labels });
-      });
-    }
   }
 
   createTag = (label, subject, publicity = 'public', dontSync = false) => {
@@ -410,7 +417,7 @@ class App extends Component {
         DataStore.getAllTags().then(tags => {
           this.setState({ tags: tags });
         });
-        DataStore.getAllLabels(this.props.match.params.special).then(labels => {
+        DataStore.getAllLabels().then(labels => {
           this.setState({ labels: labels });
         });
       });
@@ -427,45 +434,46 @@ class App extends Component {
   };
 
   setLabel = label => {
-    var settingSpecial = false;
+    // Case where you're setting a special
+    var special = null;
     if (
       this.props.match.params.data &&
       this.props.match.params.data.slice(-1) === ':'
     ) {
-      settingSpecial = true;
+      label = getSearchLabels(this.props.match.params.data).slice(-1) + label;
+      special = getSearchLabels(this.props.match.params.data).slice(-1)[0];
     }
     if (
       this.props.match.params.mode === 'search' &&
       this.props.match.params.data
     ) {
-      if (settingSpecial) {
-        this.props.history.push(
-          encodeURI(this.props.location.pathname + label)
-        );
-      } else {
-        this.props.history.push(
-          encodeURI(this.props.location.pathname + '+' + label)
-        );
+      var newPath = this.props.location.pathname + '+' + label;
+      if (special) {
+        const searchLabels = getSearchLabels(newPath.split('/').slice(-1));
+        const newLabels = searchLabels.filter(label => label !== special);
+        newPath = '/search/' + labelsToString(newLabels);
+        DataStore.getAllLabels().then(labels => {
+          this.setState({ labels: labels });
+        });
       }
+      this.props.history.push(encodeURI(newPath));
     } else {
       this.props.history.push('/search/' + encodeURI(label));
     }
-    if (settingSpecial) {
-      // Return to normal labels
-      DataStore.getAllLabels().then(labels => {
-        this.setState({ labels: labels });
-      });
-    }
     if (label.slice(-1) === ':') {
-      // Populate special labels
-      DataStore.getAllLabels(label.split(':')[0]).then(labels => {
+      DataStore.getAllLabels(label.slice(0, -1)).then(labels => {
         this.setState({ labels: labels });
       });
     }
   };
 
   setSpecial = special => {
-    console.log('setting special');
+    if (special.slice(-2) === ':' && special.slice(-1) === ':') {
+      special = special.slice(0, -1);
+    }
+    if (special.slice(-1) !== ':') {
+      special = special + ':';
+    }
     if (this.props.match.params.mode === 'person') {
       var person = this.props.match.params.data;
       this.props.history.push('/person/' + person + '/' + encodeURI(special));
@@ -482,29 +490,38 @@ class App extends Component {
   };
 
   unsetLabel = targetLabel => {
-    console.log('unsetting: ' + targetLabel);
+    const searchLabels = getSearchLabels(this.props.match.params.data);
+    const newLabels = searchLabels.filter(label => label !== targetLabel);
+    this.props.history.push('/search/' + labelsToString(newLabels));
     if (targetLabel.slice(-1) === ':') {
       DataStore.getAllLabels().then(labels => {
         this.setState({ labels: labels });
       });
-    }
-    const searchLabels = getSearchLabels(this.props.match.params.data);
-    const newLabels = searchLabels.filter(label => label !== targetLabel);
-    if (labelsToString(newLabels).slice(-1) === ':') {
-      DataStore.getAllLabels(newLabels.slice(-1)[0]).then(labels => {
+    } else if (labelsToString(newLabels).slice(-1) == ':') {
+      DataStore.getAllLabels(newLabels.slice(-1)).then(labels => {
         this.setState({ labels: labels });
       });
     }
+  };
+
+  unsetMostRecentLabel = () => {
+    const searchLabels = getSearchLabels(this.props.match.params.data);
+    if (this.props.match.params.data.slice(-1) === ':') {
+      DataStore.getAllLabels().then(labels => {
+        this.setState({ labels: labels });
+      });
+    }
+    const newLabels = searchLabels.slice(0, -1);
     this.props.history.push('/search/' + labelsToString(newLabels));
   };
 
   unsetSpecial = () => {
     if (this.props.match.params.mode === 'person') {
       var person = this.props.match.params.data;
+      this.props.history.push('/person/' + person);
       DataStore.getAllLabels().then(labels => {
         this.setState({ labels: labels });
       });
-      this.props.history.push('/person/' + person);
     } else {
       console.log('not in person mode');
     }
@@ -550,7 +567,6 @@ class App extends Component {
       this.props.match.params.data
     ) {
       searchLabels = getSearchLabels(this.props.match.params.data);
-      //set the appropriate labels for a special label
     }
 
     var labelToggleButtonName = 'Show All Labels';
@@ -667,7 +683,9 @@ class App extends Component {
                     setPerson={this.setPerson}
                     setTag={this.setTag}
                     unsetLabel={this.unsetLabel}
+                    unsetMostRecentLabel={this.unsetMostRecentLabel}
                     setLabel={this.setLabel}
+                    refreshLabels={this.refreshLabels}
                   />
                 )}
               />

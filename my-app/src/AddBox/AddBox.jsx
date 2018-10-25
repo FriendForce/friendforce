@@ -130,10 +130,10 @@ export default class AddBox extends Component {
 
    handleLabelSelection = (label) => {
     if (label.split(":").length > 1) {
-      this.props.setSpecial(label.split(":")[0]);
+      this.props.setSpecial(label.split(":")[0]+":");
     } else {
       if (this.props.specialLabel) {
-        label = this.props.specialLabel+":"+label;
+        label = this.props.specialLabel+label;
       }
       this.props.addTagToPerson(label, this.props.publicity);
       this.props.unsetSpecial();
@@ -161,12 +161,12 @@ export default class AddBox extends Component {
           if (split.length > 1) {
             value = split[1];
           }
-          this.props.setSpecial(split[0]);
+          this.props.setSpecial(split[0]+":");
           this.setState({value:value});
         } else {
           var label = this.state.value;
           if(this.props.specialLabel) {
-            label = this.props.specialLabel+":"+this.state.value;
+            label = this.props.specialLabel+this.state.value;
           }
           this.props.addTagToPerson(label, this.props.publicity);
           this.setState({value:''});
@@ -208,7 +208,8 @@ export default class AddBox extends Component {
           {this.props.specialLabel &&
             <SpecialButton
               unsetSpecial={this.props.unsetSpecial}
-              special={this.props.specialLabel + ":"}
+
+              special={this.props.specialLabel}
             />
           }
           <Autosuggest

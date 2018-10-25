@@ -80,10 +80,14 @@ export default class OmniBox extends Component {
   componentDidMount = () => {
       document.addEventListener("keydown", this.onEsc, false);
       document.getElementById('searchBoxInput').focus();
+      if(this.props.searchLabels.len === 0) {
+        this.props.refreshLabels();
+      }
   }
 
   componentWillUnmount = () => {
     document.removeEventListener("keydown", this.onEsc, false);
+    this.props.refreshLabels();
   }
 
   _onEsc = (event) => {
@@ -95,9 +99,12 @@ export default class OmniBox extends Component {
       this.setState({numEscPressed:0});
     }
     if (event.keyCode === 27 && this.state.value === '' ) {
+      console.log("esc pressed!");
       this.setState({numEscPressed:this.state.numEscPressed += 1});
+      this.props.unsetMostRecentLabel();
     }
     if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed>=2) {
+      console.log("esc pressed2!")
       document.activeElement.blur();
     }
   }

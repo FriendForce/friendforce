@@ -23,11 +23,6 @@ function slugify(text)
     .replace(/-+$/, '');            // Trim - from end of text
 }
 
-function decodeTagTypes(tagTypeString) {
-  var sepChar = ",";
-  return tagTypeString.split(",");
-}
-
 class DataStore {
   constructor(){
      // TODO: Change what gets loaded
@@ -131,9 +126,20 @@ class DataStore {
         tag.id = response.data.slug
         console.log("response from tag creation");
         console.log(response.data);
+
         tag.fromServerTag(response.data);
         this._tags.set(tag.id, tag);
+        if(tag.types.includes("special")) {
+          console.log("special label: " + tag.label);
+          console.log(this._specialLabels);
+          console.log(this._labels);
+          this._specialLabels.get(tag.label.split(":")[0]).add(tag.label.split(":")[1]);
+          this._labels.add(tag.label);
+        } else {
+          this._labels.set(tag.label);
+        }
         this.tagCallback();
+        this.labelCallback();
         // Todo - have way of server updating special tags - maybe have compound type
         //TODO: also need to create the label on the callback
         // What's the best way to let the app know refreshed thing?
@@ -184,7 +190,10 @@ pullLabels(userId, callback, idToken='') {
   })
   .then((response)=>{
     this._labels = new Set(response.data.normal);
-    this._specialLabels = new Map(Object.entries(response.data.special));
+    this._specialLabels = new Map();
+    Object.keys(response.data.special).forEach((key) => {
+      this._specialLabels.set(key, new Set(response.data.special[key]));
+    });
     /*
     response.data.forEach((label)=>{
       var splitText = label.split(":");
@@ -662,10 +671,8 @@ pullEverything(userId, callback, idToken) {
     let p = new Promise(
       (resolve, reject) => {
         var arr = [];
-        console.log("special labels:");
-        console.log(this._specialLabels);
-        if (type !== "generic" && type !== null && this._specialLabels.has(type)) {
-            arr = Array.from(this._specialLabels.get(type));
+        if (type !== "generic" && type !== null && this._specialLabels.has(type.split(":")[0])) {
+            arr = Array.from(this._specialLabels.get(type.split(":")[0]));
         } else {
           arr = Array.from(this._labels);
         }
