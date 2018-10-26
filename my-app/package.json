@@ -13,6 +13,7 @@
     "prettier": "^1.14.2",
     "react": "^16.4.2",
     "react-autosuggest": "^9.4.0",
+    "react-confirm-alert": "^2.0.6",
     "react-contextmenu": "^2.9.2",
     "react-dom": "^16.4.2",
     "react-mousetrap": "^0.2.0",

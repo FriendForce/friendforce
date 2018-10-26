@@ -16,6 +16,8 @@ import Onboarding from './Onboarding/Onboarding.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 import MouseTrap from 'mousetrap';
 import Overlay from './Overlay/Overlay.jsx';
+import { confirmAlert } from 'react-confirm-alert'; // Import
+import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 
 const getSearchLabels = searchString => {
   return decodeURI(searchString).split('+');
@@ -390,11 +392,27 @@ class App extends Component {
   addPerson = name => {
     // Todo: need to check if you actually want to add a person
     // When you're in search mode because people accidentally add new thing
-    this.checkToken().then(idToken => {
-      //Todo - for speed dont wait for server
-      DataStore.addPersonByName(name, idToken).then(id => {
-        this.props.history.push('/person/' + id);
-      });
+    // Todo: add keyboard interactions to this:https://github.com/GA-MO/react-confirm-alert/
+    confirmAlert({
+      title: 'Confirm Person',
+      message: 'Are you sure you want to create a person named ' + name,
+      buttons: [
+        {
+          label: 'Yes',
+          onClick: () => {
+            this.checkToken().then(idToken => {
+              //Todo - for speed dont wait for server
+              DataStore.addPersonByName(name, idToken).then(id => {
+                this.props.history.push('/person/' + id);
+              });
+            });
+          },
+        },
+        {
+          label: 'No',
+          onClick: () => {},
+        },
+      ],
     });
   };
 
