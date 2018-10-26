@@ -59,6 +59,7 @@ export default class OmniBox extends Component {
       suggestions: [],
       options: options,
       numEscPressed: 0,
+      justFocused:false
     }
     this.onEsc = this._onEsc.bind(this);
   }
@@ -71,7 +72,6 @@ export default class OmniBox extends Component {
     } else {
       var options = new_props.persons.concat(new_props.labels);
     }
-
     this.setState({
       options: options
     });
@@ -83,6 +83,13 @@ export default class OmniBox extends Component {
       if(this.props.searchLabels.len === 0) {
         this.props.refreshLabels();
       }
+  }
+
+  componentDidUpdate = (prevProps, prevState) => {
+    if (this.state.justFocused) {
+      document.getElementById('searchBoxInput').select();
+      this.setState({justFocused:false})
+    }
   }
 
   componentWillUnmount = () => {
@@ -105,7 +112,8 @@ export default class OmniBox extends Component {
     }
     if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed>=2) {
       console.log("esc pressed2!")
-      document.activeElement.blur();
+      //document.activeElement.blur();
+      this.props.goBack();
     }
   }
 
@@ -134,6 +142,15 @@ export default class OmniBox extends Component {
   handleLabelSelection = (label) => {
     this.props.setLabel(label);
   };
+
+  handleFocus = (event) => {
+    if (this.state.value.length === 0) {
+      this.setState({value:"Search for a Name or Attribute",
+                     justFocused:true});
+    } else {
+      this.setState({justFocused:true})
+    }
+  }
 
 
   handlePersonSelection = (person) => {
@@ -172,7 +189,8 @@ export default class OmniBox extends Component {
     const inputProps = {
       placeholder: "Search for a name or attribute!",
       value,
-      onChange: this.onChange
+      onChange: this.onChange,
+      onFocus: this.handleFocus,
     };
     var tagButtons = [];
     this.props.searchLabels.forEach(label => {
@@ -180,7 +198,6 @@ export default class OmniBox extends Component {
     });
 
     const renderInputComponent = inputProps => {
-
       return(
         <div >
           <div className="embed-submit-field">
@@ -198,8 +215,7 @@ export default class OmniBox extends Component {
 
       <div id="searchBoxElem">
         {tagButtons}
-        <div id="searchBox">
-
+        <div id="searchBox" >
           <Autosuggest
             highlightFirstSuggestion={true}
             suggestions={suggestions}

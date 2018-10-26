@@ -136,7 +136,7 @@ class DataStore {
           this._specialLabels.get(tag.label.split(":")[0]).add(tag.label.split(":")[1]);
           this._labels.add(tag.label);
         } else {
-          this._labels.set(tag.label);
+          this._labels.add(tag.label);
         }
         this.tagCallback();
         this.labelCallback();
@@ -668,6 +668,11 @@ pullEverything(userId, callback, idToken) {
   }
 
   getAllLabels(type="generic"){
+    if (typeof(type) !== "string") {
+      console.log('Error: trying to get labels for');
+      console.log(type);
+      type="generic";
+    }
     let p = new Promise(
       (resolve, reject) => {
         var arr = [];

@@ -74,6 +74,7 @@ class App extends Component {
     this.onPublicityChanged = this.onPublicityChanged.bind(this);
     this.setSpecial = this.setSpecial.bind(this);
     this.unsetSpecial = this.unsetSpecial.bind(this);
+    this.goBack = this.goBack.bind(this);
 
     this.hotkeys = {
       a: {
@@ -152,8 +153,27 @@ class App extends Component {
     DataStore.personCallback = this.refreshPersons;
   };
 
+  goBack = () => {
+    if (!this.props.match.params.data) {
+      this.props.history.push('/');
+    } else if (this.props.match.params.mode === 'person-edit') {
+      this.props.history.push('/person/' + this.props.match.params.data);
+    } else {
+      this.props.history.goBack();
+    }
+  };
+
   _onA = e => {
     e.preventDefault();
+    console.log(this.props.match);
+    console.log(this.props.location);
+    if (
+      this.props.match.params.mode &&
+      this.props.match.params.mode.startsWith('person') &&
+      this.props.match.params.data
+    ) {
+      this.props.history.push('/person-edit/' + this.props.match.params.data);
+    }
     if (document.getElementById('addBoxInput')) {
       document.getElementById('addBoxInput').focus();
     }
@@ -171,6 +191,11 @@ class App extends Component {
   _onEsc = () => {
     if (document.getElementById('myNav').style.display === 'block') {
       document.getElementById('myNav').style.display = 'none';
+    } else if (
+      this.props.match.params.mode &&
+      this.props.match.params.mode === 'person'
+    ) {
+      this.props.history.push('/');
     } else {
       this.props.history.goBack();
     }
@@ -290,14 +315,14 @@ class App extends Component {
     var type = 'generic';
     if (
       this.props.match.params.mode &&
-      this.props.match.params.mode === 'person'
+      this.props.match.params.mode.startsWith('person')
     ) {
       if (this.props.match.params.special) {
         type = this.props.match.params.special;
       }
     } else if (
       this.props.match.params.mode &&
-      this.props.match.mode === 'search'
+      this.props.match.params.mode === 'search'
     ) {
       type = getSearchLabels(this.props.match.params.data).slice(-1);
     }
@@ -474,7 +499,7 @@ class App extends Component {
     if (special.slice(-1) !== ':') {
       special = special + ':';
     }
-    if (this.props.match.params.mode === 'person') {
+    if (this.props.match.params.mode.startsWith('person')) {
       var person = this.props.match.params.data;
       this.props.history.push('/person/' + person + '/' + encodeURI(special));
       DataStore.getAllLabels(special).then(labels => {
@@ -506,7 +531,10 @@ class App extends Component {
 
   unsetMostRecentLabel = () => {
     const searchLabels = getSearchLabels(this.props.match.params.data);
-    if (this.props.match.params.data.slice(-1) === ':') {
+    if (
+      this.props.match.params.data &&
+      this.props.match.params.data.slice(-1) === ':'
+    ) {
       DataStore.getAllLabels().then(labels => {
         this.setState({ labels: labels });
       });
@@ -516,9 +544,11 @@ class App extends Component {
   };
 
   unsetSpecial = () => {
-    if (this.props.match.params.mode === 'person') {
+    if (this.props.match.params.mode.startsWith('person')) {
       var person = this.props.match.params.data;
-      this.props.history.push('/person/' + person);
+      this.props.history.push(
+        '/' + this.props.match.params.mode + '/' + person
+      );
       DataStore.getAllLabels().then(labels => {
         this.setState({ labels: labels });
       });
@@ -555,7 +585,8 @@ class App extends Component {
     });
     var specialLabel = null;
     if (
-      this.props.match.params.mode === 'person' &&
+      this.props.match.params.mode &&
+      this.props.match.params.mode.startsWith('person') &&
       this.props.match.params.special
     ) {
       specialLabel = decodeURI(this.props.match.params.special);
@@ -563,6 +594,7 @@ class App extends Component {
 
     var searchLabels = [];
     if (
+      this.props.match.params.mode &&
       this.props.match.params.mode === 'search' &&
       this.props.match.params.data
     ) {
@@ -669,13 +701,35 @@ class App extends Component {
           <Row>
             <Col>
               <Route
+                path="( |/)"
+                render={props => (
+                  <button
+                    className="btn btn-primary btn-sm active"
+                    aria-pressed="true"
+                    onClick={this._onS}
+                  >
+                    Search (Press S)
+                  </button>
+                )}
+              />
+              <Route
+                path="/person"
+                render={props => (
+                  <button
+                    className="btn btn-primary btn-sm active"
+                    aria-pressed="true"
+                    onClick={this._onA}
+                  >
+                    Add Attributes (Press A)
+                  </button>
+                )}
+              />
+              <Route
                 path="(/search| )"
                 render={props => (
                   <Omnibox
                     {...props.match.params}
-                    //mode = {this.props.match.params.mode}
                     searchLabels={searchLabels}
-                    //searchString={this.props.match.params}
                     persons={this.state.persons}
                     tags={this.state.tags}
                     labels={this.state.labels}
@@ -686,11 +740,12 @@ class App extends Component {
                     unsetMostRecentLabel={this.unsetMostRecentLabel}
                     setLabel={this.setLabel}
                     refreshLabels={this.refreshLabels}
+                    goBack={this.goBack}
                   />
                 )}
               />
               <Route
-                path="/person/:personId"
+                path="/person-edit/:personId"
                 render={props => (
                   <AddBox
                     {...props.match.params}
@@ -703,9 +758,12 @@ class App extends Component {
                     setSpecial={this.setSpecial}
                     unsetSpecial={this.unsetSpecial}
                     specialLabel={specialLabel}
+                    refreshLabels={this.refreshLabels}
+                    goBack={this.goBack}
                   />
                 )}
               />
+
               <Row>
                 <Home />
               </Row>
@@ -733,7 +791,7 @@ class App extends Component {
               />
 
               <Route
-                path="/person/:personId"
+                path="/person*/:personId"
                 render={props => (
                   <PersonBox
                     {...props.match.params}

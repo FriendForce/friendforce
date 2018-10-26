@@ -62,6 +62,7 @@ export default class AddBox extends Component {
       suggestions: [],
       options: options,
       numEscPressed: 0,
+      justFocused:false
     }
 
     this.onEsc = this._onEsc.bind(this);
@@ -76,12 +77,21 @@ export default class AddBox extends Component {
     });
   };
 
+  componentDidUpdate = (prevProps, prevState) => {
+    if (this.state.justFocused) {
+      document.getElementById('addBoxInput').select();
+      this.setState({justFocused:false})
+    }
+  }
+
   componentDidMount = () => {
       document.addEventListener("keydown", this.onEsc, false);
+      document.getElementById('addBoxInput').focus();
   }
 
   componentWillUnmount = () => {
     document.removeEventListener("keydown", this.onEsc, false);
+    this.props.refreshLabels();
   }
 
   onChange = (event, { newValue, method }) => {
@@ -103,6 +113,7 @@ export default class AddBox extends Component {
     }
     if(event.keyCode === 27 && this.state.value === '' && this.state.numEscPressed>=2) {
       document.activeElement.blur();
+      this.props.goBack();
     }
   }
 
@@ -137,6 +148,15 @@ export default class AddBox extends Component {
       }
       this.props.addTagToPerson(label, this.props.publicity);
       this.props.unsetSpecial();
+    }
+  }
+
+  handleFocus = (event) => {
+    if (this.state.value.length === 0) {
+      this.setState({value:"Add an attribute",
+                     justFocused:true});
+    } else {
+      this.setState({justFocused:true})
     }
   }
 
@@ -185,7 +205,8 @@ export default class AddBox extends Component {
     const inputProps = {
       placeholder: "Add Tags!",
       value,
-      onChange: this.onChange
+      onChange: this.onChange,
+      onFocus: this.handleFocus,
     };
 
     const renderInputComponent = inputProps => {
