@@ -16,6 +16,7 @@ import Onboarding from './Onboarding/Onboarding.js';
 import { BrowserRouter as Router, Route, withRouter } from 'react-router-dom';
 import MouseTrap from 'mousetrap';
 import Overlay from './Overlay/Overlay.jsx';
+import Feedback from './Feedback/Feedback.jsx';
 import { confirmAlert } from 'react-confirm-alert'; // Import
 import 'react-confirm-alert/src/react-confirm-alert.css'; // Import css
 
@@ -77,6 +78,7 @@ class App extends Component {
     this.setSpecial = this.setSpecial.bind(this);
     this.unsetSpecial = this.unsetSpecial.bind(this);
     this.goBack = this.goBack.bind(this);
+    this.submitFeedback = this.submitFeedback.bind(this);
 
     this.hotkeys = {
       a: {
@@ -107,6 +109,10 @@ class App extends Component {
         function: this._hadConvo,
         description: 'Mark this person as someone',
       },
+      f: {
+        function: this._displayFeedback,
+        description: 'Give Feedback',
+      },
       'command+k': {
         function: this._displayCommands,
         description: 'Display Commands',
@@ -114,10 +120,6 @@ class App extends Component {
       esc: {
         function: this._onEsc,
         description: 'Go Back',
-      },
-      f: {
-        function: this.setSpecial,
-        description: 'foo',
       },
     };
   }
@@ -193,6 +195,8 @@ class App extends Component {
   _onEsc = () => {
     if (document.getElementById('myNav').style.display === 'block') {
       document.getElementById('myNav').style.display = 'none';
+    } else if (document.getElementById('feedback').style.display === 'block') {
+      document.getElementById('feedback').style.display = 'none';
     } else if (
       this.props.match.params.mode &&
       this.props.match.params.mode === 'person'
@@ -226,6 +230,18 @@ class App extends Component {
       document.getElementById('myNav').style.display = 'block';
     } else {
       document.getElementById('myNav').style.display = 'none';
+    }
+  };
+
+  _displayFeedback = () => {
+    if (
+      document.getElementById('feedback').style.display === 'none' ||
+      document.getElementById('feedback').style.display === ''
+    ) {
+      document.getElementById('feedback').style.display = 'block';
+      document.getElementById('feedbackForm').focus();
+    } else {
+      document.getElementById('feedback').style.display = 'none';
     }
   };
 
@@ -423,6 +439,19 @@ class App extends Component {
     script.async = true;
     document.body.appendChild(script);
   }
+
+  submitFeedback = feedback => {
+    var p = new Promise((resolve, reject) => {
+      this.checkToken().then(idToken => {
+        DataStore.submitFeedback(feedback, idToken).then(response => {
+          console.log('got feedback response');
+          console.log(response);
+          resolve(response);
+        });
+      });
+    });
+    return p;
+  };
 
   createTag = (label, subject, publicity = 'public', dontSync = false) => {
     var p = new Promise((resolve, reject) => {
@@ -793,6 +822,7 @@ class App extends Component {
                 {labelToggleButtonName}
               </button>
               <Overlay hotkeys={this.hotkeys} />
+              <Feedback submitFeedback={this.submitFeedback} />
               {this.state.showAllLabels && labelButtons}
             </Col>
 

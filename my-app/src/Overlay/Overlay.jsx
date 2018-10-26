@@ -20,19 +20,20 @@ export default class Overlay extends Component {
     var hotKeyButtons = [];
     Object.keys(this.props.hotkeys).forEach((key) => {
       hotKeyButtons.push(
-        <a key={key} href='#'>{key} : {this.props.hotkeys[key].description} </a>
+        <div key={key} className="overlay-text">
+        {key}:{this.props.hotkeys[key].description}
+        <br/>
+        </div>
       )
     });
     return(
       <div>
       <div id="myNav" className="overlay">
-      <a href="javascript:void(0)" className="closebtn" onClick={() => this.closeNav()}>&times;</a>
-
         <div className="overlay-content">
           {hotKeyButtons}
         </div>
+        <button className="closebtn" onClick={() => this.closeNav()}>&times;</button>
       </div>
-
       <button onClick={() => this.openNav()}>Show Hotkeys (or Command+K)</button>
       </div>
     );

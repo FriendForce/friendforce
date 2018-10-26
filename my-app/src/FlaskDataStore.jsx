@@ -103,6 +103,20 @@ class DataStore {
 
   }
 
+  submitFeedback(feedback, token) {
+    var request = {'token':token, 'feedback':feedback}
+    let p = new Promise((resolve, reject) => {
+      axios.post(this.API_SERVER + "/feedback", request)
+      .then((response)=>{
+        resolve(response.data);
+      })
+      .catch((error)=>{
+        console.log("ERROR" + error);
+      });
+    });
+    return p;
+  }
+
 
   flaskPushTag(tag, id, token) {
     /**
