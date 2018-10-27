@@ -21,7 +21,7 @@ export default class Overlay extends Component {
     Object.keys(this.props.hotkeys).forEach((key) => {
       hotKeyButtons.push(
         <div key={key} className="overlay-text">
-        {key}:{this.props.hotkeys[key].description}
+        {key} => {this.props.hotkeys[key].description}
         <br/>
         </div>
       )

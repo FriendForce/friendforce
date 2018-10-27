@@ -52,6 +52,7 @@ class App extends Component {
       token: '',
       tokenTimestamp: 0,
       publicity: 'public',
+      lastCreatedTag: null,
     };
 
     // Bound Functions
@@ -120,6 +121,14 @@ class App extends Component {
       esc: {
         function: this._onEsc,
         description: 'Go Back',
+      },
+      'p p': {
+        function: this._flipPublicity,
+        description: 'Change the publicity of the last created tag',
+      },
+      'd d': {
+        function: this._deleteLastTag,
+        description: 'Delete the last create tag',
       },
     };
   }
@@ -205,6 +214,24 @@ class App extends Component {
     } else {
       this.props.history.goBack();
     }
+  };
+
+  _deleteLastTag = () => {
+    this.deleteTag(this.state.lastCreatedTag);
+    this.setState({ lastCreatedTag: null });
+  };
+
+  _flipPublicity = () => {
+    var tag = this.state.tags.filter(tag => {
+      return tag.id === this.state.lastCreatedTag;
+    })[0];
+    var publicity = tag.publicity;
+    if (publicity === 'public') {
+      publicity = 'private';
+    } else {
+      publicity = 'public';
+    }
+    this.updateTag(this.state.lastCreatedTag, { publicity: publicity });
   };
 
   _plusOne = () => {
@@ -465,6 +492,7 @@ class App extends Component {
           publicity,
           dontSync
         ).then(id => {
+          this.setState({ lastCreatedTag: id });
           DataStore.getAllTags().then(tags => {
             this.setState({ tags: tags });
           });
@@ -486,6 +514,7 @@ class App extends Component {
         publicity,
         dontSync
       ).then(id => {
+        this.setState({ lastCreatedTag: id });
         DataStore.getAllTags().then(tags => {
           this.setState({ tags: tags });
         });
