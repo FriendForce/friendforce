@@ -114,7 +114,7 @@ class App extends Component {
         function: this._displayFeedback,
         description: 'Give Feedback',
       },
-      'command+k': {
+      'meta+k': {
         function: this._displayCommands,
         description: 'Display Commands',
       },
