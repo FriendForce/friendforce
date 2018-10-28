@@ -577,7 +577,9 @@ class App extends Component {
     }
     if (this.props.match.params.mode.startsWith('person')) {
       var person = this.props.match.params.data;
-      this.props.history.push('/person/' + person + '/' + encodeURI(special));
+      this.props.history.push(
+        '/person-edit/' + person + '/' + encodeURI(special)
+      );
       DataStore.getAllLabels(special).then(labels => {
         this.setState({ labels: labels });
       });
