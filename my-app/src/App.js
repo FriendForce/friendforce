@@ -870,7 +870,24 @@ class App extends Component {
               />
 
               <Route
-                path="/person*/:personId"
+                path="/person/:personId"
+                render={props => (
+                  <PersonBox
+                    {...props.match.params}
+                    tags={this.state.tags.filter(
+                      tag => tag.subject === props.match.params.personId
+                    )}
+                    person={this.state.persons.filter(
+                      person => person.id === props.match.params.personId
+                    )}
+                    setTag={this.setTag}
+                    updateTag={this.updateTag}
+                    deleteTag={this.deleteTag}
+                  />
+                )}
+              />
+              <Route
+                path="/person-edit/:personId"
                 render={props => (
                   <PersonBox
                     {...props.match.params}
