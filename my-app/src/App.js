@@ -94,7 +94,7 @@ class App extends Component {
         function: this._goToNext,
         description: 'test',
       },
-      p: {
+      'alt+p': {
         function: this._togglePrivate,
         description: 'Toggle whether next tag is private',
       },

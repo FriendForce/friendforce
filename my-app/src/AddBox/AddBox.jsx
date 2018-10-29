@@ -140,7 +140,7 @@ export default class AddBox extends Component {
   }
 
    handleLabelSelection = (label) => {
-    if (label.split(":").length > 1) {
+    if (label.slice(-1)===":") {
       this.props.setSpecial(label.split(":")[0]+":");
     } else {
       if (this.props.specialLabel) {
@@ -172,6 +172,11 @@ export default class AddBox extends Component {
   };
 
    _handleKeyPress = e => {
+     if (e.charCode === 960 && e.altKey) {
+       e.preventDefault();
+
+       this.props.onPublicityChanged();
+     }
     if (this.state.suggestions.length === 0 && this.state.value !== '') {
           // Handles comlete entries
       if (e.key === 'Enter') {
